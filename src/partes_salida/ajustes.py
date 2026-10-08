@@ -46,6 +46,7 @@ class Ajustes:
     contacto_tarde_tel: str = "96 363 73 54"
     impresora: str = ""
     imprimir_directo: bool = True
+    orientacion: str = "horizontal"  # «horizontal» (148 × 105) o «vertical» (105 × 148)
     ajuste_x_mm: float = 0.0
     ajuste_y_mm: float = 0.0
     etapas_ocultas: list[str] = field(default_factory=list)

@@ -79,3 +79,42 @@ def test_parte_con_nombre_muy_largo_no_falla(qapp, datos):
     a = Alumno(id="1", nombre="MARÍA DE LOS REMEDIOS INMACULADA", apellido1="FERNÁNDEZ-CASTELLANOS",
                apellido2="DE LA SANTÍSIMA TRINIDAD", sexo="F", clase="1BAHC")
     assert not imagen_parte(_datos(a), g, ImagenesParte(g), 600).isNull()
+
+
+def test_hora_y_h_no_se_separan(datos):
+    g = GestorAjustes(datos)
+    html = texto_parte(g.valores.texto_alumna, Alumno(id="1", sexo="F"), datetime(2026, 10, 8, 12, 30))
+    assert "<b>12:30</b>&nbsp;h" in html
+
+
+@pytest.mark.parametrize(("orientacion", "tamano"), [("horizontal", (1480, 1050)), ("vertical", (1050, 1480))])
+def test_parte_en_las_dos_orientaciones(qapp, datos, orientacion, tamano):
+    g = GestorAjustes(datos)
+    g.poner(orientacion=orientacion)
+    a = Alumno(id="1", nia="1", nombre="NEREA", apellido1="BELTRÁN", apellido2="ROIG", sexo="F", clase="2BACC")
+    img = imagen_parte(_datos(a, ficticios.retrato(0)), g, ImagenesParte(g), tamano[0])
+    assert (img.width(), img.height()) == tamano
+
+
+def test_maquetas_caben_en_su_papel():
+    from partes_salida.parte import HORIZONTAL, VERTICAL
+
+    for m in (HORIZONTAL, VERTICAL):
+        for nombre in ("logo_izq", "logo_der", "titulo", "foto", "nombre", "hora", "texto", "qr", "sello", "firma", "cargo"):
+            x, y, w, h = getattr(m, nombre)
+            assert x >= 4 and x + w <= m.ancho - 4 and y >= 4 and y + h <= m.alto - 4, (m.ancho, nombre)
+
+
+def test_la_impresora_recibe_la_orientacion(qapp, datos, tmp_path):
+    from PyQt6.QtGui import QPageLayout
+    from PyQt6.QtPrintSupport import QPrinter
+
+    from partes_salida.impresion import _a6
+
+    for orientacion, esperada in (("horizontal", QPageLayout.Orientation.Landscape),
+                                  ("vertical", QPageLayout.Orientation.Portrait)):
+        impresora = QPrinter()
+        impresora.setOutputFormat(QPrinter.OutputFormat.PdfFormat)
+        impresora.setOutputFileName(str(tmp_path / f"{orientacion}.pdf"))
+        _a6(impresora, orientacion)
+        assert impresora.pageLayout().orientation() == esperada

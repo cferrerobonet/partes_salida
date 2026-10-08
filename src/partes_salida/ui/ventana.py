@@ -36,7 +36,7 @@ from .. import NOMBRE_APP, __version__
 from ..correo import construir_mensaje, contrasena_smtp, enviar
 from ..impresion import imprimir
 from ..modelo import ETAPA_CORTA, Alumno
-from ..parte import DatosParte, imagen_parte
+from ..parte import DatosParte, imagen_parte, maqueta
 from . import estilo
 from .componentes import AvisoFlotante, FlujoLayout, Tarea, boton, etiqueta, separador_vertical
 
@@ -299,8 +299,15 @@ class VistaPrevia(QLabel):
     def hasHeightForWidth(self):  # noqa: N802
         return True
 
+    #: El parte vertical se limita en alto para que quepa el botón de imprimir.
+    ALTO_MAXIMO = 380
+
+    def _maqueta(self):
+        return maqueta(self._ventana.ctx.gestor.valores.orientacion)
+
     def heightForWidth(self, ancho):  # noqa: N802
-        return round(ancho * 105 / 148)
+        m = self._maqueta()
+        return min(round(ancho * m.alto / m.ancho), self.ALTO_MAXIMO)
 
     def actualizar(self) -> None:
         self._temporizador.start()
@@ -316,7 +323,10 @@ class VistaPrevia(QLabel):
             self.setPixmap(QPixmap())
             return
         dpr = self.devicePixelRatioF() or 2
-        img = imagen_parte(datos, self._ventana.ctx.gestor, self._ventana.ctx.imagenes, int(self.width() * dpr))
+        m = self._maqueta()
+        self.setFixedHeight(self.heightForWidth(self.width()))
+        ancho = min(self.width(), self.height() * m.ancho / m.alto)
+        img = imagen_parte(datos, self._ventana.ctx.gestor, self._ventana.ctx.imagenes, int(ancho * dpr))
         pm = QPixmap.fromImage(img)
         pm.setDevicePixelRatio(dpr)
         self.setPixmap(pm)

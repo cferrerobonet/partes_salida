@@ -406,7 +406,16 @@ class DialogoAjustes(QDialog):
         actual = combo.findData(self.g.valores.impresora)
         combo.setCurrentIndex(max(actual, 0))
         combo.currentIndexChanged.connect(lambda: self.g.poner(impresora=combo.currentData() or ""))
-        ap.campo("Impresora", combo, "La de la bandeja A6. El parte sale en DIN-A6 horizontal (148 × 105 mm).")
+        ap.campo("Impresora", combo, "La de la bandeja A6.")
+        orientacion = QComboBox()
+        orientacion.addItem("Horizontal (148 × 105 mm)", "horizontal")
+        orientacion.addItem("Vertical (105 × 148 mm)", "vertical")
+        orientacion.setCurrentIndex(max(orientacion.findData(self.g.valores.orientacion), 0))
+        orientacion.currentIndexChanged.connect(lambda: self.g.poner(orientacion=orientacion.currentData()))
+        orientacion.setMaximumWidth(280)
+        ap.campo("Orientación del parte", orientacion,
+                 "El mismo contenido en las dos: en vertical, la hora pasa a una franja a todo el ancho. "
+                 "La vista previa y el parte de prueba la siguen.")
         ap.campo("Al pulsar «Imprimir»", self._casilla("Imprimir directamente, sin el diálogo del sistema", "imprimir_directo"))
         x, y = QDoubleSpinBox(), QDoubleSpinBox()
         for spin, clave in ((x, "ajuste_x_mm"), (y, "ajuste_y_mm")):

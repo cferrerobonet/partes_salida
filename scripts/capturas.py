@@ -63,6 +63,14 @@ def main() -> None:
     app.processEvents()
     ventana.grab().save(str(destino / "1-ventana-principal.png"))
 
+    from partes_salida.parte import imagen_parte
+
+    for orientacion in ("horizontal", "vertical"):
+        ctx.gestor.poner(orientacion=orientacion)
+        imagen_parte(ventana.datos_parte(), ctx.gestor, ctx.imagenes, 1200).save(
+            str(destino / f"parte-{orientacion}.png"))
+    ctx.gestor.poner(orientacion="horizontal")
+
     dialogo = DialogoAjustes(ctx, ventana)
     dialogo.ultimo_informe = informe
     dialogo._refrescar_datos()

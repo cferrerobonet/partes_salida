@@ -2,6 +2,18 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [1.0.0] - 2026-10-08
+
+Primera versión estable.
+
+### Añadido
+
+- Orientación del parte en Ajustes → Impresión: **horizontal** (148 × 105 mm, el diseño de siempre) o **vertical** (105 × 148 mm, con la hora en una franja a todo el ancho). La vista previa, la impresión y el parte de prueba siguen la elegida.
+
+### Corregido
+
+- La «h» de «12:30 h» ya no puede quedarse sola en otra línea del parte.
+
 ## [0.4.0] - 2026-10-08
 
 ### Cambiado

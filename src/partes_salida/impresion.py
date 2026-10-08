@@ -19,11 +19,11 @@ def impresoras() -> list[str]:
     return sorted(QPrinterInfo.availablePrinterNames())
 
 
-def _a6(impresora: QPrinter) -> None:
+def _a6(impresora: QPrinter, orientacion: str) -> None:
     impresora.setPageLayout(
         QPageLayout(
             QPageSize(QPageSize.PageSizeId.A6),
-            QPageLayout.Orientation.Landscape,
+            QPageLayout.Orientation.Portrait if orientacion == "vertical" else QPageLayout.Orientation.Landscape,
             QMarginsF(0, 0, 0, 0),
             QPageLayout.Unit.Millimeter,
         )
@@ -39,7 +39,7 @@ def imprimir(datos: DatosParte, contexto, padre=None) -> bool:
     directa = a.imprimir_directo and a.impresora and a.impresora in impresoras()
     if a.impresora and a.impresora in impresoras():
         impresora.setPrinterName(a.impresora)
-    _a6(impresora)
+    _a6(impresora, a.orientacion)
     if not directa:
         dialogo = QPrintDialog(impresora, padre)
         dialogo.setWindowTitle("Imprimir parte de salida")

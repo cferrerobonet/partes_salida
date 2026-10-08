@@ -53,7 +53,7 @@ Cada jefatura instala la app en su equipo y la configura a su manera (logos, sel
 | Textos del parte | Título y texto de dos líneas en femenino y masculino, con variables `{hora}`, `{nombre}`, `{curso}`, `{etapa}`, `{fecha}` |
 | Datos del alumnado | Importaciones, cifras, fotos por confirmar, etapas detectadas (se pueden ocultar), cifrado, borrar datos |
 | Correo | SMTP, remitente, contraseña (llavero), contactos de jefatura de mañana y tarde, **correo de prueba** a una dirección cualquiera |
-| Impresión | Impresora, imprimir sin diálogo, ajuste fino en mm, parte de prueba |
+| Impresión | Impresora, orientación del parte (horizontal 148 × 105 o vertical 105 × 148), imprimir sin diálogo, ajuste fino en mm, parte de prueba |
 | QR y verificación | Nombre del equipo, QR con la clave pública para la app del vigilante |
 | General | Arrancar con la sesión, siempre encima, exportar o importar ajustes, versión y actualizaciones |
 

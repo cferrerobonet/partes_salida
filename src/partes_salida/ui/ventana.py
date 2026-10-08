@@ -383,6 +383,16 @@ class VentanaPrincipal(QMainWindow):
         fila.addSpacing(8)
         fila.addWidget(self.recuento)
         fila.addSpacing(12)
+        # Aviso de versión nueva: dorado y bien visible; abre el diálogo de actualizar.
+        self.boton_actualizar = boton("", pequeno=True)
+        self.boton_actualizar.setStyleSheet(
+            f"QPushButton {{ background: {estilo.T['gold']}; border-color: {estilo.T['gold']}; color: #ffffff; }}"
+            f"QPushButton:hover {{ border-color: {estilo.T['fg']}; }}"
+        )
+        self.boton_actualizar.hide()
+        self.boton_actualizar.clicked.connect(self._ofrecer_actualizacion)
+        fila.addWidget(self.boton_actualizar)
+        fila.addSpacing(8)
         ajustes = boton("Ajustes", pequeno=True)
         ajustes.setToolTip("Ajustes (Ctrl+,)")
         ajustes.clicked.connect(lambda: self.abrir_ajustes())
@@ -678,6 +688,34 @@ class VentanaPrincipal(QMainWindow):
         self._tareas.append(tarea)
         tarea.start()
         logger.info("Aviso por correo a %d destinatarios", len(destinatarios))
+
+    # Actualizaciones
+    def actualizacion_disponible(self, version: str, url: str, notas: str) -> None:
+        """Hay versión nueva: botón dorado fijo y, la primera vez, el diálogo por encima."""
+        nueva = getattr(self, "_actualizacion", None) is None or self._actualizacion[0] != version
+        self._actualizacion = (version, url, notas)
+        self.boton_actualizar.setText(f"↑  Actualizar a {version}")
+        self.boton_actualizar.setToolTip("Hay una versión nueva de la aplicación")
+        self.boton_actualizar.show()
+        if not nueva:
+            return
+        bandeja = getattr(self, "bandeja", None)
+        if bandeja:
+            bandeja.showMessage(NOMBRE_APP, f"Hay una versión nueva ({version}). Pulsa «Actualizar» en la ventana.")
+        if self.isVisible():
+            self._ofrecer_actualizacion()
+
+    def _ofrecer_actualizacion(self) -> None:
+        from .dialogos import ofrecer
+
+        if getattr(self, "_actualizacion", None):
+            self.mostrar_al_frente()
+            ofrecer(self, *self._actualizacion)
+
+    def buscar_actualizaciones(self) -> None:
+        from .dialogos import buscar_actualizaciones
+
+        buscar_actualizaciones(self, al_encontrar=self.actualizacion_disponible)
 
     # Ventana
     def abrir_ajustes(self, apartado: str | None = None) -> None:

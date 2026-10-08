@@ -93,7 +93,7 @@ Tarjeta de 588 × 348 px con esquinas de 18 px y sombra suave, igual en claro y 
 
 Botón dorado (`gold`, texto blanco) «↑ Actualizar a X.Y.Z» en la barra superior, a la izquierda de Ajustes; diálogo con círculo dorado, título condensado, novedades en Markdown y «Actualizar ahora» como botón principal.
 
-## Parte impreso (DIN-A6 horizontal, 148 × 105 mm)
+## Parte impreso (DIN-A6 horizontal, 148 × 105 mm, por defecto)
 
 | Elemento | Posición (mm) | Estilo |
 | --- | --- | --- |
@@ -108,6 +108,10 @@ Botón dorado (`gold`, texto blanco) «↑ Actualizar a X.Y.Z» en la barra supe
 | Lugar y fecha · expedición | (30, 83.5) | 3,1 mm negrita · 2,7 mm |
 | Sello / firma | (117, 70) 25×25 · (110, 78) 27×15 | sin fondo blanco, superpuestos |
 | Cargo | alineado a la derecha, y 95.8 | 2,4 mm cursiva |
+
+### Parte vertical (105 × 148 mm)
+
+Mismo contenido y tipografía. Logos arriba (escudo 17 × 17 a la izquierda, Colegios Amigó 28 × 13 a la derecha), título a todo el ancho (6,6 mm) en y 27, foto 26 × 33 a la izquierda con etapa, curso, alumno/a y NIA apilados a su derecha, **franja de la hora** a todo el ancho (91 × 22, hora de 11,5 mm), texto de 2,8 mm, y pie con QR, lugar y fecha (en dos líneas) y sello y firma a la derecha. Las dos maquetas están en `parte.py` (`HORIZONTAL`, `VERTICAL`) y un test comprueba que todo cabe dentro del marco. Capturas: `docs/capturas/parte-horizontal.png` y `parte-vertical.png`.
 
 ## Correo a la familia
 

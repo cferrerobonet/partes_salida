@@ -6,6 +6,10 @@ Aplicación de escritorio (macOS y Windows) de las **Escuelas Profesionales Luis
 
 ![Ventana principal](docs/capturas/1-ventana-principal.png)
 
+| Parte horizontal (148 × 105 mm) | Parte vertical (105 × 148 mm) |
+| --- | --- |
+| ![Parte horizontal](docs/capturas/parte-horizontal.png) | ![Parte vertical](docs/capturas/parte-vertical.png) |
+
 - **Sin servidor y sin nube.** Los datos del alumnado se importan del Excel de Educamos y de los ZIP de fotos, y se guardan **cifrados** en el equipo. Para rehacer un equipo basta con volver a importarlos.
 - **Cada jefatura en su equipo.** Cada instalación tiene sus propios logos, sello, firma, textos y etapas visibles, sin interferir con las demás.
 - **QR firmado** (Ed25519) para que la futura app Android del vigilante distinga un parte auténtico de uno falso.

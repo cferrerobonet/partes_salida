@@ -2,11 +2,17 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [0.4.0] - 2026-10-08
+
+### Cambiado
+
+- La ayuda del Excel enseña las capturas de Educamos bajo cada paso (menú Datos → Import/Export y pestaña Exportación) y nombra la opción exacta: «Exportación de datos de los alumnos», no la de «histórico».
+
 ## [0.3.0] - 2026-10-08
 
 ### Añadido
 
-- Botón de ayuda «?» junto a la importación del Excel (dónde descargarlo en Educamos: Datos → Import/Export → Exportación de datos de alumnos → Exportar) y junto a la de las fotos (cómo preparar el ZIP y nombrar cada foto «APELLIDOS, NOMBRE»).
+- Botón de ayuda «?» junto a la importación del Excel (dónde descargarlo en Educamos: Datos → Import/Export → Exportación de datos de los alumnos → Exportar) y junto a la de las fotos (cómo preparar el ZIP y nombrar cada foto «APELLIDOS, NOMBRE»).
 - Tras importar el Excel o los ZIP, la app ofrece enviarlos a la papelera: los datos ya están cifrados y el original tiene datos sensibles (RGPD).
 
 ### Cambiado

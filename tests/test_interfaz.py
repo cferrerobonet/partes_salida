@@ -218,3 +218,12 @@ def test_reimportar_fotos_sustituye_y_anade(contexto, tmp_path):
     assert contexto.almacen.leer_foto(nerea.id) != antes
     lucia = next(a for a in contexto.alumnos if a.nombre == "LUCÍA")
     assert contexto.almacen.tiene_foto(lucia.id)
+
+
+def test_ayuda_del_excel_lleva_las_capturas_de_educamos():
+    from partes_salida.rutas import recursos
+    from partes_salida.ui.ayuda import AYUDA_EXCEL
+
+    assert any("Exportación de datos de los alumnos" in p for p in AYUDA_EXCEL.pasos)
+    for nombre, _ancho in AYUDA_EXCEL.imagenes.values():
+        assert (recursos() / nombre).exists() and nombre.isascii()

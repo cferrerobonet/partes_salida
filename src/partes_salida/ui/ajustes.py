@@ -459,7 +459,9 @@ class DialogoAjustes(QDialog):
                  "Logos, sello, firma, textos, correo e impresora. Sin datos del alumnado ni contraseñas.")
         buscar = boton("Buscar actualizaciones", pequeno=True)
         buscar.clicked.connect(self._buscar_actualizaciones)
-        ap.campo("Versión", _fila(etiqueta(__version__), buscar))
+        acerca = boton("Acerca de…", pequeno=True)
+        acerca.clicked.connect(self._acerca_de)
+        ap.campo("Versión", _fila(etiqueta(__version__), buscar, acerca))
         ruta = etiqueta(str(carpeta_datos()), "pequeno", envolver=True)
         ruta.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         ap.campo("Carpeta de datos", ruta)
@@ -668,6 +670,11 @@ class DialogoAjustes(QDialog):
             QMessageBox.warning(self, "No se han podido importar", str(e))
             return
         QMessageBox.information(self, "Ajustes importados", "Cierra y vuelve a abrir Ajustes para verlos.")
+
+    def _acerca_de(self) -> None:
+        from .presentacion import acerca_de
+
+        self._acerca = acerca_de(self)
 
     def _buscar_actualizaciones(self) -> None:
         from .dialogos import buscar_actualizaciones

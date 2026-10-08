@@ -80,14 +80,25 @@ def main(argv: list[str] | None = None) -> int:
     estilo.aplicar(app)
 
     from .contexto import Contexto
+    from .ui.presentacion import Presentacion
     from .ui.ventana import VentanaPrincipal
 
+    # Presentación con la carga real; no al arrancar oculta con la sesión.
+    presentacion = None if "--segundo-plano" in argv else Presentacion()
+    if presentacion is not None:
+        presentacion.show()
+        presentacion.paso("Cargando datos…", 3)
+    avance = presentacion.paso if presentacion is not None else None
     try:
-        ctx = Contexto()
+        ctx = Contexto(avance=avance)
     except Exception as e:  # noqa: BLE001
         logger.exception("No se pudo preparar la aplicación")
+        if presentacion is not None:
+            presentacion.close()
         QMessageBox.critical(None, NOMBRE_APP, f"No se puede abrir la aplicación:\n{e}\n\nRegistro: {ruta_log}")
         return 1
+    if presentacion is not None:
+        presentacion.paso("Preparando la ventana…", 86)
     ventana = VentanaPrincipal(ctx)
     app.ventana = ventana
 
@@ -123,9 +134,14 @@ def main(argv: list[str] | None = None) -> int:
         ventana.bandeja = bandeja
         ventana._menu_bandeja = menu
 
-    if "--segundo-plano" not in argv:
+    def al_terminar():
         mostrar()
-    if ctx.aviso_inicio:
+        if ctx.aviso_inicio:
+            QMessageBox.warning(ventana, NOMBRE_APP, ctx.aviso_inicio)
+
+    if presentacion is not None:
+        presentacion.terminar(al_terminar)
+    elif ctx.aviso_inicio:
         QMessageBox.warning(ventana, NOMBRE_APP, ctx.aviso_inicio)
 
     if PRUEBA:
@@ -133,7 +149,7 @@ def main(argv: list[str] | None = None) -> int:
             logger.info(MARCA_PRUEBA)
             salir()
 
-        QTimer.singleShot(1500, fin_de_prueba)
+        QTimer.singleShot(3000, fin_de_prueba)
     else:
         # Al abrir y, como la app pasa el día abierta, cada 4 horas.
         QTimer.singleShot(4000, ventana.buscar_actualizaciones)

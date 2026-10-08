@@ -50,6 +50,8 @@ flowchart TB
 | `ui/estilo.py` | Tokens claro y oscuro, hoja de estilos, tipografías, iconos dibujados | Fuente de verdad visual |
 | `ui/ventana.py` | Ventana principal: lista con delegado, ficha, vista previa, impresión y aviso | |
 | `ui/ajustes.py` | Ventana de Ajustes; importaciones en `Tarea` (QThread) | |
+| `ui/presentacion.py` | Presentación al abrir con el progreso real (`Contexto(avance=…)`) y «Acerca de» | Dibujada a mano (QPainter) |
+| `ui/dialogos.py` | Fotos por confirmar; diálogo de actualización y descarga | El aviso se ancla en la barra de la ventana |
 
 ## 3. Flujos
 

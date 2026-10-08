@@ -146,3 +146,20 @@ def test_dialogo_de_actualizacion_destaca_actualizar(qtbot):
     qtbot.addWidget(d)
     principal = [b for b in d.findChildren(QPushButton) if b.property("primario")]
     assert [b.text() for b in principal] == ["Actualizar ahora"]
+
+
+def test_presentacion_cuenta_la_carga_y_acerca_de_se_cierra(qtbot, datos):
+    from partes_salida.contexto import Contexto
+    from partes_salida.ui.presentacion import Presentacion
+
+    p = Presentacion()
+    qtbot.addWidget(p)
+    pasos = []
+    Contexto(datos, avance=lambda t, v: (pasos.append(t), p.paso(t, v)))
+    assert "Descifrando los datos del alumnado…" in pasos
+    assert p._texto == pasos[-1]
+    a = Presentacion(acerca_de=True)
+    qtbot.addWidget(a)
+    a.show()
+    qtbot.mouseClick(a, Qt.MouseButton.LeftButton)
+    assert not a.isVisible()

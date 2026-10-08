@@ -2,6 +2,19 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [0.2.0] - 2026-10-08
+
+Primera versión con instaladores para macOS y Windows.
+
+### Añadido
+
+- Pantalla de presentación al abrir la app, con el escudo, la versión, la autoría y el progreso real de la carga («Descifrando los datos del alumnado…»). La misma tarjeta, en Ajustes → General → «Acerca de…».
+- Aviso de versión nueva bien visible: al abrir la app sale una ventana por encima con las novedades y «Actualizar ahora»; si se deja para más tarde, queda un botón dorado «Actualizar a X.Y.Z» en la barra superior. Con la app abierta todo el día, se vuelve a comprobar cada 4 horas.
+
+### Corregido
+
+- La prueba automática de arranque de macOS no llegaba a abrir la app (su ruta tiene espacios).
+
 ## [0.1.0] - 2026-10-08
 
 Primera versión.

@@ -106,7 +106,7 @@ La interfaz nunca espera a la red ni al disco largo: importar y enviar correo va
 | Quiero… | Dónde |
 | --- | --- |
 | Leer otra columna del Excel | `importar_excel.COLUMNAS` + campo en `Alumno` + ADR + [SEGURIDAD_Y_DATOS.md](SEGURIDAD_Y_DATOS.md) |
-| Cambiar la maquetación del parte | `parte.dibujar_parte` (coordenadas en mm) + `make capturas` + parte de prueba impreso |
+| Cambiar la maquetación del parte | Las maquetas `HORIZONTAL` y `VERTICAL` de `parte.py` (posiciones en mm; `dibujar_parte` no tiene coordenadas) + `make capturas` + parte de prueba impreso |
 | Un ajuste nuevo | campo en `ajustes.Ajustes` (con valor por defecto: los JSON antiguos siguen valiendo) + control en `ui/ajustes.py` |
 | Otra etapa | `modelo.ETAPAS`, `ORDEN_ETAPAS`, `ETAPA_CORTA` |
 | Cambiar el QR | `firma.py` + `android/ESPECIFICACION_QR.md` + `make vectores` + versión mayor |

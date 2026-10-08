@@ -163,3 +163,58 @@ def test_presentacion_cuenta_la_carga_y_acerca_de_se_cierra(qtbot, datos):
     a.show()
     qtbot.mouseClick(a, Qt.MouseButton.LeftButton)
     assert not a.isVisible()
+
+
+def test_ayudas_de_importacion_junto_a_cada_zona(qtbot, contexto, monkeypatch):
+    from partes_salida.ui.ajustes import DialogoAjustes
+    from partes_salida.ui.ayuda import AYUDA_EXCEL, AYUDA_FOTOS, DialogoAyuda
+
+    abiertas = []
+    monkeypatch.setattr(DialogoAyuda, "exec", lambda self: abiertas.append(self.windowTitle()) or 1)
+    d = DialogoAjustes(contexto, None, "Datos del alumnado")
+    qtbot.addWidget(d)
+    assert not d.zona_excel.ayuda.isHidden() and not d.zona_fotos.ayuda.isHidden()
+    qtbot.mouseClick(d.zona_excel.ayuda, Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(d.zona_fotos.ayuda, Qt.MouseButton.LeftButton)
+    assert len(abiertas) == 2
+    assert any("Import/Export" in p for p in AYUDA_EXCEL.pasos)
+    assert any("APELLIDOS, NOMBRE" in p for p in AYUDA_FOTOS.pasos)
+    for ayuda in (AYUDA_EXCEL, AYUDA_FOTOS):
+        qtbot.addWidget(DialogoAyuda(ayuda))
+
+
+def test_enviar_a_la_papelera(tmp_path):
+    from partes_salida.ui.ajustes import enviar_a_papelera
+
+    archivo = tmp_path / "x.txt"
+    archivo.write_text("x")
+    if enviar_a_papelera(str(archivo)):
+        assert not archivo.exists()
+
+
+def test_reimportar_excel_sustituye_y_conserva_fotos_de_quien_sigue(contexto, alumnos):
+    nerea = next(a for a in alumnos if a.nombre == "NEREA")
+    marc = next(a for a in alumnos if a.nombre == "MARC")
+    assert contexto.almacen.tiene_foto(nerea.id) and contexto.almacen.tiene_foto(marc.id)
+    borradas = contexto.nuevo_padron([nerea], "nuevo.xlsx")
+    assert [a.id for a in contexto.alumnos] == [nerea.id]
+    assert borradas >= 1 and contexto.almacen.tiene_foto(nerea.id) and not contexto.almacen.tiene_foto(marc.id)
+
+
+def test_reimportar_fotos_sustituye_y_anade(contexto, tmp_path):
+    import zipfile
+
+    from partes_salida.importar_fotos import importar_fotos
+    from tests import ficticios
+
+    nerea = next(a for a in contexto.alumnos if a.nombre == "NEREA")
+    antes = contexto.almacen.leer_foto(nerea.id)
+    ruta = tmp_path / "nuevas.zip"
+    with zipfile.ZipFile(ruta, "w") as z:
+        z.writestr("otra/carpeta/BELTRÁN ROIG, NEREA.jpg", ficticios.retrato(3))
+        z.writestr("QUILES ROMERO, LUCÍA.png", ficticios.retrato(4))
+    inf = importar_fotos([ruta], contexto.alumnos, contexto.almacen)
+    assert inf.asignadas == 2
+    assert contexto.almacen.leer_foto(nerea.id) != antes
+    lucia = next(a for a in contexto.alumnos if a.nombre == "LUCÍA")
+    assert contexto.almacen.tiene_foto(lucia.id)

@@ -42,9 +42,17 @@ from ..modelo import ETAPA_CORTA, Alumno
 from ..rutas import carpeta_datos
 from ..sistema import arranque_con_sistema
 from . import estilo
+from .ayuda import AYUDA_EXCEL, AYUDA_FOTOS, DialogoAyuda
 from .componentes import FlujoLayout, Miniatura, Tarea, ZonaSoltar, boton, etiqueta
 
 logger = logging.getLogger(__name__)
+
+def enviar_a_papelera(ruta: str) -> bool:
+    from PyQt6.QtCore import QFile
+
+    resultado = QFile.moveToTrash(ruta)
+    return bool(resultado[0] if isinstance(resultado, tuple) else resultado)
+
 
 APARTADOS = [
     "Logos e identidad",
@@ -279,14 +287,17 @@ class DialogoAjustes(QDialog):
         self.zona_excel = ZonaSoltar(
             "Excel del alumnado (exportación de Educamos)", "", "Importar Excel…", (".xls", ".xlsx"), "▤"
         )
+        self.zona_excel.con_ayuda(lambda: self._ayuda(AYUDA_EXCEL))
         self.zona_excel.boton.clicked.connect(self._elegir_excel)
         self.zona_excel.archivos.connect(lambda r: self._importar_excel(r[0]))
         ap.poner(self.zona_excel)
         self.zona_fotos = ZonaSoltar(
             "Fotos (uno o varios ZIP, con subcarpetas)",
-            "Archivos «APELLIDOS, NOMBRE.png» o .jpg. Las que no son de ningún alumno se ignoran.",
+            "Archivos «APELLIDOS, NOMBRE.png» o .jpg, en las carpetas que sea. Sustituyen a las que había y se "
+            "añaden las nuevas; las que no son de ningún alumno se ignoran.",
             "Importar ZIP…", (".zip",), "◩",
         )
+        self.zona_fotos.con_ayuda(lambda: self._ayuda(AYUDA_FOTOS))
         self.zona_fotos.boton.clicked.connect(self._elegir_zips)
         self.zona_fotos.archivos.connect(self._importar_fotos)
         ap.poner(self.zona_fotos)
@@ -330,9 +341,11 @@ class DialogoAjustes(QDialog):
             "Del Excel solo se guardan nombre, sexo, clase, NIA, fecha de nacimiento, teléfonos y, de cada familiar, "
             "nombre, parentesco, correo y teléfono. DNI, IBAN, tarjeta sanitaria y direcciones se descartan.",
         )
-        borrar = boton("Borrar todos los datos del alumnado…", pequeno=True, peligro=True)
+        borrar = boton("Vaciar todos los datos del alumnado…", pequeno=True, peligro=True)
         borrar.clicked.connect(self._borrar_datos)
-        ap.poner(_fila(borrar))
+        ap.campo("Fin de curso", _fila(borrar),
+                 "Borra el padrón y todas las fotos de este equipo para empezar de cero (por ejemplo, en septiembre). "
+                 "Los ajustes, el sello y la firma se conservan.")
         ap.fin()
         self._refrescar_datos()
         return ap
@@ -546,6 +559,7 @@ class DialogoAjustes(QDialog):
             if not self.ctx.con_foto:
                 texto += "\n\nAhora importa los ZIP con las fotos."
             QMessageBox.information(self, "Excel importado", texto)
+            self._ofrecer_papelera([ruta], "el Excel")
 
         tarea.terminado.connect(listo)
         self._lanzar(tarea, progreso)
@@ -574,6 +588,7 @@ class DialogoAjustes(QDialog):
             QMessageBox.information(self, "Fotos importadas", texto)
             if informe.dudosas:
                 self._revisar()
+            self._ofrecer_papelera(rutas, "el ZIP" if len(rutas) == 1 else "los ZIP")
 
         tarea.terminado.connect(listo)
         self._lanzar(tarea, progreso)
@@ -594,11 +609,37 @@ class DialogoAjustes(QDialog):
             self.ctx.fotos_cambiadas()
             self._refrescar_datos()
 
+    def _ayuda(self, ayuda) -> None:
+        DialogoAyuda(ayuda, self).exec()
+
+    def _ofrecer_papelera(self, rutas: list[str], que: str) -> None:
+        """Tras cifrar, el original sobra y tiene datos sensibles (RGPD): a la papelera."""
+        existentes = [r for r in rutas if Path(r).exists()]
+        if not existentes:
+            return
+        caja = QMessageBox(self)
+        caja.setIcon(QMessageBox.Icon.Warning)
+        caja.setWindowTitle("Proteger los datos")
+        caja.setText(f"Los datos ya están cifrados en la app. ¿Envío {que} a la papelera?")
+        caja.setInformativeText(
+            "Contiene datos personales del alumnado y no hace falta conservarlo (RGPD). "
+            "Después, vacía la papelera.\n\n" + "\n".join(Path(r).name for r in existentes)
+        )
+        enviar = caja.addButton("Enviar a la papelera", QMessageBox.ButtonRole.AcceptRole)
+        caja.addButton("Lo borraré yo", QMessageBox.ButtonRole.RejectRole)
+        caja.setDefaultButton(enviar)
+        caja.exec()
+        if caja.clickedButton() is not enviar:
+            return
+        fallidos = [Path(r).name for r in existentes if not enviar_a_papelera(r)]
+        if fallidos:
+            QMessageBox.warning(self, "No se ha podido", "Bórralo a mano: " + ", ".join(fallidos))
+
     def _borrar_datos(self) -> None:
         r = QMessageBox.warning(
             self, "Borrar los datos del alumnado",
-            "Se borran el padrón y todas las fotos de este equipo. Los ajustes se conservan.\n\n"
-            "Para recuperarlos habrá que volver a importar el Excel y los ZIP.",
+            "Se borran el padrón y todas las fotos de este equipo. Los ajustes, el sello y la firma se conservan.\n\n"
+            "Para volver a tener datos habrá que importar el Excel y los ZIP del curso nuevo.",
             QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Discard,
             QMessageBox.StandardButton.Cancel,
         )

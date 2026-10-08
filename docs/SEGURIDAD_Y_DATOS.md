@@ -10,7 +10,7 @@ La app trata datos de menores (nombre, foto, curso, teléfonos y correos de la f
 | ZIP de fotos | Una foto por alumno, reducida a 360 × 480 JPEG | Fotos que no son de ningún alumno del Excel, nombres de archivo y carpetas |
 | Ajustes | Logos, sello, firma, textos, contactos de jefatura, impresora | — |
 
-La lista exacta de columnas leídas está en `src/partes_salida/importar_excel.py` (`COLUMNAS`); el Excel y los ZIP originales no se copian: se leen en memoria.
+La lista exacta de columnas leídas está en `src/partes_salida/importar_excel.py` (`COLUMNAS`); el Excel y los ZIP originales no se copian: se leen en memoria. Al terminar, la app ofrece **enviarlos a la papelera** (y la ayuda recuerda vaciarla): conservarlos en el equipo es innecesario y contrario al RGPD.
 
 ## 2. Dónde vive cada cosa
 

@@ -2,6 +2,18 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [0.3.0] - 2026-10-08
+
+### Añadido
+
+- Botón de ayuda «?» junto a la importación del Excel (dónde descargarlo en Educamos: Datos → Import/Export → Exportación de datos de alumnos → Exportar) y junto a la de las fotos (cómo preparar el ZIP y nombrar cada foto «APELLIDOS, NOMBRE»).
+- Tras importar el Excel o los ZIP, la app ofrece enviarlos a la papelera: los datos ya están cifrados y el original tiene datos sensibles (RGPD).
+
+### Cambiado
+
+- «Vaciar todos los datos del alumnado» pasa al apartado «Fin de curso», para empezar de cero en septiembre.
+- Ajustes explica qué pasa al volver a importar: un Excel nuevo sustituye a todo el alumnado (y borra las fotos de las bajas); unas fotos nuevas sustituyen a las anteriores y se añaden las que falten.
+
 ## [0.2.0] - 2026-10-08
 
 Primera versión con instaladores para macOS y Windows.

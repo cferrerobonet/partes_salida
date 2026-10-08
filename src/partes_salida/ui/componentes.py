@@ -157,8 +157,22 @@ class ZonaSoltar(QFrame):
         self.explicacion = etiqueta(explicacion, "muted", envolver=True)
         textos.addWidget(self.explicacion)
         fila.addLayout(textos, 1)
+        # Ayuda opcional junto al botón: «?» redondo que abre de dónde sale el archivo.
+        self.ayuda = boton("?", pequeno=True)
+        self.ayuda.setFixedSize(28, 28)
+        self.ayuda.setToolTip("Cómo conseguir y preparar este archivo")
+        self.ayuda.setStyleSheet(
+            f"QPushButton {{ border-radius: 14px; padding: 0; font-weight: 700; color: {estilo.T['accent']}; }}"
+        )
+        self.ayuda.hide()
+        fila.addWidget(self.ayuda, 0, Qt.AlignmentFlag.AlignVCenter)
         self.boton = boton(texto_boton, pequeno=True)
         fila.addWidget(self.boton, 0, Qt.AlignmentFlag.AlignVCenter)
+
+    def con_ayuda(self, abrir: Callable[[], None]) -> ZonaSoltar:
+        self.ayuda.clicked.connect(abrir)
+        self.ayuda.show()
+        return self
 
     def _validos(self, evento) -> list[str]:
         urls = evento.mimeData().urls() if evento.mimeData().hasUrls() else []

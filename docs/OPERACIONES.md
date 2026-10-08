@@ -19,7 +19,11 @@ Buscar → comprobar → ⌘P / Ctrl+P. La app queda en la barra de menús o la 
 
 ## 3. Actualizar el alumnado
 
-Cuando cambie la matrícula (inicio de curso, altas): exportar de Educamos y arrastrar el Excel a Ajustes → Datos del alumnado. Sustituye el padrón y borra las fotos de las bajas. Fotos nuevas: arrastrar los ZIP (se pueden repetir; gana la más reciente).
+Cuando cambie la matrícula (inicio de curso, altas): en Educamos, **Datos → Import/Export → Exportación de datos de alumnos → Exportar**, y arrastrar el Excel a Ajustes → Datos del alumnado (la «?» lo recuerda). Sustituye el padrón y borra las fotos de las bajas. Fotos nuevas: arrastrar los ZIP; sustituyen a las que había y añaden las que faltaban.
+
+Al terminar cada importación, aceptar **enviar el archivo a la papelera** y vaciarla: el original tiene datos sensibles y la app ya los guarda cifrados.
+
+**Fin de curso**: Ajustes → Datos del alumnado → «Vaciar todos los datos del alumnado» y, en septiembre, importar de nuevo.
 
 ## 4. Restaurar o cambiar de equipo
 

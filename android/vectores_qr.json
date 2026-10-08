@@ -1,0 +1,50 @@
+{
+  "formato": "PS1|<id clave>|<id alumno>|<salida AAAAMMDDhhmm>|<expedido AAAAMMDDhhmm>|<firma Ed25519 base64url>",
+  "aviso": "Clave de PRUEBA con semilla pública: no sirve para firmar partes reales.",
+  "id_clave": "56475AA7",
+  "clave_publica": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+  "qr_de_clave": "PSK1|56475AA7|A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg|Equipo de prueba",
+  "casos": [
+    {
+      "descripcion": "Parte auténtico",
+      "qr": "PS1|56475AA7|10519873|202610081230|202610080914|Y4sogzf2XvZCwc7haDgGFiNevlQl7W1khjmxl0cgu_z7rQgJCA7bUp1OygnkNapFS2KWN99CfK8Amf6UpyFJAQ",
+      "valido": true,
+      "id_alumno": "10519873",
+      "salida": "2026-10-08T12:30",
+      "expedido": "2026-10-08T09:14"
+    },
+    {
+      "descripcion": "Alumno sin NIA (id de persona)",
+      "valido": true,
+      "qr": "PS1|56475AA7|P90012|202610081230|202610080914|q9iEUvRtnWNqlyoY4hjJ2aLx2HYw2OLcQohXxAAHxprWZUisYAqzF60o04tyLUxiNlFEfncIQAsVkgioegjqCg",
+      "id_alumno": "P90012",
+      "salida": "2026-10-08T12:30",
+      "expedido": "2026-10-08T09:14"
+    },
+    {
+      "descripcion": "Hora de salida cambiada a mano",
+      "qr": "PS1|56475AA7|10519873|202610081430|202610080914|Y4sogzf2XvZCwc7haDgGFiNevlQl7W1khjmxl0cgu_z7rQgJCA7bUp1OygnkNapFS2KWN99CfK8Amf6UpyFJAQ",
+      "valido": false
+    },
+    {
+      "descripcion": "NIA cambiado",
+      "qr": "PS1|56475AA7|10519874|202610081230|202610080914|Y4sogzf2XvZCwc7haDgGFiNevlQl7W1khjmxl0cgu_z7rQgJCA7bUp1OygnkNapFS2KWN99CfK8Amf6UpyFJAQ",
+      "valido": false
+    },
+    {
+      "descripcion": "Firma recortada",
+      "qr": "PS1|56475AA7|10519873|202610081230|202610080914|Y4sogzf2XvZCwc7haDgGFiNevlQl7W1khjmxl0cgu_z7rQgJCA7bUp1OygnkNapFS2KWN99CfK8Amf6Upy",
+      "valido": false
+    },
+    {
+      "descripcion": "Firmado por un equipo que no está dado de alta",
+      "qr": "PS1|65B60673|10519873|202610081230|202610080914|QNcfbHAIo6c5OnZRddQp2GaUP7ziowvZUkLw7mDhz-O4r1m8es9oW1pvIIE2i2eTc6t6Z-_lzGXGBjTe-OjLDw",
+      "valido": false
+    },
+    {
+      "descripcion": "Texto que no es un parte",
+      "qr": "https://epla.es",
+      "valido": false
+    }
+  ]
+}

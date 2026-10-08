@@ -1,0 +1,18 @@
+# Dependencias de ejecución, fijadas. Las de desarrollo van en requirements-dev.txt.
+# Para actualizar una: cambiar la versión aquí, `make venv`, pasar `make test` y probar `make app`.
+
+# Interfaz e impresión (las mismas versiones que Guardias de patio: probadas en Windows)
+PyQt6==6.7.0
+PyQt6-Qt6==6.7.3
+
+# Cifrado, llavero y TLS
+cryptography==50.0.2
+keyring==25.7.0
+certifi==2026.7.22
+
+# Excel de Educamos (.xls y .xlsx), fotos, QR y búsqueda tolerante
+xlrd==2.0.2
+openpyxl==3.1.5
+pillow==12.3.0
+segno==1.6.6
+RapidFuzz==3.14.6

@@ -1,0 +1,12 @@
+-r requirements.txt
+
+# Tests: unitarios, de interfaz (pytest-qt) y del correo en un navegador real (Playwright)
+pytest==9.1.1
+pytest-qt==4.5.0
+pytest-timeout==2.4.0
+playwright==1.63.0
+pytest-playwright==0.9.0
+
+# Calidad y empaquetado
+ruff==0.16.10
+pyinstaller==6.22.3

@@ -1,0 +1,125 @@
+"""La app de punta a punta con pytest-qt: buscar, elegir, avisar e imprimir."""
+
+import pytest
+from PyQt6.QtCore import Qt, QTime
+
+pytestmark = pytest.mark.ui
+
+
+@pytest.fixture
+def ventana(qtbot, contexto):
+    from partes_salida.ui.ventana import VentanaPrincipal
+
+    v = VentanaPrincipal(contexto)
+    qtbot.addWidget(v)
+    v.show()
+    return v
+
+
+def buscar(qtbot, v, texto):
+    v.buscador.setText(texto)
+    v.actualizar_lista()
+    qtbot.wait(10)
+
+
+def test_arranca_con_recuento_y_etapas(ventana, contexto):
+    assert "13 alumnos" in ventana.recuento.text()
+    textos = [b.text() for b in ventana.grupo_etapas.buttons()]
+    assert textos[0] == "Todas" and "G. Superior" in textos and "Infantil" in textos
+
+
+def test_buscar_elige_al_primero_y_muestra_ficha(qtbot, ventana):
+    buscar(qtbot, ventana, "beltran")
+    assert ventana.modelo.rowCount() == 1
+    assert ventana.ficha.alumno.nombre == "NEREA"
+    assert "NEREA" in ventana.ficha.nombre.text()
+    assert ventana.boton_imprimir.isEnabled()
+    assert "madre y padre" in ventana.resumen.text()
+
+
+def test_mayor_de_edad_sale_sin_aviso(qtbot, ventana):
+    buscar(qtbot, ventana, "gimeno")
+    assert ventana.ficha.alumno.edad() >= 18
+    assert ventana.ficha.destinatarios() == []
+    assert ventana.resumen.text() == "Sin aviso por correo"
+
+
+def test_familiar_que_no_recibe_informacion_no_se_puede_marcar(qtbot, ventana):
+    buscar(qtbot, ventana, "castello")
+    assert [t.parentesco_texto for t in ventana.ficha.destinatarios()] == ["Madre"]
+
+
+def test_filtrar_por_etapa_y_limpiar(qtbot, ventana):
+    boton = next(b for b in ventana.grupo_etapas.buttons() if b.text() == "G. Superior")
+    qtbot.mouseClick(boton, Qt.MouseButton.LeftButton)
+    assert {a.etapa_codigo for a in ventana.modelo.alumnos} == {"CFS"}
+    ventana.limpiar_filtros()
+    assert ventana.modelo.rowCount() == 13
+
+
+def test_imprimir_firma_el_qr_y_avisa(qtbot, ventana, monkeypatch, contexto):
+    from partes_salida.firma import verificar
+
+    impresos, enviados = [], []
+    monkeypatch.setattr("partes_salida.ui.ventana.imprimir", lambda datos, ctx, padre: impresos.append(datos) or True)
+    monkeypatch.setattr("partes_salida.ui.ventana.contrasena_smtp", lambda a: "clave")
+    monkeypatch.setattr("partes_salida.ui.ventana.enviar", lambda msg, a, c: enviados.append(msg))
+    buscar(qtbot, ventana, "nerea")
+    ventana.hora.setTime(QTime(12, 30))
+    ventana.imprimir()
+    qtbot.waitUntil(lambda: bool(enviados), timeout=3000)
+    datos = impresos[0]
+    assert datos.salida.strftime("%H:%M") == "12:30"
+    assert verificar(datos.qr, {contexto.firmante.id_clave: contexto.firmante.publica}).valido
+    assert enviados[0]["To"] == "amparo.roig@ejemplo.es, vicent.beltran@ejemplo.es"
+
+
+def test_sin_contrasena_avisa_y_no_envia(qtbot, ventana, monkeypatch):
+    avisos = []
+    monkeypatch.setattr("partes_salida.ui.ventana.imprimir", lambda *a: True)
+    monkeypatch.setattr("partes_salida.ui.ventana.contrasena_smtp", lambda a: None)
+    monkeypatch.setattr("partes_salida.ui.ventana.QMessageBox.warning", lambda *a: avisos.append(a[2]))
+    buscar(qtbot, ventana, "nerea")
+    ventana.imprimir()
+    assert avisos and "contraseña" in avisos[0]
+
+
+def test_vista_previa_se_pinta(qtbot, ventana):
+    buscar(qtbot, ventana, "nerea")
+    ventana.vista._pintar()
+    assert not ventana.vista.pixmap().isNull()
+
+
+def test_cerrar_oculta_en_vez_de_salir(qtbot, ventana):
+    ventana.close()
+    assert not ventana.isVisible()
+    ventana.mostrar_al_frente()
+    assert ventana.isVisible()
+
+
+def test_ajustes_abre_todos_los_apartados(qtbot, contexto):
+    from partes_salida.ui.ajustes import APARTADOS, DialogoAjustes
+
+    d = DialogoAjustes(contexto, None, "Correo")
+    qtbot.addWidget(d)
+    assert d.pila.currentIndex() == APARTADOS.index("Correo")
+    for i in range(len(APARTADOS)):
+        d.nav.setCurrentRow(i)
+        assert d.pila.currentIndex() == i
+
+
+def test_ocultar_etapa_desde_ajustes(qtbot, contexto, ventana):
+    contexto.gestor.poner(etapas_ocultas=["INF", "PRI"])
+    contexto.ajustes_cambiados.emit()
+    assert all(a.etapa_codigo not in ("INF", "PRI") for a in ventana.modelo.alumnos)
+    assert "Infantil" not in [b.text() for b in ventana.grupo_etapas.buttons()]
+
+
+def test_sin_datos_invita_a_importar(qtbot, datos, qapp):
+    from partes_salida.contexto import Contexto
+    from partes_salida.ui.ventana import VentanaPrincipal
+
+    v = VentanaPrincipal(Contexto(datos))
+    qtbot.addWidget(v)
+    assert v.ficha.pila.currentIndex() == 0 and not v.boton_imprimir.isEnabled()
+    assert "importando" in v.ficha.vacio_titulo.text()

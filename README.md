@@ -2,6 +2,8 @@
 
 Aplicación de escritorio (macOS y Windows) de las **Escuelas Profesionales Luis Amigó (EPLA)** que imprime en **DIN-A6** el pase de salida de un alumno —foto, etapa, curso, nombre, hora de salida, sello, firma y un QR firmado— y, si se marca, avisa a la familia por correo.
 
+![Presentación](docs/capturas/0-presentacion.png)
+
 ![Ventana principal](docs/capturas/1-ventana-principal.png)
 
 - **Sin servidor y sin nube.** Los datos del alumnado se importan del Excel de Educamos y de los ZIP de fotos, y se guardan **cifrados** en el equipo. Para rehacer un equipo basta con volver a importarlos.

@@ -85,6 +85,14 @@ Radios: 7–8 px campos y botones, 10 px cajas, 13 px chips, 12 px lienzos. Úni
 - **Zona de soltar**: icono, título, explicación y botón; acepta arrastrar archivos.
 - **Cifras**: tarjetas con número en Barlow Condensed (alumnos, con foto, por confirmar, sobrantes).
 
+## Presentación y «Acerca de»
+
+Tarjeta de 588 × 348 px con esquinas de 18 px y sombra suave, igual en claro y oscuro. Banda superior (200 px) en degradado verde EPLA (`#1c5226` → `#2c7a3a`) con el engranaje del escudo en filigrana y filete dorado; escudo en medallón blanco; «JEFATURA DE ESTUDIOS · EPLA» (13 px, espaciado), título en Barlow Condensed ExtraBold 46 px, lema y pastilla de versión. Debajo, el paso de carga (15 px semibold) y la barra dorada de 6 px; pie con el centro, la autoría y el logo de Colegios Amigó. Código: `ui/presentacion.py`; captura: `docs/capturas/0-presentacion.png`.
+
+## Aviso de actualización
+
+Botón dorado (`gold`, texto blanco) «↑ Actualizar a X.Y.Z» en la barra superior, a la izquierda de Ajustes; diálogo con círculo dorado, título condensado, novedades en Markdown y «Actualizar ahora» como botón principal.
+
 ## Parte impreso (DIN-A6 horizontal, 148 × 105 mm)
 
 | Elemento | Posición (mm) | Estilo |

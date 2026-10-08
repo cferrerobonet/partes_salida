@@ -24,16 +24,22 @@ class Contexto(QObject):
     padron_cambiado = pyqtSignal()
     ajustes_cambiados = pyqtSignal()
 
-    def __init__(self, carpeta: Path | None = None):
+    def __init__(self, carpeta: Path | None = None, avance=None):
+        """`avance(texto, porcentaje)` cuenta cada paso a la pantalla de presentación."""
         super().__init__()
+        avance = avance or (lambda _t, _p: None)
+        avance("Abriendo la configuración de este equipo…", 8)
         self.carpeta = Path(carpeta or carpeta_datos())
         self.gestor = GestorAjustes(self.carpeta)
+        avance("Recuperando las claves del llavero del sistema…", 22)
         self.cifrador = Cifrador.del_llavero()
         self.almacen = Almacen(self.carpeta, self.cifrador)
+        avance("Preparando la firma de los partes…", 36)
         self.firmante = Firmante.del_llavero()
         self.imagenes = ImagenesParte(self.gestor)
         self.aviso_inicio = ""
         self._miniaturas: OrderedDict = OrderedDict()
+        avance("Descifrando los datos del alumnado…", 52)
         try:
             padron = self.almacen.cargar_padron()
         except DatosIlegibles:
@@ -44,6 +50,7 @@ class Contexto(QObject):
                 "Los datos del alumnado guardados no se pueden abrir con la clave de este equipo "
                 "(el llavero del sistema ha cambiado). Vuelve a importar el Excel y las fotos."
             )
+        avance("Preparando el buscador…", 70)
         self._poner(padron or Padron([]))
 
     def _poner(self, padron: Padron) -> None:

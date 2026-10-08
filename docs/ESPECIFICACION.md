@@ -82,5 +82,6 @@ El vigilante escanea el QR: «auténtico» con NIA y hora de salida, o «falso /
 - **Siempre a mano**: cerrar la ventana la oculta; la app sigue en la barra de menús o la bandeja. Una sola instancia: abrirla otra vez trae la ventana al frente.
 - **Ventana compacta** (1100 × 700, mínimo 980 × 620), modo claro y oscuro según el sistema.
 - **Privacidad**: ver [SEGURIDAD_Y_DATOS.md](SEGURIDAD_Y_DATOS.md).
-- **Actualización**: al arrancar consulta GitHub y ofrece descargar e instalar la versión nueva.
+- **Presentación**: al abrir, una tarjeta corporativa (escudo, título, versión, autoría) muestra el progreso real de la carga; dura al menos 1,4 s y se cierra con un fundido. No sale al arrancar oculta con la sesión.
+- **Actualización**: al arrancar (y cada 4 horas) consulta GitHub. Si hay versión nueva: diálogo por encima de la app con las novedades del CHANGELOG y «Actualizar ahora» destacado; si se pospone, botón dorado «Actualizar a X.Y.Z» fijo en la barra superior. También en Ajustes → General → «Buscar actualizaciones».
 - **Plataformas**: macOS (Apple Silicon e Intel según el runner de GitHub) y Windows 10/11 x64; instalación sin permisos de administrador.

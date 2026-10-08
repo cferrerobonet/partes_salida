@@ -40,7 +40,7 @@ Cada jefatura instala la app en su equipo y la configura a su manera (logos, sel
 - Fotos: uno o varios ZIP, con carpetas y subcarpetas; archivos `APELLIDOS, NOMBRE.png|jpg`. Se casan sin tildes ni mayúsculas; las casi iguales (≥ 88 % de parecido) se confirman en una ventana; las que no son de nadie se ignoran. Si un alumno sale dos veces, gana la foto más reciente del ZIP.
 - **Volver a importar**: un Excel nuevo sustituye a todo el alumnado (es el colegio entero) y borra las fotos de quien ya no está; las de quien sigue se conservan. Unas fotos nuevas sustituyen a las que ya tenía cada alumno y se añaden las que faltaban.
 - **Después de importar**, la app ofrece enviar el Excel o los ZIP a la papelera (RGPD): los datos ya están cifrados en la app.
-- **Ayuda «?»** junto a cada importación: dónde se descarga el Excel en Educamos (Datos → Import/Export → Exportación de datos de alumnos → Exportar) y cómo preparar el ZIP de fotos. Textos en `ui/ayuda.py`.
+- **Ayuda «?»** junto a cada importación: dónde se descarga el Excel en Educamos (Datos → Import/Export → Exportación de datos de los alumnos → Exportar) y cómo preparar el ZIP de fotos. Textos y capturas de Educamos en `ui/ayuda.py` y `recursos/ayuda_educamos_*.png`.
 - **Fin de curso**: «Vaciar todos los datos del alumnado» borra padrón y fotos; ajustes, sello y firma se conservan.
 - También por arrastrar y soltar sobre la zona de cada importación.
 

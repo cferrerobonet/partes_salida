@@ -8,9 +8,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import QDialog, QFrame, QGridLayout, QHBoxLayout, QLabel, QVBoxLayout
+from PyQt6.QtGui import QFont, QPixmap
+from PyQt6.QtWidgets import QDialog, QFrame, QGridLayout, QHBoxLayout, QLabel, QScrollArea, QVBoxLayout, QWidget
 
+from ..rutas import recursos
 from . import estilo
 from .componentes import boton, etiqueta
 
@@ -21,15 +22,18 @@ class Ayuda:
     pasos: list[str]
     aviso: str = ""
     notas: list[str] = field(default_factory=list)
+    #: Captura (archivo en `recursos/`, ancho en px) que se enseña debajo de un paso (1, 2…).
+    imagenes: dict[int, tuple[str, int]] = field(default_factory=dict)
 
 
 AYUDA_EXCEL = Ayuda(
     titulo="Cómo descargar el Excel de Educamos",
     pasos=[
         "Entra en <b>Educamos</b>.",
-        "Abre el menú <b>Datos</b> → <b>Import/Export</b>.",
-        "Elige <b>Exportación de datos de alumnos</b>.",
-        "Pulsa <b>Exportar</b> y descarga el archivo (<i>ExportacionDatosAlumnos.xls</i>).",
+        "En la barra superior, abre el menú <b>Datos</b> y pulsa <b>Import/Export</b>.",
+        "En la pestaña <b>Exportación</b>, marca <b>Exportación de datos de los alumnos</b> "
+        "(no la de «histórico») y pulsa <b>Exportar</b>.",
+        "Descarga el archivo que genera Educamos (<i>ExportacionDatosAlumnos.xls</i>).",
         "Arrástralo a esta zona o pulsa <b>Importar Excel…</b>",
     ],
     aviso=(
@@ -41,6 +45,7 @@ AYUDA_EXCEL = Ayuda(
         "Importar un Excel nuevo <b>sustituye a todo el alumnado anterior</b>: el archivo es el colegio entero.",
         "Las fotos de quien sigue en el centro se conservan; las de las bajas se borran solas.",
     ],
+    imagenes={2: ("ayuda_educamos_menu.png", 360), 3: ("ayuda_educamos_exportar.png", 560)},
 )
 
 AYUDA_FOTOS = Ayuda(
@@ -67,9 +72,18 @@ class DialogoAyuda(QDialog):
     def __init__(self, ayuda: Ayuda, padre=None):
         super().__init__(padre)
         self.setWindowTitle("Ayuda")
-        self.setMinimumWidth(560)
-        capa = QVBoxLayout(self)
-        capa.setContentsMargins(26, 22, 26, 20)
+        self.setMinimumWidth(620)
+        exterior = QVBoxLayout(self)
+        exterior.setContentsMargins(0, 0, 0, 0)
+        desplazar = QScrollArea()
+        desplazar.setWidgetResizable(True)
+        desplazar.setFrameShape(QFrame.Shape.NoFrame)
+        desplazar.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        contenido = QWidget()
+        desplazar.setWidget(contenido)
+        exterior.addWidget(desplazar, 1)
+        capa = QVBoxLayout(contenido)
+        capa.setContentsMargins(26, 22, 26, 8)
         capa.setSpacing(14)
         titulo = QLabel(ayuda.titulo)
         titulo.setFont(estilo.fuente(24, QFont.Weight.Bold, estilo.TITULAR))
@@ -78,18 +92,23 @@ class DialogoAyuda(QDialog):
         pasos = QGridLayout()
         pasos.setHorizontalSpacing(12)
         pasos.setVerticalSpacing(10)
+        fila = 0
         for i, texto in enumerate(ayuda.pasos, start=1):
+            fila += 1
             numero = QLabel(str(i))
             numero.setFixedSize(26, 26)
             numero.setAlignment(Qt.AlignmentFlag.AlignCenter)
             numero.setStyleSheet(
                 f"background:{estilo.T['accent']};color:{estilo.T['accent_ink']};border-radius:13px;font-weight:700;"
             )
-            pasos.addWidget(numero, i, 0, Qt.AlignmentFlag.AlignTop)
+            pasos.addWidget(numero, fila, 0, Qt.AlignmentFlag.AlignTop)
             linea = QLabel(texto)
             linea.setWordWrap(True)
             linea.setTextFormat(Qt.TextFormat.RichText)
-            pasos.addWidget(linea, i, 1)
+            pasos.addWidget(linea, fila, 1)
+            if i in ayuda.imagenes:
+                fila += 1
+                pasos.addWidget(self._captura(*ayuda.imagenes[i]), fila, 1, Qt.AlignmentFlag.AlignLeft)
         pasos.setColumnStretch(1, 1)
         capa.addLayout(pasos)
 
@@ -108,10 +127,27 @@ class DialogoAyuda(QDialog):
             n.setTextFormat(Qt.TextFormat.RichText)
             capa.addWidget(n)
 
+        capa.addStretch(1)
         botones = QHBoxLayout()
+        botones.setContentsMargins(26, 8, 26, 18)
         botones.addStretch(1)
         entendido = boton("Entendido", primario=True)
         entendido.setDefault(True)
         entendido.clicked.connect(self.accept)
         botones.addWidget(entendido)
-        capa.addLayout(botones)
+        exterior.addLayout(botones)
+        self.resize(660, min(760, contenido.sizeHint().height() + 70))
+
+    @staticmethod
+    def _captura(nombre: str, ancho: int) -> QLabel:
+        """Captura de Educamos con borde fino, al ancho indicado."""
+        imagen = QLabel()
+        pm = QPixmap(str(recursos() / nombre))
+        dpr = 2.0
+        if not pm.isNull():
+            pm = pm.scaledToWidth(int(ancho * dpr), Qt.TransformationMode.SmoothTransformation)
+            pm.setDevicePixelRatio(dpr)
+        imagen.setPixmap(pm)
+        imagen.setStyleSheet(f"border: 1px solid {estilo.T['line']}; border-radius: 6px; padding: 2px; background: #ffffff;")
+        imagen.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        return imagen

@@ -16,6 +16,11 @@ on:
         description: "Adjuntar los instaladores al release de la última etiqueta"
         type: boolean
         default: false
+      plataforma:
+        description: "Qué compilar"
+        type: choice
+        options: [todas, macos, windows]
+        default: todas
 
 permissions:
   contents: write
@@ -57,6 +62,7 @@ jobs:
   windows:
     name: Instalador de Windows
     needs: pruebas
+    if: ${{ inputs.plataforma != 'macos' }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -97,6 +103,7 @@ jobs:
   macos:
     name: DMG de macOS
     needs: pruebas
+    if: ${{ inputs.plataforma != 'windows' }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -110,11 +117,19 @@ jobs:
           pip install -r requirements.txt pyinstaller
       - name: Compilar app y DMG
         run: make dmg PY="$(which python)"
+      # Que el DMG exista no basta: se arranca la app y tiene que llegar a la ventana.
       - name: Arrancar la app hasta la ventana principal
         run: |
-          PARTES_PRUEBA_DE_ARRANQUE=ventana QT_QPA_PLATFORM=offscreen \
-            perl -e 'alarm 120; exec @ARGV' "dist/Partes de salida.app/Contents/MacOS/Partes de salida"
-          grep -h "PRUEBA DE ARRANQUE: ventana principal a la vista" "$HOME/Library/Application Support/PartesSalida/logs/"app_*.log
+          set +e
+          APP="dist/Partes de salida.app/Contents/MacOS/Partes de salida"
+          LOGS="$HOME/Library/Application Support/PartesSalida/logs"
+          ls -la "dist/Partes de salida.app/Contents/MacOS/"
+          PARTES_PRUEBA_DE_ARRANQUE=ventana QT_QPA_PLATFORM=offscreen perl -e 'alarm 120; exec @ARGV' "$APP"
+          echo "Código de salida: $?"
+          ls -la "$LOGS" 2>&1
+          tail -n 80 "$LOGS"/app_*.log 2>&1
+          tail -n 60 "$LOGS"/faulthandler.log 2>&1
+          grep -h "PRUEBA DE ARRANQUE: ventana principal a la vista" "$LOGS"/app_*.log
       - uses: actions/upload-artifact@v4
         with:
           name: PartesSalida-macOS

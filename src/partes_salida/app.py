@@ -135,9 +135,10 @@ def main(argv: list[str] | None = None) -> int:
 
         QTimer.singleShot(1500, fin_de_prueba)
     else:
-        from .ui.dialogos import buscar_actualizaciones
-
-        QTimer.singleShot(4000, lambda: buscar_actualizaciones(ventana))
+        # Al abrir y, como la app pasa el día abierta, cada 4 horas.
+        QTimer.singleShot(4000, ventana.buscar_actualizaciones)
+        revision = QTimer(app, interval=4 * 3600 * 1000, timeout=ventana.buscar_actualizaciones)
+        revision.start()
     codigo = app.exec()
     logger.info("Cierre normal (%s)", codigo)
     return codigo

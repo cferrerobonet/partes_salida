@@ -101,14 +101,19 @@ class _Puente(QObject):
 _puentes: list[_Puente] = []
 
 
-def buscar_actualizaciones(padre, avisar_si_al_dia: bool = False) -> None:
+def buscar_actualizaciones(padre, avisar_si_al_dia: bool = False, al_encontrar=None) -> None:
+    """Pregunta a GitHub en segundo plano.
+
+    Si hay versión nueva, llama a `al_encontrar(version, url, notas)` (la ventana
+    principal enseña su aviso) o, sin él, abre directamente el diálogo.
+    """
     puente = _Puente()
     _puentes.append(puente)
 
     def recibir(version: str, url: str, notas: str):
         _puentes.remove(puente)
         if version:
-            ofrecer(padre, version, url, notas)
+            (al_encontrar or (lambda v, u, n: ofrecer(padre, v, u, n)))(version, url, notas)
         elif avisar_si_al_dia:
             if notas:
                 QMessageBox.information(padre, "Actualizaciones", f"No se ha podido comprobar:\n{notas}")
@@ -119,15 +124,65 @@ def buscar_actualizaciones(padre, avisar_si_al_dia: bool = False) -> None:
     comprobar(__version__, puente.respuesta.emit, siempre=avisar_si_al_dia)
 
 
+class DialogoActualizacion(QDialog):
+    """Aviso de versión nueva, por encima de la app: actualizar es la opción destacada."""
+
+    def __init__(self, version: str, notas: str, padre=None):
+        super().__init__(padre)
+        from PyQt6.QtGui import QFont
+        from PyQt6.QtWidgets import QTextBrowser
+
+        from . import estilo
+
+        self.setWindowTitle("Actualización disponible")
+        self.setModal(True)
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
+        self.resize(520, 420 if notas else 240)
+        capa = QVBoxLayout(self)
+        capa.setContentsMargins(26, 22, 26, 20)
+        capa.setSpacing(12)
+        cabecera = QHBoxLayout()
+        cabecera.setSpacing(14)
+        circulo = QLabel("↑")
+        circulo.setFixedSize(46, 46)
+        circulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        circulo.setStyleSheet(
+            f"background:{estilo.T['gold']};color:#ffffff;border-radius:23px;font-size:24px;font-weight:700;"
+        )
+        cabecera.addWidget(circulo)
+        titulo = QLabel(f"Hay una versión nueva: {version}")
+        titulo.setFont(estilo.fuente(24, QFont.Weight.Bold, estilo.TITULAR))
+        titulo.setWordWrap(True)
+        cabecera.addWidget(titulo, 1)
+        capa.addLayout(cabecera)
+        capa.addWidget(etiqueta(
+            f"Tienes la {__version__}. Se descarga, se cierra la app y se abre el instalador; "
+            "los datos y los ajustes se conservan.", "muted", envolver=True))
+        if notas:
+            capa.addWidget(etiqueta("Novedades", "etiqueta"))
+            texto = QTextBrowser()
+            texto.setOpenExternalLinks(True)
+            texto.setMarkdown(notas)
+            capa.addWidget(texto, 1)
+        else:
+            capa.addStretch(1)
+        botones = QHBoxLayout()
+        botones.addStretch(1)
+        luego = boton("Más tarde")
+        ahora = boton("Actualizar ahora", primario=True)
+        ahora.setDefault(True)
+        luego.clicked.connect(self.reject)
+        ahora.clicked.connect(self.accept)
+        botones.addWidget(luego)
+        botones.addWidget(ahora)
+        capa.addLayout(botones)
+
+
 def ofrecer(padre, version: str, url: str, notas: str) -> None:
-    caja = QMessageBox(padre)
-    caja.setIcon(QMessageBox.Icon.Question)
-    caja.setWindowTitle(f"{NOMBRE_APP} {version}")
-    caja.setText(f"Hay una versión nueva: {version}. ¿Descargarla e instalarla?")
-    if notas:
-        caja.setDetailedText(notas)
-    caja.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-    if caja.exec() != QMessageBox.StandardButton.Yes:
+    dialogo = DialogoActualizacion(version, notas, padre)
+    dialogo.raise_()
+    dialogo.activateWindow()
+    if dialogo.exec() != QDialog.DialogCode.Accepted:
         return
     if not url:
         webbrowser.open(PAGINA_DE_RELEASES)

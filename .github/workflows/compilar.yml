@@ -130,7 +130,9 @@ jobs:
           APP="dist/Partes de salida.app/Contents/MacOS/Partes de salida"
           LOGS="$HOME/Library/Application Support/PartesSalida/logs"
           ls -la "dist/Partes de salida.app/Contents/MacOS/"
-          PARTES_PRUEBA_DE_ARRANQUE=ventana QT_QPA_PLATFORM=offscreen perl -e 'alarm 120; exec @ARGV' "$APP"
+          # `exec { $ARGV[0] } @ARGV`: con un solo argumento, perl parte la ruta por
+          # los espacios («Partes de salida»), no lanza nada y sale con 0.
+          PARTES_PRUEBA_DE_ARRANQUE=ventana QT_QPA_PLATFORM=offscreen perl -e 'alarm 120; exec { $ARGV[0] } @ARGV' "$APP"
           echo "Código de salida: $?"
           ls -la "$LOGS" 2>&1
           tail -n 80 "$LOGS"/app_*.log 2>&1

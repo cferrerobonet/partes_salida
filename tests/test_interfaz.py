@@ -123,3 +123,26 @@ def test_sin_datos_invita_a_importar(qtbot, datos, qapp):
     qtbot.addWidget(v)
     assert v.ficha.pila.currentIndex() == 0 and not v.boton_imprimir.isEnabled()
     assert "importando" in v.ficha.vacio_titulo.text()
+
+
+def test_version_nueva_se_ve_y_se_ofrece_una_vez(qtbot, ventana, monkeypatch):
+    ofrecidas = []
+    monkeypatch.setattr("partes_salida.ui.dialogos.ofrecer", lambda padre, v, u, n: ofrecidas.append(v))
+    assert ventana.boton_actualizar.isHidden()
+    ventana.actualizacion_disponible("9.0.0", "https://github.com/x.dmg", "Novedades")
+    assert not ventana.boton_actualizar.isHidden() and "9.0.0" in ventana.boton_actualizar.text()
+    ventana.actualizacion_disponible("9.0.0", "https://github.com/x.dmg", "Novedades")
+    assert ofrecidas == ["9.0.0"], "la comprobación periódica no repite el diálogo de la misma versión"
+    qtbot.mouseClick(ventana.boton_actualizar, Qt.MouseButton.LeftButton)
+    assert ofrecidas == ["9.0.0", "9.0.0"], "el botón dorado vuelve a abrirlo"
+
+
+def test_dialogo_de_actualizacion_destaca_actualizar(qtbot):
+    from PyQt6.QtWidgets import QPushButton
+
+    from partes_salida.ui.dialogos import DialogoActualizacion
+
+    d = DialogoActualizacion("9.0.0", "## Novedades\n- Algo nuevo", None)
+    qtbot.addWidget(d)
+    principal = [b for b in d.findChildren(QPushButton) if b.property("primario")]
+    assert [b.text() for b in principal] == ["Actualizar ahora"]

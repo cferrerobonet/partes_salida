@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Gancho de git (activar una vez con `make ganchos`). El repositorio es público:
+# no deja hacer commit de datos del alumnado ni de secretos, ni de la palabra
+# prohibida de la bóveda.
+set -uo pipefail
+
+fallo=0
+while IFS= read -r -d '' f; do
+    case "$f" in
+        *.xls|*.xlsx|*.zip|*.bin|*.jpg|*.jpeg|*.dmg|*.exe)
+            echo "pre-commit: $f parece un dato o un binario; no va en el repositorio público." >&2; fallo=1 ;;
+        *Material\ de\ pruebas*|datos/*)
+            echo "pre-commit: $f está en una carpeta de datos." >&2; fallo=1 ;;
+        *.png|*.webp|*.heic|*.gif|*.bmp|*.tif|*.tiff)
+            case "$f" in
+                imagenes/*.png|src/partes_salida/recursos/*.png|docs/capturas/*.png) ;;
+                *) echo "pre-commit: $f es una imagen fuera de las carpetas permitidas (¿una foto del alumnado?)." >&2; fallo=1 ;;
+            esac ;;
+    esac
+    case "$(basename "$f")" in
+        *,*) echo "pre-commit: $f tiene forma de «APELLIDOS, NOMBRE»: no se sube." >&2; fallo=1 ;;
+    esac
+    case "$f" in
+        *.png|*.ico|*.icns|*.ttf|*.pdf) continue ;;
+    esac
+    if git show ":$f" 2>/dev/null | grep -nE '\b[C]laude\b' | grep -q .; then
+        echo "pre-commit: palabra prohibida en $f." >&2; fallo=1
+    fi
+    # Asignación de un literal a algo llamado contraseña o secreto (password = "…").
+    if git show ":$f" 2>/dev/null | grep -nEi '(password|passwd|contrase(n|ñ)a|secreto?|smtp_pass)[a-z_]*["'"'"']?[[:space:]]*[:=][[:space:]]*["'"'"'][^"'"'"'{}<>[:space:]]{6,}["'"'"']' | grep -q .; then
+        echo "pre-commit: $f parece llevar una contraseña escrita." >&2; fallo=1
+    fi
+done < <(git diff --cached --name-only --diff-filter=AM -z)
+
+[ $fallo -eq 0 ] || { echo "Commit cancelado. Si es un falso positivo, explicarlo a CarlosFB antes de saltarlo." >&2; exit 1; }
+exit 0

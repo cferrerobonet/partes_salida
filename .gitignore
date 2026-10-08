@@ -1,0 +1,60 @@
+# El repositorio es público: aquí nunca entran datos del alumnado, fotos,
+# copias de ajustes ni contraseñas. El gancho .githooks/pre-commit lo vigila.
+
+# Datos del alumnado y fotos (si alguien los deja aquí por error)
+*.xls
+*.xlsx
+*.zip
+*.bin
+*.jpg
+*.jpeg
+*.webp
+*.heic
+# PNG solo los propios de la app (las fotos del alumnado son PNG)
+*.png
+!imagenes/*.png
+!src/partes_salida/recursos/*.png
+!docs/capturas/*.png
+Material de pruebas/
+/datos/
+
+# Entornos y cachés (el venv vive fuera de iCloud: ~/.venvs/partes-salida)
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+test-results/
+playwright-report/
+
+# Compilación
+/build/
+/dist/
+/Output/
+*.dmg
+imagenes/*.iconset
+imagenes/icono.icns
+
+# Android (Gradle y Android Studio)
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/*.iml
+
+# Sistema y editores
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.claude/settings.local.json
+.claude/worktrees/
+*.swp
+.env
+.env.*

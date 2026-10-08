@@ -1,0 +1,152 @@
+# Compila Windows y macOS en GitHub, sin compilar nada en local (decisión de
+# CarlosFB, igual que Guardias de patio). El repositorio es público: los
+# ordenadores de GitHub no cuestan nada.
+#
+#   · Al publicar una etiqueta vX.Y.Z (skill «publicar»): pruebas, compila las dos
+#     y las adjunta al release. La app avisa sola a cada equipo de la versión nueva.
+#   · A mano desde la pestaña Actions: compila y deja los instaladores para descargar.
+name: Compilar
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      publicar:
+        description: "Adjuntar los instaladores al release de la última etiqueta"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  pruebas:
+    name: Pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Dependencias
+        run: |
+          python -m pip install --upgrade pip setuptools
+          pip install -r requirements-dev.txt
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libgl1 libxkbcommon-x11-0 libdbus-1-3 \
+            libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 \
+            libxcb-render-util0 libxcb-shape0 libxcb-xinerama0 libxcb-cursor0 fonts-dejavu-core
+          python -m playwright install --with-deps chromium
+      - name: Versión coherente con la etiqueta
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          v=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml | head -1)
+          test "v$v" = "${GITHUB_REF_NAME}" || { echo "pyproject.toml dice $v y la etiqueta ${GITHUB_REF_NAME}"; exit 1; }
+      - name: Suite
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          ruff check src tests scripts
+          pytest
+
+  windows:
+    name: Instalador de Windows
+    needs: pruebas
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          architecture: x64
+          cache: pip
+      - name: Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: Compilar exe e instalador
+        # pwsh lee los .ps1 como UTF-8; el powershell clásico rompería los acentos.
+        shell: pwsh
+        run: ./scripts/build_windows.ps1
+      - name: Leer la versión
+        id: version
+        shell: bash
+        run: echo "numero=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml | head -1)" >> "$GITHUB_OUTPUT"
+      # Que el exe exista no basta: se arranca y tiene que llegar a la ventana.
+      - name: Arrancar el exe hasta la ventana principal
+        shell: pwsh
+        run: ./scripts/prueba_arranque_windows.ps1 -Exe dist/PartesDeSalida/PartesDeSalida.exe
+      # Versión portable para el equipo sin permisos de administrador.
+      - name: Empaquetar la versión portable
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "dist/PartesDeSalida/*" `
+            -DestinationPath "Output/PartesDeSalida-${{ steps.version.outputs.numero }}-Windows-Portable.zip" `
+            -CompressionLevel Optimal
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PartesDeSalida-Windows
+          path: |
+            Output/*.exe
+            Output/*.zip
+          if-no-files-found: error
+
+  macos:
+    name: DMG de macOS
+    needs: pruebas
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Dependencias
+        run: |
+          python -m pip install --upgrade pip setuptools
+          pip install -r requirements.txt pyinstaller
+      - name: Compilar app y DMG
+        run: make dmg PY="$(which python)"
+      - name: Arrancar la app hasta la ventana principal
+        run: |
+          PARTES_PRUEBA_DE_ARRANQUE=ventana QT_QPA_PLATFORM=offscreen \
+            perl -e 'alarm 120; exec @ARGV' "dist/Partes de salida.app/Contents/MacOS/Partes de salida"
+          grep -h "PRUEBA DE ARRANQUE: ventana principal a la vista" "$HOME/Library/Application Support/PartesSalida/logs/"app_*.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PartesSalida-macOS
+          path: "*.dmg"
+          if-no-files-found: error
+
+  publicar:
+    name: Adjuntar al release
+    needs: [windows, macos]
+    if: startsWith(github.ref, 'refs/tags/v') || inputs.publicar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          path: instaladores
+      - name: Publicar
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          etiqueta="${GITHUB_REF_NAME}"
+          if [ "${GITHUB_REF_TYPE}" != "tag" ]; then etiqueta=$(git describe --tags --abbrev=0); fi
+          archivos=$(find instaladores -type f \( -name '*.dmg' -o -name '*.exe' -o -name '*.zip' \))
+          # Notas del release: la entrada de la versión en CHANGELOG.md.
+          v="${etiqueta#v}"
+          awk -v v="$v" '$0 ~ "^## \\[" v "\\]" {p=1; next} /^## \[/ {p=0} p' CHANGELOG.md > notas.md || true
+          [ -s notas.md ] || echo "Partes de salida $v" > notas.md
+          if gh release view "$etiqueta" >/dev/null 2>&1; then
+            gh release upload "$etiqueta" $archivos --clobber
+          else
+            gh release create "$etiqueta" $archivos --title "Partes de salida $v" --notes-file notas.md
+          fi

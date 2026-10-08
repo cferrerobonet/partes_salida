@@ -1,0 +1,50 @@
+{
+  "claudeMdExcludes": [
+    "**/iCloud~md~obsidian/Documents/CLAUDE.md",
+    "**/iCloud~md~obsidian/Documents/02 EPLA/CLAUDE.md"
+  ],
+  "permissions": {
+    "allow": [
+      "Bash(~/.venvs/partes-salida/bin/python -m pytest*)",
+      "Bash(~/.venvs/partes-salida/bin/python -m ruff*)",
+      "Bash(~/.venvs/partes-salida/bin/python scripts/capturas.py*)",
+      "Bash(~/.venvs/partes-salida/bin/python scripts/generar_vectores_qr.py*)",
+      "Bash(QT_QPA_PLATFORM=offscreen *)",
+      "Bash(scripts/qa.sh*)",
+      "Bash(make test*)",
+      "Bash(make lint)",
+      "Bash(make qa)",
+      "Bash(make capturas)",
+      "Bash(make vectores)",
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(git diff*)",
+      "Bash(git show*)",
+      "Bash(git ls-files*)",
+      "Bash(git rev-parse*)",
+      "Bash(gh run list*)",
+      "Bash(gh run view*)",
+      "Bash(gh run watch*)",
+      "Bash(gh release list*)",
+      "Bash(gh release view*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guardia_bash.sh", "timeout": 10 }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/tras_editar.sh", "timeout": 20 }
+        ]
+      }
+    ]
+  }
+}

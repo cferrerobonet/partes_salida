@@ -1,0 +1,35 @@
+[project]
+name = "partes-salida"
+version = "0.1.0"
+description = "Imprime en DIN-A6 el parte de salida del alumnado de EPLA y avisa a la familia por correo"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Carlos Ferrero Bonet" }]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+src = ["src", "tests"]
+extend-exclude = ["android", "build", "dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "BLE", "N"]
+# N818/N806: excepciones y alias en castellano (ErrorDeCifrado, A = Qt.AlignmentFlag)
+ignore = ["E501", "E731", "SIM105", "SIM117", "N802", "N806", "N818", "UP037"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B", "BLE", "N"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+addopts = "-q -p no:cacheprovider"
+timeout = 120
+qt_api = "pyqt6"
+markers = [
+    "ui: abre ventanas (pytest-qt, sin pantalla con QT_QPA_PLATFORM=offscreen)",
+    "navegador: usa Playwright con Chromium (correo HTML)",
+    "datos_reales: lee los datos reales de ../Material de pruebas (solo en local)",
+]
+filterwarnings = ["ignore::DeprecationWarning:xlrd"]

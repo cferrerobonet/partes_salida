@@ -5,6 +5,7 @@
 #   · icono: .icns en macOS, .ico en Windows; el BUNDLE sólo existe en macOS.
 # Rutas siempre con barra normal. Ningún archivo empaquetado lleva acentos en el
 # nombre: rompería la firma del .app al copiarlo (BLD-010 de Guardias).
+import os
 import re
 import sys
 from pathlib import Path
@@ -17,6 +18,9 @@ VERSION = re.search(
     r'^version = "([^"]+)"', (Path(SPECPATH) / "pyproject.toml").read_text(encoding="utf-8"), re.M
 ).group(1)
 ICONO = "imagenes/icono.icns" if ES_MACOS else "imagenes/icono.ico"
+# Variante de diagnóstico (Actions → Compilar → «depurar»): el arranque de
+# PyInstaller cuenta cada paso por la consola.
+DEPURAR = os.getenv("PARTES_BUILD_DEPURAR") == "1"
 
 datas = [
     # Logos por defecto, icono y tipografías: PyInstaller sólo empaqueta los .py.
@@ -49,11 +53,11 @@ exe = EXE(
     [],
     exclude_binaries=True,
     name=NOMBRE,
-    debug=False,
+    debug="all" if DEPURAR else False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,
-    console=False,
+    console=DEPURAR,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

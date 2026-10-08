@@ -16,6 +16,10 @@ on:
         description: "Adjuntar los instaladores al release de la última etiqueta"
         type: boolean
         default: false
+      depurar:
+        description: "Compilar con el diagnóstico de arranque de PyInstaller"
+        type: boolean
+        default: false
       plataforma:
         description: "Qué compilar"
         type: choice
@@ -116,6 +120,8 @@ jobs:
           python -m pip install --upgrade pip setuptools
           pip install -r requirements.txt pyinstaller
       - name: Compilar app y DMG
+        env:
+          PARTES_BUILD_DEPURAR: ${{ inputs.depurar && '1' || '' }}
         run: make dmg PY="$(which python)"
       # Que el DMG exista no basta: se arranca la app y tiene que llegar a la ventana.
       - name: Arrancar la app hasta la ventana principal

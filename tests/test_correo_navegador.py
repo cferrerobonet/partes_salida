@@ -48,3 +48,24 @@ def test_correo_se_ve_bien(page, datos, alumnos, ancho):
     assert desborde <= 0, "el correo se sale del ancho de la pantalla"
     SALIDAS.mkdir(exist_ok=True)
     page.screenshot(path=str(SALIDAS / f"correo-{ancho}.png"), full_page=True)
+
+
+def test_correo_del_alumno_con_su_parte_se_ve_en_el_movil(page, contexto):
+    """El alumno enseña el parte en la puerta desde el móvil: tiene que verse entero y nítido."""
+    from partes_salida.correo import mensajes_del_parte
+    from partes_salida.impresion import parte_adjunto
+    from partes_salida.parte import DatosParte
+
+    marc = next(a for a in contexto.alumnos if a.nombre == "MARC")
+    cuando = datetime(2026, 10, 8, 12, 30)
+    datos = DatosParte(marc, contexto.foto(marc.id), cuando, cuando, contexto.firmante.contenido_qr(marc.id, cuando, cuando))
+    (msg,) = mensajes_del_parte(contexto.gestor, marc, cuando, [], True, parte_adjunto(datos, contexto))
+    page.set_viewport_size({"width": 380, "height": 900})
+    page.set_content(_html_autonomo(msg))
+    assert page.get_by_text("Hola, Marc:").is_visible()
+    parte = page.locator('img[alt="Parte de salida"]')
+    assert parte.is_visible() and page.evaluate("(img) => img.naturalWidth", parte.element_handle()) >= 1200
+    desborde = page.evaluate("() => document.documentElement.scrollWidth - window.innerWidth")
+    assert desborde <= 0, "el correo se sale del ancho de la pantalla"
+    SALIDAS.mkdir(exist_ok=True)
+    page.screenshot(path=str(SALIDAS / "correo-alumno-380.png"), full_page=True)

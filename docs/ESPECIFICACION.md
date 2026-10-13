@@ -25,23 +25,26 @@ Cada jefatura instala la app en su equipo y la configura a su manera (logos, sel
 3. Comprobar foto, etapa y curso; ver teléfonos y correos de la familia.
 4. Fijar la hora de salida (por defecto, la actual redondeada a 5 min; botón «Ahora»).
 5. Marcar o desmarcar «Avisar por correo» en cada familiar.
-6. «Imprimir parte» (⌘P / Ctrl+P): sale el DIN-A6 y, si hay casillas marcadas, el correo.
+6. Elegir la **entrega del parte**: «En papel» (de serie) o «Por correo al alumno» (solo si Educamos tiene su correo).
+7. «Imprimir parte» o «Enviar parte» (⌘P / Ctrl+P, el botón dice cuál): sale el DIN-A6 o el correo al alumno y, si hay casillas marcadas, el aviso a la familia. El parte queda en el historial del alumno.
 
 **Criterios de aceptación**
 
 - De abrir la ventana a tener el parte en la mano, con teclado: escribir, Intro, ⌘P.
 - El parte impreso coincide con la vista previa (mismo dibujo, en milímetros).
-- Si la impresión se cancela o falla, no se envía ningún correo.
-- Si el correo falla, el parte ya impreso vale; se avisa con los teléfonos de la familia para llamar.
+- Si la impresión se cancela o falla, no se envía ningún correo ni se apunta en el historial.
+- Si el correo falla, el parte ya impreso vale; se avisa con los teléfonos de la familia para llamar. Si fallaba el del alumno, se avisa para imprimirlo.
+- Por correo al alumno no se imprime nada; al elegir otro alumno, la entrega vuelve a «En papel».
+- Sin la contraseña del correo, un parte por correo se ofrece imprimir en papel.
 
 ### CU-2 Importar o actualizar el alumnado
 
 - Excel de Educamos (`.xls` o `.xlsx`): sustituye el padrón entero. Columnas por cabecera; se leen solo las de `importar_excel.COLUMNAS`. Alumnos sin NIA se identifican por su ID de persona.
 - Fotos: uno o varios ZIP, con carpetas y subcarpetas; archivos `APELLIDOS, NOMBRE.png|jpg`. Se casan sin tildes ni mayúsculas; las casi iguales (≥ 88 % de parecido) se confirman en una ventana; las que no son de nadie se ignoran. Si un alumno sale dos veces, gana la foto más reciente del ZIP.
-- **Volver a importar**: un Excel nuevo sustituye a todo el alumnado (es el colegio entero) y borra las fotos de quien ya no está; las de quien sigue se conservan. Unas fotos nuevas sustituyen a las que ya tenía cada alumno y se añaden las que faltaban.
+- **Volver a importar**: un Excel nuevo sustituye a todo el alumnado (es el colegio entero) y borra las fotos, el historial y el parte recurrente de quien ya no está; los de quien sigue se conservan. Unas fotos nuevas sustituyen a las que ya tenía cada alumno y se añaden las que faltaban.
 - **Después de importar**, la app ofrece enviar el Excel o los ZIP a la papelera (RGPD): los datos ya están cifrados en la app.
 - **Ayuda «?»** junto a cada importación: dónde se descarga el Excel en Educamos (Datos → Import/Export → Exportación de datos de los alumnos → Exportar) y cómo preparar el ZIP de fotos. Textos y capturas de Educamos en `ui/ayuda.py` y `recursos/ayuda_educamos_*.png`.
-- **Fin de curso**: «Vaciar todos los datos del alumnado» borra padrón y fotos; ajustes, sello y firma se conservan.
+- **Fin de curso**: «Vaciar todos los datos del alumnado» borra padrón, fotos, historial y partes recurrentes; ajustes, sello y firma se conservan.
 - También por arrastrar y soltar sobre la zona de cada importación.
 
 ### CU-3 Configurar el equipo (Ajustes)
@@ -51,7 +54,7 @@ Cada jefatura instala la app en su equipo y la configura a su manera (logos, sel
 | Logos e identidad | Logo izquierdo y derecho (por defecto escudo de EPLA y Colegios Amigó), nombre del centro, localidad |
 | Sello y firma | Sello de la etapa y firma del Jefe de Estudios (se les quita el fondo blanco), texto bajo la firma |
 | Textos del parte | Título y texto de dos líneas en femenino y masculino, con variables `{hora}`, `{nombre}`, `{curso}`, `{etapa}`, `{fecha}` |
-| Datos del alumnado | Importaciones, cifras, fotos por confirmar, etapas detectadas (se pueden ocultar), cifrado, borrar datos |
+| Datos del alumnado | Importaciones, cifras, fotos por confirmar, etapas detectadas (se pueden ocultar), cifrado, vaciar el historial de todos, borrar datos |
 | Correo | SMTP, remitente, contraseña (llavero), contactos de jefatura de mañana y tarde, **correo de prueba** a una dirección cualquiera |
 | Impresión | Impresora, orientación del parte (horizontal 148 × 105 o vertical 105 × 148), imprimir sin diálogo, ajuste fino en mm, parte de prueba |
 | QR y verificación | Nombre del equipo, QR con la clave pública para la app del vigilante |
@@ -67,6 +70,19 @@ Instalar, importar el Excel y los ZIP y, opcionalmente, la copia de ajustes expo
 
 El vigilante escanea el QR: «auténtico» con NIA y hora de salida, o «falso / alterado / de un equipo desconocido». Contrato en [../android/ESPECIFICACION_QR.md](../android/ESPECIFICACION_QR.md).
 
+### CU-6 Consultar, imprimir o vaciar el historial de un alumno
+
+En la ficha, «Historial» resume cuántas salidas tiene y la última; «Ver historial» abre la lista: fecha y hora de salida, expedición, entrega (impreso, por correo al alumno, recurrente), avisados y estado del correo. Con buscador, 10 filas por página (5/10/15/20/50), «Limpiar filtros», cabeceras ordenables y pie «Mostrando 1–10 de N» con primera, anterior, cinco números, siguiente y última; la salida más reciente sale resaltada. «Imprimir…» saca el historial en A4 por la impresora o a PDF; «Vaciar historial…» lo borra tras confirmar. Para todo el alumnado: Ajustes → Datos del alumnado.
+
+### CU-7 Partes recurrentes
+
+1. En la ficha, «Parte recurrente → Configurar…»: rejilla de lunes a viernes; se marcan los días y la hora de cada uno («Misma hora para todos los días marcados» la copia). Motivo opcional, entrega (papel o correo al alumno) y si se avisa a la familia cada día.
+2. Cada día, el botón **«Partes recurrentes · N hoy»** de la barra (verde mientras quede alguno) lista los de hoy de las etapas visibles en el equipo, por hora. Los pendientes salen marcados; los ya emitidos hoy, desmarcados.
+3. «Imprimir N (uno por hoja) y enviar M por correo»: todos los de papel en un solo trabajo de impresión, un parte por hoja; los de correo, al alumno; los avisos, a la familia si está marcado. Cada uno queda en el historial como recurrente.
+4. La pestaña «Todos» lista los recurrentes para editarlos o quitarlos.
+
+**Criterios de aceptación**: un recurrente de una etapa oculta no sale ni se imprime; si la impresión se cancela no se apunta ni se envía nada; el fin de semana no hay partes.
+
 ## 4. Reglas de negocio
 
 | ID | Regla |
@@ -79,6 +95,9 @@ El vigilante escanea el QR: «auténtico» con NIA y hora de salida, o «falso /
 | RN-6 | El parte lleva el NIA (pequeño), la fecha y hora de expedición y un QR firmado; vale solo para esa fecha y hora |
 | RN-7 | La hora de salida puede ser anterior a la actual (se avisa «Esa hora ya ha pasado») |
 | RN-8 | Remitente `no_contestar@aplicaciones.epla.es`; el correo incluye los contactos de jefatura de mañana y tarde que estén rellenos |
+| RN-9 | El correo del alumno sale de EMAIL ALUMNO o, si está vacía, de EMAILGOOGLE ALUMNO. Sin correo, solo papel |
+| RN-10 | Entrega en papel por defecto; por correo es una elección de jefatura en cada parte (o en la ficha del recurrente) |
+| RN-11 | El historial y el recurrente de un alumno existen mientras esté en el Excel importado |
 
 ## 5. Requisitos no funcionales
 

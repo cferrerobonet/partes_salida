@@ -49,6 +49,27 @@ def main() -> None:
     if sello and Path(sello).exists():
         ctx.gestor.poner_imagen("sello", sello)
 
+    # Historial y recurrentes de muestra (ficticios), para sus pantallas.
+    from datetime import date, datetime, timedelta
+
+    from partes_salida.seguimiento import CORREO, PAPEL, Recurrencia, Salida
+
+    por = {a.nombre: a for a in ctx.alumnos}
+    lunes = date.today() - timedelta(days=date.today().weekday())
+    for i, (dias, hora, entrega, avisados) in enumerate((
+        (1, "12:30", PAPEL, ["madre", "padre"]), (6, "10:15", CORREO, ["alumna"]), (13, "13:00", PAPEL, []),
+        (20, "11:45", PAPEL, ["madre"]), (27, "09:30", CORREO, ["madre", "alumna"]),
+    )):
+        momento = datetime.combine(date.today() - timedelta(days=dias), datetime.strptime(hora, "%H:%M").time())
+        s = Salida.nueva(momento, entrega, avisados, expedido=momento - timedelta(minutes=5 + i))
+        s.correo = "enviado" if avisados else ""
+        ctx.seguimiento.registrar(por["NEREA"].id, s)
+    ctx.seguimiento.poner_recurrencia(por["MARC"].id, Recurrencia({0: "12:30", 2: "12:30", 4: "13:15"},
+                                                                  motivo="Conservatorio", entrega=CORREO))
+    ctx.seguimiento.poner_recurrencia(por["HUGO"].id, Recurrencia({d: "11:00" for d in range(5)},
+                                                                  motivo="Deportista de élite", avisar_familia=True))
+    ctx.seguimiento.poner_recurrencia(por["IVÁN"].id, Recurrencia({0: "13:00", 3: "13:00"}))
+
     ventana = VentanaPrincipal(ctx)
     ventana.resize(1100, 700)
     ventana.show()
@@ -62,6 +83,31 @@ def main() -> None:
     ventana.vista._pintar()
     app.processEvents()
     ventana.grab().save(str(destino / "1-ventana-principal.png"))
+
+    from partes_salida.ui.seguimiento import DialogoHistorial, DialogoRecurrente, DialogoRecurrentes
+
+    def capturar(dialogo, nombre: str, ancho: int, alto: int) -> None:
+        dialogo.resize(ancho, alto)
+        dialogo.show()
+        for _ in range(4):
+            app.processEvents()
+        dialogo.grab().save(str(destino / nombre))
+        dialogo.close()
+
+    capturar(DialogoHistorial(ctx, por["NEREA"], ventana), "2-historial.png", 900, 580)
+    capturar(DialogoRecurrente(ctx, por["MARC"], ventana), "3-parte-recurrente.png", 680, 470)
+    capturar(DialogoRecurrentes(ctx, ventana, hoy=lunes), "4-recurrentes-de-hoy.png", 940, 600)
+    ventana.buscador.setText("albert")
+    ventana.actualizar_lista()
+    ventana.entrega_correo.click()
+    for _ in range(5):
+        app.processEvents()
+    ventana.vista._pintar()
+    app.processEvents()
+    ventana.grab().save(str(destino / "1-ventana-por-correo.png"))
+    ventana.buscador.setText("beltran")
+    ventana.actualizar_lista()
+    app.processEvents()
 
     from partes_salida.parte import imagen_parte
 

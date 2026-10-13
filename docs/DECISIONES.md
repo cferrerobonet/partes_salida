@@ -48,7 +48,7 @@ Formato: contexto → decisión → consecuencias. Una decisión no se reescribe
 
 - **Decisión**: `no_contestar@aplicaciones.epla.es` en `smtp.ionos.es:587`; contraseña en el llavero, nunca en el repositorio; contactos de jefatura de mañana y tarde en el pie.
 
-## ADR-009 · Sin historial de partes — 2026-10-08
+## ADR-009 · Sin historial de partes — 2026-10-08 · **Sustituida por ADR-012**
 
 - **Contexto**: la maqueta incluía un historial con reimpresión.
 - **Decisión**: se quita: la salida se registra en Educamos (CarlosFB). Tampoco hay número de parte.
@@ -62,3 +62,24 @@ Formato: contexto → decisión → consecuencias. Una decisión no se reescribe
 
 - **Contexto**: CarlosFB pide tests unitarios y Playwright como en sus webs.
 - **Decisión**: Playwright no maneja ventanas Qt; se usa para abrir el correo HTML en Chromium (móvil y escritorio). La interfaz se prueba con pytest-qt sin pantalla.
+
+## ADR-012 · Historial de salidas por alumno, mientras el alumno exista — 2026-10-13
+
+- **Contexto**: CarlosFB pide un registro permanente de las salidas de cada alumno, consultable e imprimible, fácil de borrar y que no se pierda al actualizar el Excel o las fotos. Sustituye a ADR-009.
+- **Decisión**: `seguimiento.bin`, cifrado como el padrón (AES-GCM, datos asociados `seguimiento`), con el historial y los partes recurrentes por identificador de alumno. Al importar un Excel se conserva lo de quien sigue y se borra lo de quien ya no está; importar fotos no lo toca; se vacía por alumno, para todos (Ajustes → Datos del alumnado) o con «Vaciar todos los datos del alumnado». Informe en A4 con `QTextDocument` y el diálogo del sistema (impresora o PDF), nunca por la impresora A6.
+- **Alternativas**: SQLite (descartada: ADR-002, un JSON cifrado basta para el volumen de un curso); guardarlo dentro de `alumnado.bin` (descartada: el padrón se sustituye entero en cada importación).
+- **Consecuencias**: el historial es de cada equipo, como el resto (ADR-006). Un correo que estaba saliendo al cerrar la app queda «Sin confirmar».
+
+## ADR-013 · Parte por correo al alumno, a elección en cada parte — 2026-10-13
+
+- **Contexto**: para no imprimir, CarlosFB quiere mandar el parte al propio alumno; el envío ha de ser una elección de quien usa la app: correo o papel.
+- **Decisión**: se leen `EMAIL ALUMNO` y, si viene vacía, `EMAILGOOGLE ALUMNO` (exportación de Educamos de 2026-10). «Entrega del parte: En papel · Por correo al alumno», en papel por defecto y de nuevo en papel al cambiar de alumno. Por correo no se imprime; el parte va como PNG en el cuerpo (1400 px: el QR se lee desde la pantalla del móvil) y en PDF A6 adjunto. El aviso a la familia sigue con sus casillas y también lleva el parte. Sin contraseña del correo, se ofrece imprimirlo.
+- **Alternativas**: casilla «enviar al alumno» además de imprimir (descartada: no ahorra papel); correo escrito a mano en la ficha (descartada: CarlosFB, el envío se usa en las etapas en que Educamos tiene el correo).
+- **Consecuencias**: el correo del alumno pasa a `COLUMNAS` y a SEGURIDAD_Y_DATOS.
+
+## ADR-014 · Partes recurrentes con rejilla semanal y emisión de golpe — 2026-10-13
+
+- **Contexto**: alumnado que sale los mismos días a la misma hora todo el curso (deportistas, conservatorio) y necesita su parte cada día.
+- **Decisión**: por alumno, los días lunes a viernes con su hora (rejilla de cinco días con hora propia y «misma hora para todos»), motivo opcional, entrega y aviso a la familia. Botón en la barra con los pendientes de hoy; emite solo los de las etapas visibles del equipo; todos los de papel en un solo trabajo de impresión, uno por hoja; los emitidos hoy salen desmarcados para no duplicarlos.
+- **Alternativas**: fechas de inicio y fin (descartada por ahora: es para todo el curso y se quita a mano); emisión automática a una hora (descartada: imprimir sin nadie delante gasta papel y puede fallar en silencio).
+- **Consecuencias**: el parte de un recurrente es un parte normal (mismo QR y misma maqueta) marcado como recurrente en el historial.

@@ -12,8 +12,16 @@ CABECERAS = [
     "NOMBRE TUTOR1", "APELLIDO1 TUTOR1", "APELLIDO2 TUTOR1", "PARENTESCO TUTOR1", "RECIBE INFORMACIÓN TUTOR1",
     "EMAIL TUTOR1", "TEL PERSONAL TUTOR1",
     "NOMBRE TUTOR2", "APELLIDO1 TUTOR2", "APELLIDO2 TUTOR2", "PARENTESCO TUTOR2", "RECIBE INFORMACIÓN TUTOR2",
-    "EMAIL TUTOR2", "TEL PERSONAL TUTOR2", "IBAN PAGADOR1",
+    "EMAIL TUTOR2", "TEL PERSONAL TUTOR2", "IBAN PAGADOR1", "EMAIL ALUMNO", "EMAILGOOGLE ALUMNO",
 ]
+
+#: Correo del propio alumno (índice en ALUMNOS → EMAIL ALUMNO, EMAILGOOGLE ALUMNO). Solo en algunas etapas,
+#: como en Educamos; Gimeno solo tiene el de Google.
+CORREOS_ALUMNO = {
+    0: ("MARC.ALBERT@EJEMPLO.ES", ""),
+    1: ("nerea.beltran@ejemplo.es", ""),
+    6: ("", "hugo.gimeno@ejemplo.es"),
+}
 
 #: apellido1, apellido2, nombre, sexo, clase, nia, nacimiento, (madre), (padre)
 ALUMNOS = [
@@ -47,6 +55,7 @@ def filas() -> list[list[str]]:
             else:
                 fila += [""] * 7
         fila.append("ES00 0000 0000 0000 0000 0000")
+        fila += list(CORREOS_ALUMNO.get(i, ("", "")))
         datos.append(fila)
     return datos
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
+from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from datetime import time as dtime
 
@@ -33,15 +34,28 @@ from PyQt6.QtWidgets import (
 )
 
 from .. import NOMBRE_APP, __version__
-from ..correo import construir_mensaje, contrasena_smtp, enviar
-from ..impresion import imprimir
-from ..modelo import ETAPA_CORTA, Alumno
+from ..correo import mensajes_del_parte
+from ..impresion import imprimir_varios, parte_adjunto
+from ..modelo import ETAPA_CORTA, Alumno, Tutor
 from ..parte import DatosParte, imagen_parte, maqueta
+from ..seguimiento import CORREO, PAPEL, Salida
 from . import estilo
-from .componentes import AvisoFlotante, FlujoLayout, Tarea, boton, etiqueta, separador_vertical
+from .componentes import AvisoFlotante, FlujoLayout, boton, etiqueta, refrescar_estilo, separador_vertical
+from .envios import Envios, Lote
+from .seguimiento import DialogoHistorial, DialogoRecurrente, DialogoRecurrentes, resumen_historial
 
 logger = logging.getLogger(__name__)
 ROL_ALUMNO = Qt.ItemDataRole.UserRole + 1
+
+
+@dataclass
+class Emision:
+    """Un parte que se va a emitir: en papel o por correo al alumno, y a quién avisar."""
+
+    datos: DatosParte
+    entrega: str = PAPEL
+    familia: list[Tutor] = field(default_factory=list)
+    recurrente: bool = False
 
 
 def _redondear_hora(momento: datetime, minutos: int = 5) -> QTime:
@@ -200,9 +214,51 @@ class Ficha(QWidget):
         self.caja_capa.setContentsMargins(16, 14, 16, 12)
         self.caja_capa.setSpacing(8)
         col.addWidget(self.caja)
+        col.addWidget(self._caja_seguimiento())
         col.addStretch(1)
         self.pila.addWidget(ficha)
         self.vacia(True)
+
+    def _caja_seguimiento(self) -> QFrame:
+        caja = QFrame()
+        caja.setProperty("rol", "caja")
+        rejilla = QGridLayout(caja)
+        rejilla.setContentsMargins(16, 10, 16, 10)
+        rejilla.setHorizontalSpacing(10)
+        rejilla.setVerticalSpacing(6)
+        for fila, texto in enumerate(("Historial", "Parte recurrente")):
+            t = QLabel(texto)
+            t.setStyleSheet("font-weight:700;")
+            rejilla.addWidget(t, fila, 0)
+        self.seg_historial = etiqueta("", "muted", envolver=True)
+        self.seg_recurrente = etiqueta("", "muted", envolver=True)
+        rejilla.addWidget(self.seg_historial, 0, 1)
+        rejilla.addWidget(self.seg_recurrente, 1, 1)
+        self.boton_historial = boton("Ver historial", pequeno=True)
+        self.boton_historial.clicked.connect(lambda: self._ventana.abrir_historial())
+        self.boton_recurrente = boton("Configurar…", pequeno=True)
+        self.boton_recurrente.clicked.connect(lambda: self._ventana.configurar_recurrente())
+        rejilla.addWidget(self.boton_historial, 0, 2)
+        rejilla.addWidget(self.boton_recurrente, 1, 2)
+        rejilla.setColumnStretch(1, 1)
+        return caja
+
+    def actualizar_seguimiento(self) -> None:
+        a = self.alumno
+        if a is None:
+            return
+        seg = self._ventana.ctx.seguimiento
+        self.seg_historial.setText(resumen_historial(seg.salidas(a.id)))
+        r = seg.recurrentes.get(a.id)
+        if r:
+            entrega = "por correo" if r.entrega == CORREO and a.email else "en papel"
+            self.seg_recurrente.setText(f"{r.resumen} · {entrega}")
+            self.seg_recurrente.setToolTip(r.motivo)
+            self.boton_recurrente.setText("Cambiar…")
+        else:
+            self.seg_recurrente.setText("No")
+            self.seg_recurrente.setToolTip("")
+            self.boton_recurrente.setText("Configurar…")
 
     def vacia(self, sin_datos: bool) -> None:
         self.alumno = None
@@ -232,12 +288,14 @@ class Ficha(QWidget):
             partes.append(f"{edad} años")
         self.meta.setText(" · ".join(partes))
         self._contactos(a)
+        self.actualizar_seguimiento()
         self.pila.setCurrentIndex(1)
 
     def _contactos(self, a: Alumno) -> None:
         while self.caja_capa.count():
             w = self.caja_capa.takeAt(0).widget()
             if w:
+                w.setParent(None)  # fuera ya, aunque el borrado llegue después
                 w.deleteLater()
         titulo = QLabel("Contactos")
         titulo.setFont(estilo.fuente(19, QFont.Weight.Bold, estilo.TITULAR))
@@ -300,7 +358,7 @@ class VistaPrevia(QLabel):
         return True
 
     #: El parte vertical se limita en alto para que quepa el botón de imprimir.
-    ALTO_MAXIMO = 380
+    ALTO_MAXIMO = 320
 
     def _maqueta(self):
         return maqueta(self._ventana.ctx.gestor.valores.orientacion)
@@ -338,7 +396,6 @@ class VentanaPrincipal(QMainWindow):
         self.ctx = contexto
         self.saliendo = False
         self._avisado_bandeja = False
-        self._tareas: list[Tarea] = []
         self.setWindowTitle(NOMBRE_APP)
         self.resize(1100, 700)
         self.setMinimumSize(980, 620)
@@ -366,8 +423,11 @@ class VentanaPrincipal(QMainWindow):
         QShortcut(QKeySequence("Ctrl+,"), self, activated=lambda: self.abrir_ajustes())
         self._reloj = QTimer(self, interval=30_000, timeout=self.vista.actualizar)
         self._reloj.start()
+        self.envios = Envios(self.ctx, self)
+        self._reloj.timeout.connect(self.actualizar_recurrentes)
         self.ctx.padron_cambiado.connect(self.recargar)
         self.ctx.ajustes_cambiados.connect(self.recargar)
+        self.ctx.seguimiento_cambiado.connect(self._seguimiento_cambiado)
         self.recargar()
 
     # Construcción
@@ -393,6 +453,13 @@ class VentanaPrincipal(QMainWindow):
         fila.addSpacing(8)
         fila.addWidget(self.recuento)
         fila.addSpacing(12)
+        # Partes recurrentes del día: verde y con la cuenta mientras quede alguno por emitir.
+        self.boton_recurrentes = boton("", pequeno=True)
+        self.boton_recurrentes.setToolTip("Imprimir o enviar de golpe los partes recurrentes de hoy")
+        self.boton_recurrentes.clicked.connect(self.abrir_recurrentes)
+        self.boton_recurrentes.hide()
+        fila.addWidget(self.boton_recurrentes)
+        fila.addSpacing(8)
         # Aviso de versión nueva: dorado y bien visible; abre el diálogo de actualizar.
         self.boton_actualizar = boton("", pequeno=True)
         self.boton_actualizar.setStyleSheet(
@@ -493,8 +560,23 @@ class VentanaPrincipal(QMainWindow):
         self.vista = VistaPrevia(self)
         v.addWidget(self.vista)
         v.addStretch(1)
-        self.boton_imprimir = boton(f"Imprimir parte   {QKeySequence(QKeySequence.StandardKey.Print).toString(QKeySequence.SequenceFormat.NativeText)}",
-                                    primario=True, grande=True)
+        v.addWidget(etiqueta("Entrega del parte", "etiqueta"))
+        fila_entrega = QHBoxLayout()
+        fila_entrega.setSpacing(6)
+        self.grupo_entrega = QButtonGroup(self)
+        self.entrega_papel = boton("En papel", chip=True)
+        self.entrega_correo = boton("Por correo al alumno", chip=True)
+        for b in (self.entrega_papel, self.entrega_correo):
+            b.setCheckable(True)
+            self.grupo_entrega.addButton(b)
+            fila_entrega.addWidget(b)
+        fila_entrega.addStretch(1)
+        self.entrega_papel.setChecked(True)
+        self.grupo_entrega.buttonClicked.connect(lambda _b: self.avisos_cambiados())
+        v.addLayout(fila_entrega)
+        self.entrega_detalle = etiqueta("", "correo")
+        v.addWidget(self.entrega_detalle)
+        self.boton_imprimir = boton("", primario=True, grande=True)
         self.boton_imprimir.clicked.connect(self.imprimir)
         v.addWidget(self.boton_imprimir)
         self.resumen = etiqueta("", "muted")
@@ -520,6 +602,29 @@ class VentanaPrincipal(QMainWindow):
             self.ficha.vacia(not self.ctx.hay_datos)
         self.buscador.setEnabled(self.ctx.hay_datos)
         self.avisos_cambiados()
+        self.actualizar_recurrentes()
+
+    def _seguimiento_cambiado(self) -> None:
+        self.ficha.actualizar_seguimiento()
+        self.actualizar_recurrentes()
+
+    def actualizar_recurrentes(self) -> None:
+        """Botón de la barra: visible si hay recurrentes en las etapas visibles; verde si quedan por emitir hoy."""
+        seg, visibles = self.ctx.seguimiento, self.ctx.etapas_visibles()
+        hay = any(
+            i in self.ctx.por_id and (visibles is None or self.ctx.por_id[i].etapa_codigo in visibles)
+            for i in seg.recurrentes
+        )
+        pendientes = sum(
+            1 for p in seg.partes_del_dia(date.today(), self.ctx.por_id, visibles) if p.emitido is None
+        )
+        self.boton_recurrentes.setVisible(hay)
+        self.boton_recurrentes.setText(
+            f"Partes recurrentes · {pendientes} hoy" if pendientes else "Partes recurrentes"
+        )
+        if bool(self.boton_recurrentes.property("primario")) != bool(pendientes):
+            self.boton_recurrentes.setProperty("primario", bool(pendientes))
+            refrescar_estilo(self.boton_recurrentes)
 
     def _chips(self) -> None:
         for b in self.grupo_etapas.buttons():
@@ -594,7 +699,10 @@ class VentanaPrincipal(QMainWindow):
 
     def _actual_cambiado(self, actual, _anterior) -> None:
         if actual.isValid():
-            self.ficha.mostrar(actual.data(ROL_ALUMNO))
+            a = actual.data(ROL_ALUMNO)
+            if not self.ficha.alumno or self.ficha.alumno.id != a.id:
+                self.entrega_papel.setChecked(True)  # cada parte se decide de nuevo: papel de serie
+            self.ficha.mostrar(a)
             self.vista.actualizar()
 
     def eventFilter(self, objeto, evento):  # noqa: N802
@@ -633,18 +741,34 @@ class VentanaPrincipal(QMainWindow):
         self.aviso_hora.setText("Esa hora ya ha pasado." if pasada else "")
         self.vista.actualizar()
 
+    def entrega(self) -> str:
+        a = self.ficha.alumno
+        return CORREO if self.entrega_correo.isChecked() and a is not None and a.email else PAPEL
+
     def avisos_cambiados(self) -> None:
         a = self.ficha.alumno
         self.boton_imprimir.setEnabled(a is not None)
+        self.entrega_correo.setEnabled(bool(a and a.email))
+        if not (a and a.email) and self.entrega_correo.isChecked():
+            self.entrega_papel.setChecked(True)
+        self.entrega_detalle.setText(
+            "" if a is None else (a.email or f"Sin correo {'de la alumna' if a.es_mujer else 'del alumno'} en Educamos")
+        )
+        atajo = QKeySequence(QKeySequence.StandardKey.Print).toString(QKeySequence.SequenceFormat.NativeText)
+        por_correo = self.entrega() == CORREO
+        self.boton_imprimir.setText(f"{'Enviar parte' if por_correo else 'Imprimir parte'}   {atajo}")
         if a is None:
-            self.resumen.setText("Elige un alumno para imprimir su parte." if self.ctx.hay_datos else "")
+            self.resumen.setText("Elige un alumno para emitir su parte." if self.ctx.hay_datos else "")
             self.vista.actualizar()
             return
         destinatarios = self.ficha.destinatarios()
-        self.resumen.setText(
-            "Se avisará por correo a: " + " y ".join(t.parentesco_texto.lower() for t in destinatarios)
-            if destinatarios else "Sin aviso por correo"
-        )
+        familia = " y ".join(t.parentesco_texto.lower() for t in destinatarios)
+        if por_correo:
+            texto = f"Sin papel: el parte irá al correo {'de la alumna' if a.es_mujer else 'del alumno'}"
+            texto += f" y el aviso a {familia}." if familia else "."
+        else:
+            texto = f"Se avisará por correo a: {familia}" if familia else "Sin aviso por correo"
+        self.resumen.setText(texto)
         self.vista.actualizar()
 
     def copiar_telefono(self, telefono: str) -> None:
@@ -652,52 +776,105 @@ class VentanaPrincipal(QMainWindow):
         QGuiApplication.clipboard().setText(numero)
         self.aviso.mostrar(f"Teléfono copiado: {telefono}")
 
+    def emision(self, a: Alumno, salida: datetime, entrega: str = PAPEL, familia: list[Tutor] | None = None,
+                recurrente: bool = False) -> Emision:
+        ahora = datetime.now().replace(second=0, microsecond=0)
+        datos = DatosParte(a, self.ctx.foto(a.id), salida, ahora, self.ctx.firmante.contenido_qr(a.id, salida, ahora))
+        return Emision(datos, entrega, list(familia or []), recurrente)
+
     def imprimir(self) -> None:
-        datos = self.datos_parte()
-        if datos is None:
+        """⌘P y el botón grande: emite el parte del alumno elegido como diga «Entrega del parte»."""
+        a = self.ficha.alumno
+        if a is None:
             return
-        try:
-            if not imprimir(datos, self.ctx, self):
-                return
-        except Exception as e:  # noqa: BLE001
-            logger.exception("Fallo al imprimir")
-            QMessageBox.critical(self, "No se ha podido imprimir", str(e))
-            return
-        a = datos.alumno
-        destinatarios = self.ficha.destinatarios()
-        texto = f"Parte de {a.nombre} {a.apellido1} enviado a la impresora."
-        if destinatarios:
-            self._avisar_familia(a, datos.salida, destinatarios)
-            texto += " Enviando el aviso por correo…"
-        self.aviso.mostrar(texto)
+        self.emitir_partes([self.emision(a, self.salida(), self.entrega(), self.ficha.destinatarios())])
 
-    def _avisar_familia(self, a: Alumno, salida: datetime, destinatarios) -> None:
-        ajustes = self.ctx.gestor.valores
-        clave = contrasena_smtp(ajustes)
-        quienes = " y ".join(t.parentesco_texto.lower() for t in destinatarios)
-        if not clave:
-            QMessageBox.warning(
-                self, "Aviso por correo sin enviar",
-                f"El parte se ha impreso, pero falta la contraseña del correo en Ajustes → Correo.\n\n"
-                f"Avisa a {quienes} por teléfono: " + ", ".join(t.telefono for t in destinatarios if t.telefono),
+    def emitir_partes(self, emisiones: list[Emision], padre=None) -> bool:
+        """Imprime los de papel (uno por hoja, en un solo trabajo), apunta cada parte en el
+        historial y manda los correos (parte al alumno, aviso a la familia) en un hilo.
+
+        Si la impresión se cancela o falla no se apunta ni se envía nada.
+        """
+        padre = padre or self
+        por_correo = [e for e in emisiones if e.entrega == CORREO]
+        if por_correo and not self.envios.clave():
+            uno = len(emisiones) == 1
+            r = QMessageBox.question(
+                padre, "Falta la contraseña del correo",
+                "Sin la contraseña del correo (Ajustes → Correo) "
+                + ("el parte no puede salir por correo.\n\n¿Lo imprimo en papel?" if uno else
+                   f"{len(por_correo)} partes no pueden salir por correo.\n\n¿Los imprimo en papel?"),
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
+                QMessageBox.StandardButton.Yes,
             )
-            return
-        mensaje = construir_mensaje(self.ctx.gestor, a, salida, [t.email for t in destinatarios])
+            if r != QMessageBox.StandardButton.Yes:
+                return False
+            for e in por_correo:
+                e.entrega = PAPEL
+        papel = [e for e in emisiones if e.entrega == PAPEL]
+        if papel:
+            try:
+                if not imprimir_varios([e.datos for e in papel], self.ctx, padre):
+                    return False
+            except Exception as ex:  # noqa: BLE001
+                logger.exception("Fallo al imprimir")
+                QMessageBox.critical(padre, "No se ha podido imprimir", str(ex))
+                return False
+        equipo = self.ctx.gestor.valores.nombre_equipo
+        lotes = []
+        for e in emisiones:
+            a = e.datos.alumno
+            al_alumno = e.entrega == CORREO
+            quienes = [t.parentesco_texto.lower() for t in e.familia]
+            if al_alumno:
+                quienes.append("alumna" if a.es_mujer else "alumno")
+            registro = self.ctx.seguimiento.registrar(
+                a.id, Salida.nueva(e.datos.salida, e.entrega, quienes, e.recurrente, equipo, e.datos.expedido)
+            )
+            if quienes:
+                mensajes = mensajes_del_parte(
+                    self.ctx.gestor, a, e.datos.salida, [t.email for t in e.familia], al_alumno,
+                    parte_adjunto(e.datos, self.ctx),
+                )
+                lotes.append(Lote(
+                    a.id, registro.id, f"{a.nombre} {a.apellido1}", " y ".join(quienes),
+                    ", ".join(t.telefono for t in e.familia if t.telefono), mensajes,
+                ))
+        self.ctx.seguimiento_cambiado.emit()
+        self.envios.lanzar(lotes)
+        self.aviso.mostrar(self._texto_emitido(emisiones, papel, bool(lotes)))
+        return True
 
-        def trabajo(_progreso):
-            enviar(mensaje, ajustes, clave)
+    @staticmethod
+    def _texto_emitido(emisiones: list[Emision], papel: list[Emision], hay_correo: bool) -> str:
+        if len(emisiones) == 1:
+            a = emisiones[0].datos.alumno
+            if papel:
+                return f"Parte de {a.nombre} {a.apellido1} enviado a la impresora." + (
+                    " Enviando el aviso por correo…" if hay_correo else "")
+            return f"Parte de {a.nombre} {a.apellido1}: enviándolo por correo…"
+        n_correo = len(emisiones) - len(papel)
+        partes = [f"{len(papel)} a la impresora"] if papel else []
+        if n_correo:
+            partes.append(f"{n_correo} por correo")
+        return f"{len(emisiones)} partes: " + " y ".join(partes) + "."
 
-        tarea = Tarea(trabajo)
-        tarea.terminado.connect(lambda _: self.aviso.mostrar(f"Aviso enviado a {quienes}."))
-        tarea.fallo.connect(lambda err: QMessageBox.warning(
-            self, "Aviso por correo sin enviar",
-            f"El parte se ha impreso, pero el correo no ha salido:\n{err}\n\n"
-            f"Avisa a {quienes} por teléfono: " + ", ".join(t.telefono for t in destinatarios if t.telefono),
-        ))
-        tarea.finished.connect(lambda: self._tareas.remove(tarea))
-        self._tareas.append(tarea)
-        tarea.start()
-        logger.info("Aviso por correo a %d destinatarios", len(destinatarios))
+    # Seguimiento
+    @staticmethod
+    def _abrir(dialogo) -> None:
+        dialogo.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)  # que no quede escuchando cambios
+        dialogo.exec()
+
+    def abrir_historial(self) -> None:
+        if self.ficha.alumno:
+            self._abrir(DialogoHistorial(self.ctx, self.ficha.alumno, self))
+
+    def configurar_recurrente(self) -> None:
+        if self.ficha.alumno:
+            self._abrir(DialogoRecurrente(self.ctx, self.ficha.alumno, self))
+
+    def abrir_recurrentes(self) -> None:
+        self._abrir(DialogoRecurrentes(self.ctx, self))
 
     # Actualizaciones
     def actualizacion_disponible(self, version: str, url: str, notas: str) -> None:

@@ -338,14 +338,22 @@ class DialogoAjustes(QDialog):
         ap.campo(
             "Cifrado",
             _fila(candado, etiqueta("Activo", "cifrado"), etiqueta("· AES-256-GCM, clave en el llavero del sistema")),
-            "Del Excel solo se guardan nombre, sexo, clase, NIA, fecha de nacimiento, teléfonos y, de cada familiar, "
-            "nombre, parentesco, correo y teléfono. DNI, IBAN, tarjeta sanitaria y direcciones se descartan.",
+            "Del Excel solo se guardan nombre, sexo, clase, NIA, fecha de nacimiento, teléfonos y correo del alumno y, "
+            "de cada familiar, nombre, parentesco, correo y teléfono. DNI, IBAN, tarjeta sanitaria y direcciones se "
+            "descartan. El historial de salidas y los partes recurrentes también van cifrados.",
         )
+        self.boton_vaciar_historial = boton("Vaciar el historial de todo el alumnado…", pequeno=True, peligro=True)
+        self.boton_vaciar_historial.clicked.connect(self._vaciar_historiales)
+        self.texto_historial = etiqueta("", "muted")
+        ap.campo("Historial de salidas", _fila(self.boton_vaciar_historial, self.texto_historial),
+                 "Cada parte emitido queda en el historial de su alumno mientras siga en el Excel: al importar uno "
+                 "nuevo se conserva el de quien sigue y se borra el de quien ya no está. El de un solo alumno se "
+                 "vacía desde su ficha. Los partes recurrentes no se tocan.")
         borrar = boton("Vaciar todos los datos del alumnado…", pequeno=True, peligro=True)
         borrar.clicked.connect(self._borrar_datos)
         ap.campo("Fin de curso", _fila(borrar),
-                 "Borra el padrón y todas las fotos de este equipo para empezar de cero (por ejemplo, en septiembre). "
-                 "Los ajustes, el sello y la firma se conservan.")
+                 "Borra el padrón, todas las fotos, el historial de salidas y los partes recurrentes de este equipo "
+                 "para empezar de cero (por ejemplo, en septiembre). Los ajustes, el sello y la firma se conservan.")
         ap.fin()
         self._refrescar_datos()
         return ap
@@ -507,6 +515,9 @@ class DialogoAjustes(QDialog):
         self.cifras["dudosas"].setText(str(len(inf.dudosas)) if inf else "—")
         self.cifras["sobrantes"].setText(str(inf.sobrantes) if inf else "—")
         self.boton_revisar.setVisible(bool(inf and inf.dudosas))
+        n = ctx.seguimiento.total_salidas
+        self.texto_historial.setText(f"{n:,} salidas registradas".replace(",", ".") if n else "Vacío")
+        self.boton_vaciar_historial.setEnabled(bool(n))
         if inf and inf.dudosas:
             n = len(inf.dudosas)
             self.boton_revisar.setText("Revisar la foto parecida…" if n == 1 else f"Revisar las {n} parecidas…")
@@ -647,7 +658,8 @@ class DialogoAjustes(QDialog):
     def _borrar_datos(self) -> None:
         r = QMessageBox.warning(
             self, "Borrar los datos del alumnado",
-            "Se borran el padrón y todas las fotos de este equipo. Los ajustes, el sello y la firma se conservan.\n\n"
+            "Se borran el padrón, todas las fotos, el historial de salidas y los partes recurrentes de este "
+            "equipo. Los ajustes, el sello y la firma se conservan.\n\n"
             "Para volver a tener datos habrá que importar el Excel y los ZIP del curso nuevo.",
             QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Discard,
             QMessageBox.StandardButton.Cancel,
@@ -655,6 +667,20 @@ class DialogoAjustes(QDialog):
         if r == QMessageBox.StandardButton.Discard:
             self.ctx.borrar_datos()
             self.ultimo_informe = None
+            self._refrescar_datos()
+
+    def _vaciar_historiales(self) -> None:
+        n = self.ctx.seguimiento.total_salidas
+        r = QMessageBox.warning(
+            self, "Vaciar el historial de salidas",
+            f"Se borran las {n} salidas registradas de todo el alumnado de este equipo. "
+            "Los partes recurrentes se conservan.",
+            QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Discard,
+            QMessageBox.StandardButton.Cancel,
+        )
+        if r == QMessageBox.StandardButton.Discard:
+            self.ctx.seguimiento.vaciar_historial()
+            self.ctx.seguimiento_cambiado.emit()
             self._refrescar_datos()
 
     # Correo, impresión y general

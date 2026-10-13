@@ -2,6 +2,20 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [1.1.0] - 2026-10-13
+
+### Añadido
+
+- **Entrega del parte en papel o por correo al alumno.** Bajo la vista previa, «Entrega del parte: En papel · Por correo al alumno». Siempre empieza en papel y se elige en cada parte; «Por correo» solo se puede elegir si Educamos tiene el correo del alumno (columna EMAIL ALUMNO o, si falta, EMAILGOOGLE ALUMNO). Por correo no se imprime nada: el alumno recibe su parte en el cuerpo del mensaje, para enseñarlo en la puerta desde el móvil, y en PDF adjunto.
+- El aviso a la familia lleva también el parte, dentro del mensaje y en PDF.
+- **Historial de salidas de cada alumno.** Cada parte emitido queda apuntado (fecha y hora de salida, expedición, entrega, a quién se avisó y si el correo salió). Se consulta desde la ficha («Ver historial»), con buscador, páginas y orden por columnas, se imprime en A4 (o a PDF) y se vacía desde la misma ventana. Va cifrado. Se conserva al reimportar el Excel o las fotos mientras el alumno siga; se borra con el alumno, al vaciarlo a mano (de uno o de todos, en Ajustes → Datos del alumnado) o con «Vaciar todos los datos del alumnado».
+- **Partes recurrentes.** Para el alumnado que sale los mismos días a la misma hora todo el curso (deportistas de élite, conservatorio…): en la ficha, «Parte recurrente» abre una rejilla con los días de la semana y la hora de cada uno, el motivo, la entrega (papel o correo al alumno) y si se avisa a la familia.
+- Botón **«Partes recurrentes · N hoy»** en la barra superior, en verde mientras quede alguno por emitir: lista los de hoy de las etapas visibles en el equipo e imprime todos los de papel de una vez, uno por hoja, y envía los de correo. Los ya emitidos hoy salen desmarcados. Otra pestaña lista todos los recurrentes para editarlos o quitarlos.
+
+### Cambiado
+
+- Sustituye la decisión de no guardar historial (ADR-009 → ADR-012).
+
 ## [1.0.0] - 2026-10-08
 
 Primera versión estable.

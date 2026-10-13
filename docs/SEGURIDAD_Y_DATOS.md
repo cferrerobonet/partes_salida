@@ -1,12 +1,12 @@
 # Seguridad y datos personales
 
-La app trata datos de menores (nombre, foto, curso, teléfonos y correos de la familia). Este documento dice qué se trata, dónde y cómo se protege. Reglas operativas para el código: `.claude/rules/seguridad-y-datos.md`.
+La app trata datos de menores (nombre, foto, curso, teléfonos y correos del alumno y de la familia, y el historial de salidas). Este documento dice qué se trata, dónde y cómo se protege. Reglas operativas para el código: `.claude/rules/seguridad-y-datos.md`.
 
 ## 1. Qué datos y de dónde
 
 | Origen | Se guarda | Se descarta al importar |
 | --- | --- | --- |
-| Excel de Educamos (214 columnas) | Nombre y apellidos, sexo, clase, NIA (o ID de persona si no hay), fecha de nacimiento (para avisar de la mayoría de edad), móvil y teléfono de emergencia del alumno; de cada familiar (hasta dos): nombre, parentesco, «recibe información», correo y teléfono | DNI, NIA de otros sistemas, tarjeta sanitaria, Seguridad Social, direcciones, nacionalidad, datos bancarios (IBAN, pagadores), centro de procedencia y el resto |
+| Excel de Educamos (214 columnas) | Nombre y apellidos, sexo, clase, NIA (o ID de persona si no hay), fecha de nacimiento (para avisar de la mayoría de edad), móvil, teléfono de emergencia y correo (EMAIL ALUMNO o, si falta, EMAILGOOGLE ALUMNO) del alumno; de cada familiar (hasta dos): nombre, parentesco, «recibe información», correo y teléfono | DNI, NIA de otros sistemas, tarjeta sanitaria, Seguridad Social, direcciones, nacionalidad, datos bancarios (IBAN, pagadores), centro de procedencia y el resto |
 | ZIP de fotos | Una foto por alumno, reducida a 360 × 480 JPEG | Fotos que no son de ningún alumno del Excel, nombres de archivo y carpetas |
 | Ajustes | Logos, sello, firma, textos, contactos de jefatura, impresora | — |
 
@@ -18,6 +18,7 @@ La lista exacta de columnas leídas está en `src/partes_salida/importar_excel.p
 | --- | --- | --- |
 | Padrón | `alumnado.bin` en la carpeta de datos del usuario | AES-256-GCM |
 | Fotos | `fotos/<HMAC del id>.bin` | AES-256-GCM; el nombre no identifica a nadie |
+| Historial de salidas y partes recurrentes | `seguimiento.bin` | AES-256-GCM |
 | Clave de datos, clave de firma, contraseña SMTP | Llavero del sistema (Llavero de macOS, Administrador de credenciales de Windows), servicio `PartesSalida` | La del sistema y la sesión del usuario |
 | Ajustes e imágenes | `ajustes.json`, `imagenes/` | Sin datos personales |
 | Registro | `logs/` | Sin nombres, correos ni teléfonos |
@@ -38,7 +39,7 @@ No hay servidor ni nube. El repositorio de GitHub es público y **nunca** contie
 
 ## 4. Correo
 
-Se envía solo a los familiares marcados en el momento; nunca de forma automática. Por defecto, desmarcado si el alumno es mayor de edad y bloqueado si Educamos dice que el familiar no recibe información. El pie identifica al centro, indica que el buzón no recibe respuestas y cita el RGPD. Transporte: STARTTLS en el puerto 587 (o SSL en 465) contra `smtp.ionos.es`.
+Se envía solo a los familiares marcados en el momento y, si se elige «Por correo al alumno», al propio alumno; nunca de forma automática (tampoco en los recurrentes: se emiten al pulsar). Los dos mensajes llevan el parte (imagen y PDF). Por defecto, desmarcado si el alumno es mayor de edad y bloqueado si Educamos dice que el familiar no recibe información. El pie identifica al centro, indica que el buzón no recibe respuestas y cita el RGPD. Transporte: STARTTLS en el puerto 587 (o SSL en 465) contra `smtp.ionos.es`.
 
 ## 5. Firma del QR
 
@@ -46,4 +47,4 @@ Cada instalación genera su par Ed25519 la primera vez; la privada se queda en s
 
 ## 6. Derechos y conservación
 
-Los datos son una copia operativa de Educamos: se sustituyen en cada importación y se borran con «Borrar todos los datos del alumnado» o desinstalando y borrando la carpeta de datos. No se lleva registro de partes emitidos (la salida se anota en Educamos, ADR-009).
+Los datos son una copia operativa de Educamos: se sustituyen en cada importación y se borran con «Vaciar todos los datos del alumnado» o desinstalando y borrando la carpeta de datos. El historial de salidas (fecha y hora, entrega, a quién se avisó y si el correo salió; nunca direcciones ni teléfonos) y los partes recurrentes viven mientras el alumno siga en el Excel: al importar uno nuevo se borra lo de las bajas. Se vacían por alumno, para todos o con el resto de datos (ADR-012). El historial impreso lleva el aviso de documento interno con datos personales.

@@ -16,6 +16,7 @@ from .firma import Firmante
 from .modelo import Alumno, etapas_presentes
 from .parte import ImagenesParte
 from .rutas import carpeta_datos
+from .seguimiento import Seguimiento
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,7 @@ logger = logging.getLogger(__name__)
 class Contexto(QObject):
     padron_cambiado = pyqtSignal()
     ajustes_cambiados = pyqtSignal()
+    seguimiento_cambiado = pyqtSignal()
 
     def __init__(self, carpeta: Path | None = None, avance=None):
         """`avance(texto, porcentaje)` cuenta cada paso a la pantalla de presentación."""
@@ -50,6 +52,12 @@ class Contexto(QObject):
                 "Los datos del alumnado guardados no se pueden abrir con la clave de este equipo "
                 "(el llavero del sistema ha cambiado). Vuelve a importar el Excel y las fotos."
             )
+        try:
+            self.seguimiento = Seguimiento(self.almacen)
+        except DatosIlegibles:
+            logger.warning("Historial ilegible con la clave actual; se empieza vacío")
+            self.almacen.guardar_seguimiento({})
+            self.seguimiento = Seguimiento(self.almacen)
         avance("Preparando el buscador…", 70)
         self._poner(padron or Padron([]))
 
@@ -81,14 +89,19 @@ class Contexto(QObject):
     def nuevo_padron(self, alumnos: list[Alumno], origen: str) -> int:
         padron = self.almacen.guardar_padron(alumnos, origen)
         borradas = self.almacen.limpiar_fotos([a.id for a in alumnos])
+        # El historial y los recurrentes de quien sigue se conservan; el de las bajas, no.
+        self.seguimiento.conservar_solo(a.id for a in alumnos)
         self._poner(padron)
         self.padron_cambiado.emit()
+        self.seguimiento_cambiado.emit()
         return borradas
 
     def borrar_datos(self) -> None:
         self.almacen.borrar_todo()
+        self.seguimiento.olvidar_todo()
         self._poner(Padron([]))
         self.padron_cambiado.emit()
+        self.seguimiento_cambiado.emit()
 
     def etapas_visibles(self) -> set[str] | None:
         ocultas = set(self.gestor.valores.etapas_ocultas)

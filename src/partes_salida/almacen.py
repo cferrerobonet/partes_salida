@@ -2,6 +2,7 @@
 
 - `alumnado.bin`: el padrón entero (JSON cifrado).
 - `fotos/<huella>.bin`: una foto por alumno, cifrada; el nombre no dice de quién es.
+- `seguimiento.bin`: historial de salidas y partes recurrentes (`seguimiento.py`).
 """
 
 from __future__ import annotations
@@ -17,6 +18,7 @@ from .cifrado import Cifrador, ErrorDeCifrado
 from .modelo import Alumno
 
 ARCHIVO_PADRON = "alumnado.bin"
+ARCHIVO_SEGUIMIENTO = "seguimiento.bin"
 
 
 class DatosIlegibles(Exception):
@@ -71,6 +73,20 @@ class Almacen:
             datos.get("origen", ""),
         )
 
+    # Historial y recurrentes
+    def guardar_seguimiento(self, datos: dict) -> None:
+        crudo = json.dumps(datos, ensure_ascii=False).encode("utf-8")
+        _escribir(self.carpeta / ARCHIVO_SEGUIMIENTO, self._cifrador.cifrar(crudo, b"seguimiento"))
+
+    def cargar_seguimiento(self) -> dict | None:
+        ruta = self.carpeta / ARCHIVO_SEGUIMIENTO
+        if not ruta.exists():
+            return None
+        try:
+            return json.loads(self._cifrador.descifrar(ruta.read_bytes(), b"seguimiento"))
+        except ErrorDeCifrado as e:
+            raise DatosIlegibles(str(e)) from e
+
     # Fotos
     def _ruta_foto(self, id_alumno: str) -> Path:
         return self.fotos / f"{self._cifrador.huella(id_alumno)}.bin"
@@ -104,8 +120,9 @@ class Almacen:
         return borradas
 
     def borrar_todo(self) -> None:
-        ruta = self.carpeta / ARCHIVO_PADRON
-        if ruta.exists():
-            ruta.unlink()
+        for nombre in (ARCHIVO_PADRON, ARCHIVO_SEGUIMIENTO):
+            ruta = self.carpeta / nombre
+            if ruta.exists():
+                ruta.unlink()
         shutil.rmtree(self.fotos, ignore_errors=True)
         self.fotos.mkdir(parents=True, exist_ok=True)

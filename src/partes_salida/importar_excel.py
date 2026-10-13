@@ -41,6 +41,8 @@ COLUMNAS = (
     "FECHA NACIMIENTO ALUMNO",
     "MOVIL1 ALUMNO",
     "TEL EMERGENCIA ALUMNO",
+    "EMAIL ALUMNO",
+    "EMAILGOOGLE ALUMNO",
     *_columnas_tutor(1),
     *_columnas_tutor(2),
 )
@@ -242,6 +244,9 @@ def importar_excel(ruta: str | Path) -> ResultadoExcel:
                 nacimiento=_fecha(v(fila, "FECHA NACIMIENTO ALUMNO")),
                 movil=formatear_telefono(v(fila, "MOVIL1 ALUMNO")),
                 tel_emergencia=formatear_telefono(v(fila, "TEL EMERGENCIA ALUMNO")),
+                # El parte se le manda al propio alumno (para no imprimirlo); si no hay
+                # el de Educamos, el de Google que tenga dado de alta.
+                email=_email(v(fila, "EMAIL ALUMNO")) or _email(v(fila, "EMAILGOOGLE ALUMNO")),
                 tutores=[t for t in (tutor(fila, 1), tutor(fila, 2)) if t],
             )
         )

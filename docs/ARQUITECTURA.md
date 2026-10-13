@@ -7,7 +7,8 @@ App de escritorio monolítica en **Python 3.11 + PyQt6**, sin servidor. Tres cap
 ```mermaid
 flowchart TB
   subgraph UI["Interfaz (src/partes_salida/ui)"]
-    V[ventana.py<br>buscar · ficha · imprimir] --- AJ[ajustes.py<br>8 apartados]
+    V[ventana.py<br>buscar · ficha · emitir] --- AJ[ajustes.py<br>8 apartados]
+    SG[seguimiento.py<br>historial · recurrentes] --- L[listado.py · envios.py]
     D[dialogos.py<br>fotos dudosas · actualización]
     C[componentes.py · estilo.py]
   end
@@ -19,14 +20,15 @@ flowchart TB
     M[modelo.py] --- B[busqueda.py]
     IE[importar_excel.py] --- IF[importar_fotos.py]
     AL[almacen.py] --> CI[cifrado.py]
+    SE[seguimiento.py] --> AL
     F[firma.py] --- CO[correo.py] --- AJS[ajustes.py] --- ACT[actualizaciones.py]
   end
   UI --> APP --> DOM
 ```
 
-- **Dominio puro** (`modelo`, `busqueda`, `importar_*`, `cifrado`, `almacen`, `firma`, `correo`, `ajustes`, `fechas`): sin Qt, probado con pytest sin pantalla.
+- **Dominio puro** (`modelo`, `busqueda`, `importar_*`, `cifrado`, `almacen`, `seguimiento`, `firma`, `correo`, `ajustes`, `fechas`): sin Qt, probado con pytest sin pantalla.
 - **`parte.py`** usa QtGui (QPainter) porque el mismo dibujo sirve para pantalla e impresora.
-- **`contexto.py`** reúne el estado compartido (ajustes, claves, padrón, buscador, caché de miniaturas) y emite `padron_cambiado` y `ajustes_cambiados`; la UI se suscribe.
+- **`contexto.py`** reúne el estado compartido (ajustes, claves, padrón, buscador, historial y recurrentes, caché de miniaturas) y emite `padron_cambiado`, `ajustes_cambiados` y `seguimiento_cambiado`; la UI se suscribe.
 
 ## 2. Módulos
 
@@ -38,17 +40,21 @@ flowchart TB
 | `importar_excel.py` | `.xls` (xlrd) y `.xlsx` (openpyxl) → `ResultadoExcel`; solo `COLUMNAS` | Cabeceras normalizadas sin tildes |
 | `importar_fotos.py` | ZIP en memoria → JPEG 360×480 → `Almacen`; emparejado exacto y parecido (RapidFuzz) | Progreso por callback |
 | `cifrado.py` | AES-256-GCM con clave en el llavero (`keyring`); secretos | Sin llavero: archivo local con aviso |
-| `almacen.py` | `alumnado.bin` y `fotos/<hmac>.bin` cifrados; escritura atómica | `DatosIlegibles` si la clave cambió |
+| `almacen.py` | `alumnado.bin`, `seguimiento.bin` y `fotos/<hmac>.bin` cifrados; escritura atómica | `DatosIlegibles` si la clave cambió |
+| `seguimiento.py` | Historial de salidas (`Salida`) y partes recurrentes (`Recurrencia`) por alumno; partes del día por etapas visibles; poda de las bajas; informe A4 en HTML | Sin Qt |
 | `busqueda.py` | Prefijos sin tildes en cualquier orden; si no hay, tolerancia a erratas | Filtros de etapa, clase y etapas visibles |
 | `firma.py` | Contenido del QR firmado Ed25519 y verificación | Contrato con Android |
 | `parte.py` | `dibujar_parte(painter, px_por_mm, …)`; `imagen_parte()` para la vista previa | Textos que se ajustan solos |
-| `impresion.py` | `QPrinter` A6 horizontal, directa o con diálogo; ajuste fino; parte de prueba | |
-| `correo.py` | Mensaje HTML + texto con logos `cid:`; envío SMTP (STARTTLS o SSL) | Siempre en un hilo |
+| `impresion.py` | `QPrinter` A6, directa o con diálogo; varios partes en un trabajo (uno por hoja); el parte en PNG y PDF para el correo; documento A4 (historial); parte de prueba | |
+| `correo.py` | Mensajes a la familia y al alumno (HTML + texto, logos y parte `cid:`, PDF adjunto); envío SMTP (STARTTLS o SSL) | Siempre en un hilo |
 | `ajustes.py` | `Ajustes` (JSON), imágenes propias, exportar e importar | Sin datos ni contraseñas |
 | `actualizaciones.py` | Última versión en GitHub (API y plan B por la web), descarga solo desde GitHub | Igual que Guardias |
 | `sistema.py` | Registro rotatorio + faulthandler; arranque con la sesión (LaunchAgent / clave Run) | |
 | `ui/estilo.py` | Tokens claro y oscuro, hoja de estilos, tipografías, iconos dibujados | Fuente de verdad visual |
-| `ui/ventana.py` | Ventana principal: lista con delegado, ficha, vista previa, impresión y aviso | |
+| `ui/ventana.py` | Ventana principal: lista con delegado, ficha con seguimiento, vista previa, entrega y `emitir_partes()` (uno o un lote) | |
+| `ui/seguimiento.py` | Diálogos de historial, parte recurrente (rejilla semanal) y partes recurrentes del día | |
+| `ui/listado.py` | `TablaPaginada`: buscador, páginas, orden y fila resaltada (patrón de Web Pedidos) | |
+| `ui/envios.py` | Envío de los correos de uno o varios partes en un hilo y su estado en el historial | |
 | `ui/ajustes.py` | Ventana de Ajustes; importaciones en `Tarea` (QThread) | |
 | `ui/ayuda.py` | Textos y diálogo de ayuda de la importación (Excel de Educamos y ZIP de fotos) | Cambiar aquí los pasos si Educamos cambia de menú |
 | `ui/presentacion.py` | Presentación al abrir con el progreso real (`Contexto(avance=…)`) y «Acerca de» | Dibujada a mano (QPainter) |
@@ -79,6 +85,10 @@ sequenceDiagram
   end
 ```
 
+### Emitir partes recurrentes
+
+`DialogoRecurrentes` → `Seguimiento.partes_del_dia(hoy, padrón, etapas visibles)` → `VentanaPrincipal.emitir_partes([...])`: los de papel van juntos a `imprimir_varios` (un trabajo, `newPage()` entre partes); si se cancela, nada más. Después, cada parte se apunta (`Seguimiento.registrar`), se dibuja en PNG y PDF (`parte_adjunto`, en el hilo de la interfaz) y sus correos van en un `Envios` (hilo), que marca «enviado» o «no enviado» en el historial.
+
 ### Importar
 
 `ZonaSoltar` → `Tarea(importar_excel | importar_fotos)` → `Contexto.nuevo_padron()` / `fotos_cambiadas()` → señales → la ventana recarga etapas, cursos, lista y recuento.
@@ -88,6 +98,7 @@ sequenceDiagram
 ```
 <carpeta de datos>/                 macOS: ~/Library/Application Support/PartesSalida
 ├── alumnado.bin                    Windows: %APPDATA%\PartesSalida
+├── seguimiento.bin                 historial de salidas y partes recurrentes
 ├── fotos/<hmac del id>.bin
 ├── ajustes.json                    sin datos personales ni contraseñas
 ├── imagenes/{logo_izquierdo,logo_derecho,sello,firma}.png
@@ -95,7 +106,7 @@ sequenceDiagram
 Llavero del sistema (servicio «PartesSalida»): clave-datos · clave-firma · smtp:<usuario>
 ```
 
-Formato de cada `.bin`: `PS1` + nonce (12 bytes) + AES-GCM(datos) con datos asociados (`alumnado` o `foto:<id>`), que impiden intercambiar archivos.
+Formato de cada `.bin`: `PS1` + nonce (12 bytes) + AES-GCM(datos) con datos asociados (`alumnado`, `seguimiento` o `foto:<id>`), que impiden intercambiar archivos.
 
 ## 5. Hilos
 
@@ -110,7 +121,7 @@ La interfaz nunca espera a la red ni al disco largo: importar y enviar correo va
 | Un ajuste nuevo | campo en `ajustes.Ajustes` (con valor por defecto: los JSON antiguos siguen valiendo) + control en `ui/ajustes.py` |
 | Otra etapa | `modelo.ETAPAS`, `ORDEN_ETAPAS`, `ETAPA_CORTA` |
 | Cambiar el QR | `firma.py` + `android/ESPECIFICACION_QR.md` + `make vectores` + versión mayor |
-| Un registro de partes emitidos | Se descartó (ADR-009): la salida se registra en Educamos |
+| Guardar otro dato de cada salida | campo en `seguimiento.Salida` (con valor por defecto: los archivos antiguos siguen valiendo) + `informe_html` + columna en `DialogoHistorial` |
 
 ## 7. Pruebas
 

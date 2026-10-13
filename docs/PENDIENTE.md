@@ -15,6 +15,8 @@
 
 | Prioridad | Qué | Notas |
 | --- | --- | --- |
+| Alta | Comprobar en la impresora real un lote de partes recurrentes: uno por hoja, sin hojas en blanco | 1.1.0; «Partes recurrentes» con dos alumnos en papel |
+| Alta | Comprobar con un móvil que el QR del parte recibido por correo se lee en la puerta | 1.1.0; cuando exista la app del vigilante |
 | Alta | Comprobar en la impresora real con bandeja A6: márgenes, orientación y ajuste fino | Parte de prueba en Ajustes → Impresión |
 | Alta | Primera instalación en macOS y Windows desde el release de GitHub | Ver [OPERACIONES.md](OPERACIONES.md) |
 | Media | App Android del vigilante (`android/`) | Esqueleto y contrato listos; falta JDK y compilación en GitHub |

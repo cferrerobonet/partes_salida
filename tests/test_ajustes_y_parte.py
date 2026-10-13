@@ -109,12 +109,12 @@ def test_la_impresora_recibe_la_orientacion(qapp, datos, tmp_path):
     from PyQt6.QtGui import QPageLayout
     from PyQt6.QtPrintSupport import QPrinter
 
-    from partes_salida.impresion import _a6
+    from partes_salida.impresion import _pagina_a6
 
     for orientacion, esperada in (("horizontal", QPageLayout.Orientation.Landscape),
                                   ("vertical", QPageLayout.Orientation.Portrait)):
         impresora = QPrinter()
         impresora.setOutputFormat(QPrinter.OutputFormat.PdfFormat)
         impresora.setOutputFileName(str(tmp_path / f"{orientacion}.pdf"))
-        _a6(impresora, orientacion)
+        impresora.setPageLayout(_pagina_a6(orientacion))
         assert impresora.pageLayout().orientation() == esperada

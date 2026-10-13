@@ -123,6 +123,7 @@ class Alumno:
     movil: str = ""
     tel_emergencia: str = ""
     tutores: list[Tutor] = field(default_factory=list)
+    email: str = ""  # el del propio alumno: recibe su parte para no imprimirlo
 
     def __post_init__(self):
         self._etapa = analizar_clase(self.clase)

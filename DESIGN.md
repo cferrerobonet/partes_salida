@@ -70,8 +70,17 @@ Las tres familias (OFL) van dentro de la app: `src/partes_salida/recursos/fuente
 - Ventana 1100 × 700 (mínimo 980 × 620). Barra superior: título, nombre del equipo, «Datos cifrados» y recuento, botón Ajustes.
 - Columna izquierda: buscador con lupa · botones de etapa (se parten en filas) · curso + Limpiar · recuento · lista (filas de 58 px con miniatura 36×46).
 - Centro: foto 104×132 · nombre en dos líneas · etiquetas etapa y curso · NIA y edad · caja «Contactos» (familiar, teléfono, Copiar y casilla de aviso; móvil del alumno y teléfono de emergencia).
-- Derecha: hora + «Ahora» · aviso de hora pasada · vista previa con sombra · hueco flexible · «Imprimir parte ⌘P» (verde, 18 px) · resumen del aviso.
+- Derecha: hora + «Ahora» · aviso de hora pasada · vista previa con sombra (máx. 320 px de alto) · hueco flexible · «ENTREGA DEL PARTE» con dos chips «En papel» / «Por correo al alumno» y el correo del alumno debajo · «Imprimir parte ⌘P» o «Enviar parte ⌘P» (verde, 18 px) · resumen.
+- Centro, bajo «Contactos»: caja de seguimiento con dos filas «Historial» (n salidas · última) y «Parte recurrente» (días y horas · entrega), cada una con su botón pequeño.
+- Barra superior: «Partes recurrentes · N hoy» a la izquierda del aviso de actualización; verde (`primario`) mientras quede alguno por emitir hoy, blanco si no; oculto si no hay recurrentes.
 - Ajustes: 980 × 640, menú lateral de 220 px, filas «etiqueta (190 px) | control» con ayuda en gris debajo.
+
+## Ventanas de seguimiento
+
+- **Historial** (900 × 580): nombre en Barlow Condensed 22 px, curso y recuento, `TablaPaginada` y abajo «Vaciar historial…» (peligro) a la izquierda, «Imprimir…» y «Cerrar» (verde) a la derecha.
+- **Parte recurrente**: rejilla de la semana en una caja: cinco chips de día (marcado = verde) y debajo la hora de cada uno en Barlow Condensed 22 px (desactivada si el día no está marcado); «Misma hora para todos los días marcados»; motivo; entrega con los mismos chips que la ventana; casilla de aviso a la familia; «Quitar parte recurrente» (peligro) · «Cancelar» · «Guardar» (verde).
+- **Partes recurrentes** (940 × 600): pestañas «Hoy · N pendientes» (fecha en etiqueta, tabla con casilla, hora en negrita, alumno, curso, entrega, familia y estado; botón grande verde «Imprimir N (uno por hoja) y enviar M por correo») y «Todos · N» (`TablaPaginada` con editar y quitar).
+- **Listados que crecen** (`ui/listado.py`): buscador con lupa, «Por página» 5/10/15/20/50 (10), «Limpiar filtros»; cabeceras ordenables con indicador; filas de 30 px; fila nueva con fondo `accent_soft` y negrita; pie «Mostrando 1–10 de N» y chips «« ‹ 1 2 3 4 5 › »» (los extremos se desactivan, no desaparecen; con una sola página no hay pie de páginas).
 
 ## Elevation & Shapes
 
@@ -113,7 +122,9 @@ Botón dorado (`gold`, texto blanco) «↑ Actualizar a X.Y.Z» en la barra supe
 
 Mismo contenido y tipografía. Logos arriba (escudo 17 × 17 a la izquierda, Colegios Amigó 28 × 13 a la derecha), título a todo el ancho (6,6 mm) en y 27, foto 26 × 33 a la izquierda con etapa, curso, alumno/a y NIA apilados a su derecha, **franja de la hora** a todo el ancho (91 × 22, hora de 11,5 mm), texto de 2,8 mm, y pie con QR, lugar y fecha (en dos líneas) y sello y firma a la derecha. Las dos maquetas están en `parte.py` (`HORIZONTAL`, `VERTICAL`) y un test comprueba que todo cabe dentro del marco. Capturas: `docs/capturas/parte-horizontal.png` y `parte-vertical.png`.
 
-## Correo a la familia
+## Correo a la familia y al alumno
+
+Al alumno: «Hola, Nombre:», el texto en segunda persona y el parte como imagen a todo el ancho (borde `line`, radio 6) antes de la caja de contactos; el parte va también en PDF adjunto. A la familia, lo mismo con su texto. Probado en Chromium a 380 px con el parte real (`test_correo_del_alumno_con_su_parte_se_ve_en_el_movil`).
 
 600 px de ancho, cabecera blanca con los dos logos y filete verde de 4 px, cuerpo en Arial 15 px, tabla curso/hora, caja verde claro con los contactos de jefatura y pie gris con el aviso de buzón sin respuesta y RGPD. Probado en Chromium a 700 y 380 px (`tests/test_correo_navegador.py`).
 

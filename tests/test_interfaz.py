@@ -61,9 +61,10 @@ def test_imprimir_firma_el_qr_y_avisa(qtbot, ventana, monkeypatch, contexto):
     from partes_salida.firma import verificar
 
     impresos, enviados = [], []
-    monkeypatch.setattr("partes_salida.ui.ventana.imprimir", lambda datos, ctx, padre: impresos.append(datos) or True)
-    monkeypatch.setattr("partes_salida.ui.ventana.contrasena_smtp", lambda a: "clave")
-    monkeypatch.setattr("partes_salida.ui.ventana.enviar", lambda msg, a, c: enviados.append(msg))
+    monkeypatch.setattr("partes_salida.ui.ventana.imprimir_varios",
+                        lambda partes, ctx, padre: impresos.extend(partes) or True)
+    monkeypatch.setattr("partes_salida.ui.envios.contrasena_smtp", lambda a: "clave")
+    monkeypatch.setattr("partes_salida.ui.envios.enviar", lambda msg, a, c: enviados.append(msg))
     buscar(qtbot, ventana, "nerea")
     ventana.hora.setTime(QTime(12, 30))
     ventana.imprimir()
@@ -76,9 +77,9 @@ def test_imprimir_firma_el_qr_y_avisa(qtbot, ventana, monkeypatch, contexto):
 
 def test_sin_contrasena_avisa_y_no_envia(qtbot, ventana, monkeypatch):
     avisos = []
-    monkeypatch.setattr("partes_salida.ui.ventana.imprimir", lambda *a: True)
-    monkeypatch.setattr("partes_salida.ui.ventana.contrasena_smtp", lambda a: None)
-    monkeypatch.setattr("partes_salida.ui.ventana.QMessageBox.warning", lambda *a: avisos.append(a[2]))
+    monkeypatch.setattr("partes_salida.ui.ventana.imprimir_varios", lambda *a: True)
+    monkeypatch.setattr("partes_salida.ui.envios.contrasena_smtp", lambda a: None)
+    monkeypatch.setattr("partes_salida.ui.envios.QMessageBox.warning", lambda *a: avisos.append(a[2]))
     buscar(qtbot, ventana, "nerea")
     ventana.imprimir()
     assert avisos and "contraseña" in avisos[0]

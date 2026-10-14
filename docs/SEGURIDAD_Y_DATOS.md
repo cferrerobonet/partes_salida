@@ -32,14 +32,14 @@ No hay servidor ni nube. El repositorio de GitHub es público y **nunca** contie
 | Copia de la carpeta de datos, copia de seguridad del equipo, disco extraído | Cifrado con clave fuera de la carpeta (llavero) | — |
 | Equipo con la sesión abierta y desatendido | Bloqueo de pantalla del sistema | **Sin login en la app** (decisión de CarlosFB, ADR-004): quien use la sesión ve los datos |
 | Parte falsificado (fotocopia retocada, generado aparte) | QR firmado con Ed25519; la app del vigilante solo acepta claves dadas de alta | El papel en sí se puede copiar: el QR dice qué alumno y qué hora, el vigilante compara con la foto |
-| Correo suplantado | Remitente corporativo `no_contestar@aplicaciones.epla.es` del dominio del centro | Depende de SPF/DKIM de IONOS |
+| Correo suplantado | Remitente corporativo: el buzón compartido de las apps, del dominio del centro | Depende de SPF/DKIM del servidor de correo |
 | Actualización maliciosa | Solo se descarga de `github.com` por HTTPS con certificados de `certifi` | Instaladores sin firma de pago de Apple ni de Microsoft |
 | Fuga por el repositorio público | Ver §2 | — |
 | Llavero borrado o equipo nuevo | Los datos guardados no se pueden abrir: la app los borra y pide reimportar | Es el comportamiento buscado: no hay recuperación sin la clave |
 
 ## 4. Correo
 
-Se envía solo a los familiares marcados en el momento y, si se elige «Por correo al alumno», al propio alumno; nunca de forma automática (tampoco en los recurrentes: se emiten al pulsar). Los dos mensajes llevan el parte (imagen y PDF). Por defecto, desmarcado si el alumno es mayor de edad y bloqueado si Educamos dice que el familiar no recibe información. El pie identifica al centro, indica que el buzón no recibe respuestas y cita el RGPD. Transporte: STARTTLS en el puerto 587 (o SSL en 465) contra `smtp.ionos.es`.
+Se envía solo a los familiares marcados en el momento y, si se elige «Por correo al alumno», al propio alumno; nunca de forma automática (tampoco en los recurrentes: se emiten al pulsar). Los dos mensajes llevan el parte (imagen y PDF). Por defecto, desmarcado si el alumno es mayor de edad y bloqueado si Educamos dice que el familiar no recibe información. El pie identifica al centro, indica que el buzón no recibe respuestas y cita el RGPD. Transporte: STARTTLS en el puerto 587 (o SSL en 465) contra el servidor de correo configurado en Ajustes → Correo.
 
 ## 5. Firma del QR
 

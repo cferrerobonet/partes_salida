@@ -10,7 +10,8 @@ from tests import ficticios
 
 def test_ajustes_por_defecto_y_persistencia(datos):
     g = GestorAjustes(datos)
-    assert g.valores.smtp_usuario == "no_contestar@aplicaciones.epla.es"
+    # El repositorio es público: el servidor y el buzón del correo no vienen de serie.
+    assert g.valores.smtp_usuario == "" and g.valores.smtp_servidor == ""
     assert g.ruta_imagen("logo_izquierdo").exists() and g.ruta_imagen("sello") is None
     g.poner(localidad="Valencia")
     assert GestorAjustes(datos).valores.localidad == "Valencia"

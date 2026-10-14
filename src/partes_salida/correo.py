@@ -37,6 +37,14 @@ def nombre_secreto_smtp(usuario: str) -> str:
     return f"smtp:{usuario.strip().lower()}"
 
 
+def correo_configurado(ajustes: Ajustes) -> bool:
+    """Servidor, puerto y remitente escritos en Ajustes → Correo (no vienen de serie)."""
+    return bool(ajustes.smtp_servidor.strip() and ajustes.smtp_usuario.strip() and int(ajustes.smtp_puerto) > 0)
+
+
+FALTA_CONFIGURAR = "falta configurar el servidor de correo en Ajustes → Correo"
+
+
 def contrasena_smtp(ajustes: Ajustes) -> str | None:
     return leer_secreto(nombre_secreto_smtp(ajustes.smtp_usuario))
 
@@ -199,6 +207,8 @@ def mensajes_del_parte(
 
 
 def enviar(mensaje: EmailMessage, ajustes: Ajustes, contrasena: str) -> None:
+    if not correo_configurado(ajustes):
+        raise ValueError(FALTA_CONFIGURAR[0].upper() + FALTA_CONFIGURAR[1:] + ".")
     try:
         import certifi
 

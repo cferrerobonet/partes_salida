@@ -34,7 +34,7 @@ from PyQt6.QtWidgets import (
 from .. import __version__
 from ..ajustes import TEXTO_ALUMNA, TEXTO_ALUMNO
 from ..cifrado import guardar_secreto
-from ..correo import construir_mensaje, contrasena_smtp, enviar, nombre_secreto_smtp
+from ..correo import construir_mensaje, contrasena_smtp, correo_configurado, enviar, nombre_secreto_smtp
 from ..importar_excel import importar_excel
 from ..importar_fotos import importar_fotos
 from ..impresion import impresoras, imprimir, parte_de_prueba
@@ -685,6 +685,9 @@ class DialogoAjustes(QDialog):
 
     # Correo, impresión y general
     def _correo_prueba(self) -> None:
+        if not correo_configurado(self.g.valores):
+            QMessageBox.information(self, "Falta el servidor", "Escribe antes el servidor, el puerto y el remitente del correo.")
+            return
         clave = contrasena_smtp(self.g.valores)
         if not clave:
             QMessageBox.information(self, "Falta la contraseña", "Escribe antes la contraseña del correo.")

@@ -1,5 +1,7 @@
 from datetime import datetime
 
+import pytest
+
 from partes_salida.ajustes import GestorAjustes
 from partes_salida.busqueda import Buscador
 from partes_salida.correo import asunto, construir_mensaje, texto_plano
@@ -30,11 +32,12 @@ def test_filtros_de_etapa_curso_y_etapas_ocultas(alumnos):
 
 def test_correo_en_femenino_con_logos_y_contacto(datos, alumnos):
     g = GestorAjustes(datos)
+    g.poner(smtp_usuario="remitente@ejemplo.es")
     nerea = next(a for a in alumnos if a.nombre == "NEREA")
     salida = datetime(2026, 10, 8, 12, 30)
     msg = construir_mensaje(g, nerea, salida, ["amparo.roig@ejemplo.es"])
     assert msg["To"] == "amparo.roig@ejemplo.es"
-    assert "no_contestar@aplicaciones.epla.es" in msg["From"]
+    assert "remitente@ejemplo.es" in msg["From"]
     assert msg["Subject"] == asunto(nerea, salida)
     html = msg.get_body(("html",)).get_content()
     assert "su hija" in html and "autorizada" in html and "12:30" in html
@@ -55,3 +58,17 @@ def test_contacto_vacio_no_sale(datos, alumnos):
     g.poner(contacto_tarde_email="", contacto_tarde_tel="")
     texto = texto_plano(g.valores, alumnos[0], datetime(2026, 10, 8, 9, 0))
     assert "Turno de tarde" not in texto and "Turno de mañana" in texto
+
+
+def test_sin_servidor_de_correo_configurado_no_se_intenta_enviar(datos):
+    # El repositorio es público: servidor y remitente no vienen de serie (ADR-015).
+    from email.message import EmailMessage
+
+    from partes_salida.correo import correo_configurado, enviar
+
+    g = GestorAjustes(datos)
+    assert not correo_configurado(g.valores)
+    with pytest.raises(ValueError, match="Ajustes → Correo"):
+        enviar(EmailMessage(), g.valores, "clave")
+    g.poner(smtp_servidor="smtp.ejemplo.es", smtp_usuario="remitente@ejemplo.es")
+    assert correo_configurado(g.valores)

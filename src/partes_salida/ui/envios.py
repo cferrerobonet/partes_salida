@@ -8,7 +8,7 @@ from email.message import EmailMessage
 
 from PyQt6.QtWidgets import QMessageBox
 
-from ..correo import contrasena_smtp, enviar
+from ..correo import FALTA_CONFIGURAR, contrasena_smtp, correo_configurado, enviar
 from .componentes import Tarea
 
 logger = logging.getLogger(__name__)
@@ -43,11 +43,12 @@ class Envios:
             return
         ajustes = self._ctx.gestor.valores
         clave = self.clave()
-        if not clave:
+        if not correo_configurado(ajustes) or not clave:
+            motivo = FALTA_CONFIGURAR if not correo_configurado(ajustes) else "falta la contraseña del correo en Ajustes → Correo"
             for lt in lotes:
                 self._ctx.seguimiento.marcar_correo(lt.id_alumno, lt.id_salida, "no enviado")
             self._ctx.seguimiento_cambiado.emit()
-            self._avisar_fallos([(lt, "falta la contraseña del correo en Ajustes → Correo") for lt in lotes])
+            self._avisar_fallos([(lt, motivo) for lt in lotes])
             return
 
         def trabajo(_progreso):

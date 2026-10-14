@@ -8,7 +8,7 @@
    - **Datos del alumnado**: arrastrar el Excel de Educamos y después los ZIP de fotos; confirmar las fotos parecidas.
    - **Sello y firma**: subir el sello de la etapa y la firma (fondo blanco; se quita solo).
    - **Logos e identidad**: dejar los de serie o cambiarlos.
-   - **Correo**: escribir la contraseña de `no_contestar@aplicaciones.epla.es` (nota de la bóveda «GUARDIAS DE PATIO — Configuración Infraestructura») y enviar un **correo de prueba** a una dirección propia.
+   - **Correo**: escribir el servidor, el puerto, el remitente y la contraseña del buzón compartido de las apps (datos en la ficha interna de infraestructura, fuera del repositorio), o importar la copia de ajustes de otro equipo y escribir solo la contraseña; después, enviar un **correo de prueba** a una dirección propia.
    - **Impresión**: elegir la impresora de la bandeja A6, «Imprimir directamente» e **Imprimir parte de prueba**; corregir el ajuste fino si sale desplazado.
    - **QR y verificación**: poner el nombre del equipo (p. ej. «Jefatura de Estudios de FP»).
    - **General**: «Abrir la app en segundo plano» al iniciar sesión.

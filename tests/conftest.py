@@ -48,6 +48,8 @@ def contexto(qapp, datos, alumnos, zip_fotos):
     estilo.cargar_fuentes()
     estilo.aplicar(qapp)
     ctx = Contexto(datos)
+    # Equipo con el correo ya configurado en Ajustes (de serie no trae servidor ni remitente: ADR-015)
+    ctx.gestor.poner(smtp_servidor="smtp.ejemplo.es", smtp_usuario="remitente@ejemplo.es")
     ctx.nuevo_padron(alumnos, "alumnos.xlsx")
     importar_fotos([zip_fotos], ctx.alumnos, ctx.almacen)
     ctx.fotos_cambiadas()

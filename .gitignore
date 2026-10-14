@@ -58,3 +58,10 @@ desktop.ini
 *.swp
 .env
 .env.*
+
+# Claves y secretos (por si alguien los deja aquí)
+*.pem
+*.key
+*.p12
+*.pfx
+.secretos/

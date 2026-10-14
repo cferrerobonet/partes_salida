@@ -46,7 +46,7 @@ Formato: contexto → decisión → consecuencias. Una decisión no se reescribe
 
 ## ADR-008 · Correo desde el buzón de Guardias de patio — 2026-10-08
 
-- **Decisión**: `no_contestar@aplicaciones.epla.es` en `smtp.ionos.es:587`; contraseña en el llavero, nunca en el repositorio; contactos de jefatura de mañana y tarde en el pie.
+- **Decisión**: el buzón compartido de las apps en el servidor de correo del centro; contraseña en el llavero, nunca en el repositorio; contactos de jefatura de mañana y tarde en el pie. Servidor y buzón no se escriben en el repositorio: ver ADR-015.
 
 ## ADR-009 · Sin historial de partes — 2026-10-08 · **Sustituida por ADR-012**
 
@@ -83,3 +83,10 @@ Formato: contexto → decisión → consecuencias. Una decisión no se reescribe
 - **Decisión**: por alumno, los días lunes a viernes con su hora (rejilla de cinco días con hora propia y «misma hora para todos»), motivo opcional, entrega y aviso a la familia. Botón en la barra con los pendientes de hoy; emite solo los de las etapas visibles del equipo; todos los de papel en un solo trabajo de impresión, uno por hoja; los emitidos hoy salen desmarcados para no duplicarlos.
 - **Alternativas**: fechas de inicio y fin (descartada por ahora: es para todo el curso y se quita a mano); emisión automática a una hora (descartada: imprimir sin nadie delante gasta papel y puede fallar en silencio).
 - **Consecuencias**: el parte de un recurrente es un parte normal (mismo QR y misma maqueta) marcado como recurrente en el historial.
+
+## ADR-015 · Ningún dato del servidor de correo en el repositorio — 2026-10-14
+
+- **Contexto**: el repositorio es público. `ajustes.py` traía de serie el servidor, el puerto y el buzón del correo, y varios documentos y tests los repetían. CarlosFB pide que no haya información del servidor SMTP en los repositorios, ni ahora ni en el futuro.
+- **Decisión**: servidor y remitente vacíos por defecto (el puerto 587, estándar, se mantiene). Se escriben en Ajustes → Correo de cada equipo o llegan con la copia de ajustes de otro equipo; la contraseña sigue en el llavero. Sin servidor o remitente, la app no intenta enviar y lo dice («falta configurar el servidor de correo en Ajustes → Correo»). Documentos y tests usan marcadores o direcciones `@ejemplo.es`.
+- **Barreras**: `scripts/comprobar_secretos.sh` (común a todas las apps) desde `.githooks/pre-commit` y desde la CI `Secretos`, más el escaneo de secretos y la protección de push de GitHub.
+- **Consecuencias**: los equipos ya instalados conservan sus ajustes (el archivo guarda todos los campos). Uno nuevo hay que configurarlo o importar la copia de ajustes. Sustituye en parte a ADR-008.

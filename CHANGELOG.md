@@ -2,6 +2,12 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [Sin publicar]
+
+### Cambiado
+
+- **El servidor y el remitente del correo ya no vienen de serie.** Se escriben una vez en Ajustes → Correo (o llegan al importar la copia de ajustes de otro equipo). Los equipos que ya tenían el correo configurado no notan nada. Si faltan, la app no intenta enviar y avisa de qué falta.
+
 ## [1.1.0] - 2026-10-13
 
 ### Añadido

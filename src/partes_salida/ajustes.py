@@ -36,9 +36,11 @@ class Ajustes:
     texto_alumna: str = TEXTO_ALUMNA
     texto_alumno: str = TEXTO_ALUMNO
     cargo_firma: str = "Firmado: El Jefe de Estudios"
-    smtp_servidor: str = "smtp.ionos.es"
+    # Servidor y buzón se escriben en Ajustes → Correo de cada equipo (o llegan con la copia de
+    # ajustes exportada): el repositorio es público y no lleva datos del servidor de correo.
+    smtp_servidor: str = ""
     smtp_puerto: int = 587
-    smtp_usuario: str = "no_contestar@aplicaciones.epla.es"
+    smtp_usuario: str = ""
     remitente_nombre: str = "EPLA · Jefatura de Estudios"
     contacto_manana_email: str = "jefaturafpbach@epla.es"
     contacto_manana_tel: str = "96 363 73 54"

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Barrera contra secretos y datos personales (skill «barrera-secretos»).
+set -uo pipefail
+while read -r _l l _r r; do [ "$l" = 0000000000000000000000000000000000000000 ] && continue; if [ "$r" = 0000000000000000000000000000000000000000 ]; then bash "$(git rev-parse --show-toplevel)/scripts/comprobar_secretos.sh" --rango "$l" --not --remotes || exit 1; else bash "$(git rev-parse --show-toplevel)/scripts/comprobar_secretos.sh" --rango "$r..$l" || exit 1; fi; done  # barrera-secretos: pre-push

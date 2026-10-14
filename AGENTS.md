@@ -65,3 +65,7 @@ Skills: `publicar` · `tests` · `auditar`. Agentes: `revisor` (solo lectura, ha
 - Intérprete en `~/.venvs/partes-salida` (`make venv`). Dentro de iCloud, Qt deja de arrancar.
 - `make ganchos` activa `.githooks/pre-commit`.
 - Datos de este equipo de desarrollo: `~/Library/Application Support/PartesSalida`.
+
+## Secretos y datos personales
+
+- Barrera común contra secretos y datos personales: `scripts/comprobar_secretos.sh` (gancho de git y CI «Secretos» con gitleaks sobre el árbol y todo el historial). Ni contraseñas, ni datos del hosting, ni datos reales de personas, ni documentos del centro en el repositorio; tests con datos ficticios (móviles 600…, `12345678Z`, `@example.com`). Excepciones en `.secretos-ignorar`, siempre con su motivo. Reglas completas: skill de usuario `barrera-secretos`.

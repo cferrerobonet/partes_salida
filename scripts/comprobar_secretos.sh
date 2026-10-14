@@ -30,9 +30,6 @@ Q="[\"']"      # comilla simple o doble
 NQ="[^\"']"    # cualquier carácter que no sea comilla
 P='-----BEGIN[ ][A-Z ]*PRIVATE[ ]KEY'                                        # clave privada
 P+='|smtp[.][a-z0-9-]+[.][a-z]{2,}'                                           # servidor SMTP
-P+='|[a-z0-9-]+[.]1and1-data[.]host|hosting-data[.]io'                       # servidores del alojamiento
-P+='|\bu[0-9]{8}\b|\bdb[su][0-9]{6,}\b|\bacc-[0-9]{6,}\b'                     # usuarios y bases del hosting
-P+='|/homepages/[0-9]+/|/kunden/homepages/[0-9]+'                             # rutas absolutas del servidor
 P+='|no[_]contestar@'                                                         # buzón de servicio de las apps
 P+='|[a-z0-9.-]+:(465|587|2525)\b'                                            # servidor:puerto de correo
 P+='|(smtp|sftp|ftp|mail|correo|db|mysql)[_a-z]*(usuario|user|servidor|server|host|remitente)[_a-z]*[ ]*(:[ ]*[a-z]+[ ]*)?=[ ]*'"$Q$NQ"'+'"$Q"  # valor escrito en código
@@ -40,6 +37,10 @@ P+='|(password|passwd|pwd|contrasena|contraseña|secret|token|api[_-]?key)[_a-z]
 P+='|(password|pass)[_]?hash'"$Q"'?[ ]*[:=][ ]*'"$Q"'[0-9a-f]{64}'"$Q"            # hash SHA-256 de contraseña
 P+='|[$]2[aby][$][0-9]{2}[$][./A-Za-z0-9]{53}'                                # hash bcrypt real
 P+='|\bgh[pousr][_][A-Za-z0-9]{36}\b|\bsk-[A-Za-z0-9_-]{20,}|\bAIza[0-9A-Za-z_-]{35}\b|\bxox[bap]-[A-Za-z0-9-]{10,}|\b0x4AAAA[A-Za-z0-9_-]{20,}'  # tokens conocidos (GitHub, OpenAI, Google, Slack, Turnstile)
+# Identificadores del hosting: nunca son ejemplos, así que ningún marcador los disculpa (tampoco un ${VAR:-…})
+H='[a-z0-9-]+[.]1and1-data[.]host|hosting-data[.]io'                         # servidores del alojamiento
+H+='|\bu[0-9]{8}\b|\bdb[su][0-9]{6,}\b|\bacc-[0-9]{6,}\b'                     # usuarios, bases y cuentas del hosting
+H+='|/homepages/[0-9]+/|/kunden/homepages/[0-9]+'                             # rutas absolutas del servidor
 # Reglas que distinguen mayúsculas (variables de entorno y constantes de PHP)
 S='^[ ]*(export[ ]+)?[A-Z_]*(PASS|PASSWORD|SECRET|TOKEN|API_KEY|CLAVE)[A-Z_]*[ ]*=[ ]*[^ "'"'"'$(]{6,}'   # secreto en .env
 S+='|^[ #]*(export[ ]+)?[A-Z_]*(HOST|SERVER|SERVIDOR|USER|USUARIO)[A-Z_]*[ ]*=[ ]*'"$Q"'?[a-z0-9-]+([.][a-z0-9-]+)+[.][a-z]{2,}'  # servidor en .env
@@ -116,7 +117,7 @@ revisar() {  # $1 = ruta; contenido por stdin. Se vuelca a un temporal: bash pie
     local salida tipo lin
     cat > "$TMPF"
     grep -Iq . "$TMPF" 2>/dev/null || return 0     # binario o vacío: solo cuenta su tipo
-    salida=$( { grep -n -I -i -E -e "$P" "$TMPF"; grep -n -I -E -e "$S" "$TMPF"; } 2>/dev/null | grep -v -i -E -e "$MARCADORES" | sort -t: -k1,1n -u)
+    salida=$( { { grep -n -I -i -E -e "$P" "$TMPF"; grep -n -I -E -e "$S" "$TMPF"; } 2>/dev/null | grep -v -i -E -e "$MARCADORES"; grep -n -I -i -E -e "$H" "$TMPF" 2>/dev/null; } | sort -t: -k1,1n -u)
     [ -n "$salida" ] && informar "$1" "secreto o dato de infraestructura" "$(echo "$salida" | cut -d: -f1 | paste -sd, -)"
     if command -v python3 >/dev/null 2>&1; then
         while IFS=$'\t' read -r tipo lin; do [ -n "$tipo" ] && informar "$1" "$tipo" "$lin"; done \

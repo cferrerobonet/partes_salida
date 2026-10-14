@@ -94,7 +94,7 @@ En la ficha, «Historial» resume cuántas salidas tiene y la última; «Ver his
 | RN-5 | Teléfonos en la ficha, nunca en el parte impreso |
 | RN-6 | El parte lleva el NIA (pequeño), la fecha y hora de expedición y un QR firmado; vale solo para esa fecha y hora |
 | RN-7 | La hora de salida puede ser anterior a la actual (se avisa «Esa hora ya ha pasado») |
-| RN-8 | Remitente `no_contestar@aplicaciones.epla.es`; el correo incluye los contactos de jefatura de mañana y tarde que estén rellenos |
+| RN-8 | Remitente: el buzón compartido de las apps, escrito en Ajustes → Correo (no viene de serie); el correo incluye los contactos de jefatura de mañana y tarde que estén rellenos |
 | RN-9 | El correo del alumno sale de EMAIL ALUMNO o, si está vacía, de EMAILGOOGLE ALUMNO. Sin correo, solo papel |
 | RN-10 | Entrega en papel por defecto; por correo es una elección de jefatura en cada parte (o en la ficha del recurrente) |
 | RN-11 | El historial y el recurrente de un alumno existen mientras esté en el Excel importado |

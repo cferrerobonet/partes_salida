@@ -31,7 +31,10 @@ while IFS= read -r -d '' f; do
     if git show ":$f" 2>/dev/null | grep -nEi '(password|passwd|contrase(n|ñ)a|secreto?|smtp_pass)[a-z_]*["'"'"']?[[:space:]]*[:=][[:space:]]*["'"'"'][^"'"'"'{}<>[:space:]]{6,}["'"'"']' | grep -q .; then
         echo "pre-commit: $f parece llevar una contraseña escrita." >&2; fallo=1
     fi
-done < <(git diff --cached --name-only --diff-filter=AM -z)
+done < <(git diff --cached --name-only --diff-filter=ACMR -z)
+
+# Comprobación común a todas las apps: contraseñas, servidores, usuarios del hosting, buzones (ADR-015)
+bash "$(git rev-parse --show-toplevel)/scripts/comprobar_secretos.sh" --preparado || fallo=1
 
 [ $fallo -eq 0 ] || { echo "Commit cancelado. Si es un falso positivo, explicarlo a CarlosFB antes de saltarlo." >&2; exit 1; }
 exit 0

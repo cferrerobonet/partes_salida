@@ -1,4 +1,4 @@
-# Pendiente, hoja de ruta y hallazgos
+# Pendiente y hoja de ruta
 
 Única lista de trabajo del proyecto. Lo más reciente arriba en cada tabla.
 
@@ -22,11 +22,3 @@
 | Media | App Android del vigilante (`android/`) | Esqueleto y contrato listos; falta JDK y compilación en GitHub |
 | Baja | Atajo de teclado global para traer la ventana desde cualquier app | Exige una librería por sistema |
 | Baja | Firma de código de pago (Apple Developer ID, certificado de Windows) | Quita los avisos al instalar |
-
-## Hallazgos
-
-Formato de la skill `auditar`: `ID · gravedad (P0/P1/P2) · evidencia · propuesta · estado`.
-
-| ID | Gravedad | Hallazgo | Estado |
-| --- | --- | --- | --- |
-| — | — | Sin hallazgos registrados | — |

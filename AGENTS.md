@@ -58,7 +58,9 @@ SemVer en `pyproject.toml` **y** `src/partes_salida/__init__.py` (test), entrada
 
 ## Skills y agentes del proyecto
 
-Skills: `publicar` · `tests` · `auditar`. Agentes: `revisor` (solo lectura, hallazgos con fichero:línea) · `verificador` (pasa `qa.sh` y devuelve solo el resultado).
+Skills: `publicar` · `tests`. Agentes: `revisor` (solo lectura, fichero:línea) · `verificador` (pasa `qa.sh`).
+
+Auditoría: skill de usuario `auditoria-apps`; hallazgos en la bóveda, `PARTES DE SALIDA — Auditoría.md`.
 
 ## Entorno
 
@@ -68,4 +70,4 @@ Skills: `publicar` · `tests` · `auditar`. Agentes: `revisor` (solo lectura, ha
 
 ## Secretos y datos personales
 
-- Barrera común contra secretos y datos personales: `scripts/comprobar_secretos.sh` (gancho de git y CI «Secretos» con gitleaks sobre el árbol y todo el historial). Ni contraseñas, ni datos del hosting, ni datos reales de personas, ni documentos del centro en el repositorio; tests con datos ficticios (móviles 600…, `12345678Z`, `@example.com`). Excepciones en `.secretos-ignorar`, siempre con su motivo. Reglas completas: skill de usuario `barrera-secretos`.
+- Barrera común: `scripts/comprobar_secretos.sh` (gancho de git y CI «Secretos» con gitleaks). Ni contraseñas, ni datos del hosting, ni datos reales de personas, ni documentos del centro en el repositorio; tests con datos ficticios (móviles 600…, `12345678Z`, `@example.com`). Excepciones en `.secretos-ignorar`, siempre con su motivo. Reglas completas: skill de usuario `barrera-secretos`.

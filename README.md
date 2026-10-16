@@ -51,7 +51,7 @@ scripts/qa.sh todo   # ruff + tests (unitarios, interfaz, correo en navegador)
 | [docs/SEGURIDAD_Y_DATOS.md](docs/SEGURIDAD_Y_DATOS.md) | Datos personales, cifrado, firma y correo |
 | [docs/DECISIONES.md](docs/DECISIONES.md) | Registro de decisiones (ADR) |
 | [docs/OPERACIONES.md](docs/OPERACIONES.md) | Instalar, publicar, restaurar y resolver problemas |
-| [docs/PENDIENTE.md](docs/PENDIENTE.md) | Hoja de ruta, pendientes y hallazgos |
+| [docs/PENDIENTE.md](docs/PENDIENTE.md) | Hoja de ruta y pendientes |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Cómo trabajar en el repositorio |
 | [CHANGELOG.md](CHANGELOG.md) | Historial de versiones |
 | [android/README.md](android/README.md) | App del vigilante (verificación del QR) |

@@ -33,7 +33,7 @@ No hay servidor ni nube. El repositorio de GitHub es público y **nunca** contie
 | Equipo con la sesión abierta y desatendido | Bloqueo de pantalla del sistema | **Sin login en la app** (decisión de CarlosFB, ADR-004): quien use la sesión ve los datos |
 | Parte falsificado (fotocopia retocada, generado aparte) | QR firmado con Ed25519; la app del vigilante solo acepta claves dadas de alta | El papel en sí se puede copiar: el QR dice qué alumno y qué hora, el vigilante compara con la foto |
 | Correo suplantado | Remitente corporativo: el buzón compartido de las apps, del dominio del centro | Depende de SPF/DKIM del servidor de correo |
-| Actualización maliciosa | Solo se descarga de `github.com` por HTTPS con certificados de `certifi` | Instaladores sin firma de pago de Apple ni de Microsoft |
+| Actualización maliciosa | Solo se descarga de `github.com` por HTTPS con certificados de `certifi`, con tiempo de espera, y el instalador solo se abre si su sha256 coincide con el `digest` que publica la API de releases (si no se puede comprobar, no se descarga) | Instaladores sin firma de pago de Apple ni de Microsoft |
 | Fuga por el repositorio público | Ver §2 | — |
 | Llavero borrado o equipo nuevo | Los datos guardados no se pueden abrir: la app los borra y pide reimportar | Es el comportamiento buscado: no hay recuperación sin la clave |
 

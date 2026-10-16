@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Barrera común contra secretos y datos personales (versión 2, 2026-10-14).
+# Barrera común contra secretos y datos personales (versión 3, 2026-10-16).
 # Misma copia en cada repositorio de CarlosFB; la original vive en la skill de usuario
 # «barrera-secretos» y se instala con su `instalar_en_repo.sh`. No editar aquí: editar allí y reinstalar.
 #
@@ -20,6 +20,8 @@
 #   --rango A..B  los commits de un rango (gancho pre-push)
 #   --historial-gitleaks  solo gitleaks sobre todo el historial (rápido; CI en cada push)
 # Excepciones: una ruta (glob de bash) por línea en .secretos-ignorar, SIEMPRE con un comentario que diga por qué.
+# Versiones antiguas ya revisadas (solo --historial): el SHA del blob en .secretos-historial, uno por línea y con
+# su motivo. Así lo que se dejó a conciencia en el historial no salta cada semana y lo nuevo se sigue revisando.
 # Datos de prueba ficticios que pasan sin excepción: móviles 600…, DNI 12345678Z/00000000T, correos
 # @example.com, @ejemplo.*, *.test, *.invalid, *.local, o con tu_/usuario/ejemplo/prueba en el nombre.
 # Nunca muestra el valor encontrado: solo archivo, línea y tipo (el registro de la CI puede ser público).
@@ -45,7 +47,7 @@ H+='|/homepages/[0-9]+/|/kunden/homepages/[0-9]+'                             # 
 S='^[ ]*(export[ ]+)?[A-Z_]*(PASS|PASSWORD|SECRET|TOKEN|API_KEY|CLAVE)[A-Z_]*[ ]*=[ ]*[^ "'"'"'$(]{6,}'   # secreto en .env
 S+='|^[ #]*(export[ ]+)?[A-Z_]*(HOST|SERVER|SERVIDOR|USER|USUARIO)[A-Z_]*[ ]*=[ ]*'"$Q"'?[a-z0-9-]+([.][a-z0-9-]+)+[.][a-z]{2,}'  # servidor en .env
 S+='|define[(][ ]*'"$Q"'[A-Z_]*(PASSWORD|PASS|SECRET|TOKEN|API_KEY|CLAVE)[A-Z_]*'"$Q"'[ ]*,[ ]*'"$Q$NQ"'{6,}'"$Q"  # define('X_PASSWORD', '…') de PHP
-MARCADORES='CAMBIAR|cambiame|changeme|ejemplo|example|placeholder|xxxx|tu_|<[a-z_ ]+>|[$][{]|getenv|os[.]environ|leer_secreto|prueba|dummy|fake|ficticio|contrase[ñn]a-de|[=:][ ]*contrase[ñn]a|[=:][ ]*[a-z]+_(password|pass|token|override)[ ]*$|smtp[.](gmail|office365)[.]com|smtp-mail[.]outlook[.]com|[.](test|local|invalid)[.]?[a-z]*\b|127[.]0[.]0[.]1|localhost|writable|readonly|data-[a-z-]+=|[.](css|js|php|md|py|ts|json|html|sh|yml):[0-9]+|\bnull\b|None\b'
+MARCADORES='CAMBIAR|QUITADO|cambiame|changeme|ejemplo|example|placeholder|xxxx|tu_|<[a-z_ ]+>|[$][{]|getenv|os[.]environ|leer_secreto|prueba|dummy|fake|ficticio|contrase[ñn]a-de|[=:][ ]*contrase[ñn]a|[=:][ ]*[a-z]+_(password|pass|token|override)[ ]*$|smtp[.](gmail|office365)[.]com|smtp-mail[.]outlook[.]com|[.](test|local|invalid)[.]?[a-z]*\b|127[.]0[.]0[.]1|localhost|writable|readonly|data-[a-z-]+=|[.](css|js|php|md|py|ts|json|html|sh|yml):[0-9]+|\bnull\b|None\b'
 MARCADORES+="|${Q}[\$][A-Za-z_(]|${Q}<[?]|[:=][ ]*${Q}/"   # valor que es una variable ($x), una plantilla (<?=) o una ruta
 # Archivos que no se versionan nunca (salvo excepción justificada en .secretos-ignorar)
 PROHIBIDOS='(^|/)[.]env$|(^|/)[.]env[.](local|production|prod|deploy|backup|bak|old|save)$|[.](sqlite3?|db|sql[.]gz|dump|bak|log|csv|tsv|xlsx?|xlsm|ods|pdf|docx?|odt|accdb|mdb|pst|eml|msg|vcf|p12|pfx|pem|key|kdbx|ovpn|zip|tgz|tar[.]gz|7z|rar)$|(^|/)id_(rsa|ed25519|ecdsa)$|(^|/)[.]vscode/sftp[.]json$|(^|/)sftp-config[.]json$|[.]htpasswd$'
@@ -55,11 +57,13 @@ modo="${1:---todo}"
 raiz=$(git rev-parse --show-toplevel)
 cd "$raiz" || exit 2
 ignorar=()
+revisados=" "
+[ -f .secretos-historial ] && while IFS= read -r l; do l="${l%%[[:space:]]#*}"; l="${l%"${l##*[![:space:]]}"}"; [[ "$l" =~ ^[0-9a-f]{40}$ ]] && revisados+="$l "; done < .secretos-historial
 [ -f .secretos-ignorar ] && while IFS= read -r l; do l="${l%%[[:space:]]#*}"; l="${l%"${l##*[![:space:]]}"}"; [[ -n "$l" && "$l" != \#* ]] && ignorar+=("$l"); done < .secretos-ignorar
 # Código de terceros y recursos generados: ni datos ni secretos propios (su tipo prohibido sí se comprueba antes)
 TERCEROS='(^|/)(vendor|node_modules|bower_components)/|(^|/)(composer[.]lock|package-lock[.]json|yarn[.]lock|pnpm-lock[.]yaml|Pipfile[.]lock|poetry[.]lock)$|[.]min[.](js|css)$|[.](map|ttf|otf|woff2?|eot|png|jpe?g|gif|webp|avif|ico|svg|mp3|mp4|webm|wav|ogg)$'
 saltar() {
-    case "$1" in scripts/comprobar_secretos.sh|.secretos-ignorar|.github/workflows/secretos.yml) return 0 ;; esac
+    case "$1" in scripts/comprobar_secretos.sh|.secretos-ignorar|.secretos-historial|.github/workflows/secretos.yml) return 0 ;; esac
     local g; for g in "${ignorar[@]+"${ignorar[@]}"}"; do [[ "$1" == $g ]] && return 0; done
     return 1
 }
@@ -204,6 +208,7 @@ case "$modo" in
         while read -r sha ruta; do
             [ -z "${ruta:-}" ] && continue
             saltar "$ruta" && continue
+            [[ "$revisados" == *" $sha "* ]] && continue
             [ "$(git cat-file -t "$sha")" = blob ] || continue
             tipo_prohibido "$ruta" && informar "$ruta" "tipo de archivo que no se versiona (en el historial)"
             [[ "$ruta" =~ $TERCEROS ]] && continue

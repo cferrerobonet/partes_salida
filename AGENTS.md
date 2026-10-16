@@ -5,7 +5,6 @@ App de escritorio (macOS y Windows, Python 3.11 + PyQt6) que imprime en DIN-A6 e
 ## Forma de trabajar
 
 - Español. Usuario: **CarlosFB**. Respuestas cortas; sin explicaciones ni código no pedidos.
-- **Nunca escribir la palabra prohibida de la bóveda** (el nombre del asistente) en ningún archivo ni commit; los nombres `CLAUDE.md` y `.claude/` sí valen. Los ganchos lo vigilan.
 - **Ningún dato del alumnado ni foto en el repositorio** (prioridad absoluta de CarlosFB). Datos reales solo en `../Material de pruebas` (fuera) y datos de tests en `tests/ficticios.py`.
 - **No se compila en local**: se compila en GitHub (skill `publicar`). El gancho lo bloquea.
 - **Sin datos, no se implementa**: si falta un dato del que depende algo, se apunta en `docs/PENDIENTE.md` y se pide.
@@ -54,7 +53,7 @@ make capturas · make vectores · make run
 
 ## Cada cambio publicado es una versión
 
-SemVer en `pyproject.toml` **y** `src/partes_salida/__init__.py` (test), entrada en `CHANGELOG.md`, commit con ficheros concretos (Conventional Commits en español, sin coautoría), push y etiqueta `vX.Y.Z`: skill `publicar`, que además sigue la compilación de GitHub y anota la versión en la ficha de la bóveda (`../PARTES DE SALIDA — Índice.md`).
+SemVer en `pyproject.toml` **y** `src/partes_salida/__init__.py` (test), entrada en `CHANGELOG.md`, commit con ficheros concretos (Conventional Commits en español), push y etiqueta `vX.Y.Z`: skill `publicar`, que además sigue la compilación de GitHub y anota la versión en la ficha de la bóveda (`../PARTES DE SALIDA — Índice.md`).
 
 ## Skills y agentes del proyecto
 
@@ -70,4 +69,4 @@ Auditoría: skill de usuario `auditoria-apps`; hallazgos en la bóveda, `PARTES 
 
 ## Secretos y datos personales
 
-- Barrera común: `scripts/comprobar_secretos.sh` (gancho de git y CI «Secretos» con gitleaks). Ni contraseñas, ni datos del hosting, ni datos reales de personas, ni documentos del centro en el repositorio; tests con datos ficticios (móviles 600…, `12345678Z`, `@example.com`). Excepciones en `.secretos-ignorar`, siempre con su motivo. Reglas completas: skill de usuario `barrera-secretos`.
+Excepciones de la barrera común en `.secretos-ignorar`, siempre con su motivo. Reglas comunes: CLAUDE.md de usuario.

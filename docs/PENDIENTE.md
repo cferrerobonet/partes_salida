@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | 2026-10-08 | Firma escaneada del Jefe de Estudios de cada etapa | Ajustes → Sello y firma |
 | 2026-10-08 | Sello de cada etapa (el de FP es de prueba) | Ajustes → Sello y firma |
-| 2026-10-08 | Servidor, remitente y contraseña del buzón compartido en cada equipo (ya no vienen de serie desde la versión siguiente a 1.1.0) | Ajustes → Correo |
+| 2026-10-08 | Servidor, remitente y contraseña del buzón compartido en cada equipo (ya no vienen de serie desde la 1.1.1) | Ajustes → Correo |
 | 2026-10-08 | Contactos de jefatura de ESO/BACH y demás etapas, si difieren de los de FP | Ajustes → Correo |
 
 ## Hoja de ruta

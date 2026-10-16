@@ -9,7 +9,7 @@
    - **Sello y firma**: subir el sello de la etapa y la firma (fondo blanco; se quita solo).
    - **Logos e identidad**: dejar los de serie o cambiarlos.
    - **Correo**: escribir el servidor, el puerto, el remitente y la contraseña del buzón compartido de las apps (datos en la ficha interna de infraestructura, fuera del repositorio), o importar la copia de ajustes de otro equipo y escribir solo la contraseña; después, enviar un **correo de prueba** a una dirección propia.
-   - **Impresión**: elegir la impresora de la bandeja A6, «Imprimir directamente» e **Imprimir parte de prueba**; corregir el ajuste fino si sale desplazado.
+   - **Impresión**: elegir la impresora de la bandeja A6, color o blanco y negro, «Imprimir directamente» e **Imprimir parte de prueba**; corregir el ajuste fino si sale desplazado.
    - **QR y verificación**: poner el nombre del equipo (p. ej. «Jefatura de Estudios de FP»).
    - **General**: «Abrir la app en segundo plano» al iniciar sesión.
 
@@ -48,7 +48,7 @@ Compilación manual sin publicar: GitHub → Actions → Compilar → Run workfl
 | La app no abre | Registro: macOS `~/Library/Application Support/PartesSalida/logs/app_*.log`, Windows `%APPDATA%\PartesSalida\logs\app_*.log` y `faulthandler.log` |
 | «Los datos guardados no se pueden abrir…» | El llavero cambió (equipo restaurado, perfil nuevo): reimportar Excel y ZIP |
 | El correo no sale | Ajustes → Correo → correo de prueba; revisar contraseña y puerto 587. El parte ya impreso vale: avisar por teléfono |
-| El parte sale desplazado o cortado | Ajustes → Impresión → ajuste fino y parte de prueba; comprobar que la bandeja está en A6 horizontal |
+| El parte sale desplazado o cortado | Desde 1.1.2 se reduce solo para caber en lo que la impresora puede imprimir. Si aún sale desplazado: Ajustes → Impresión → ajuste fino y parte de prueba; comprobar que la bandeja está en A6 horizontal |
 | Una foto no aparece | El nombre del archivo debe ser `APELLIDOS, NOMBRE` como en Educamos; las casi iguales se confirman al importar |
 | No avisa de versiones nuevas | Red o límite de GitHub: Ajustes → General → Buscar actualizaciones |
 

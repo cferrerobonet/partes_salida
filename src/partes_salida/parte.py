@@ -31,6 +31,7 @@ from .ui.estilo import CUERPO, MONO, TITULAR
 TINTA = QColor("#1b1f1c")
 TINTA_SUAVE = QColor("#5a625c")
 FONDO_FOTO = QColor("#e9ece8")
+_TINTAS = (TINTA, TINTA_SUAVE, FONDO_FOTO)
 
 _A = Qt.AlignmentFlag
 UNA = Qt.TextFlag.TextSingleLine.value
@@ -50,6 +51,22 @@ class DatosParte:
     qr: str
 
 
+def a_grises(img: QImage | None) -> QImage | None:
+    """La misma imagen en escala de grises, conservando la transparencia (el sello se ve sobre la firma)."""
+    if img is None or img.isNull():
+        return img
+    argb = img.convertToFormat(QImage.Format.Format_ARGB32)
+    gris = argb.convertToFormat(QImage.Format.Format_Grayscale8).convertToFormat(QImage.Format.Format_ARGB32)
+    if argb.hasAlphaChannel():
+        gris.setAlphaChannel(argb.convertToFormat(QImage.Format.Format_Alpha8))
+    return gris
+
+
+def color_gris(c: QColor) -> QColor:
+    v = round(0.299 * c.red() + 0.587 * c.green() + 0.114 * c.blue())
+    return QColor(v, v, v, c.alpha())
+
+
 class ImagenesParte:
     """Logos, sello y firma ya cargados; se recargan cuando cambian en Ajustes."""
 
@@ -67,6 +84,13 @@ class ImagenesParte:
             img = QImage(str(ruta)) if ruta else None
             self._cache[nombre] = img if img is not None and not img.isNull() else None
         return self._cache[nombre]
+
+    def en_grises(self, nombre: str) -> QImage | None:
+        clave = f"{nombre}:grises"
+        original = self[nombre]  # recarga la caché si cambiaron las imágenes
+        if clave not in self._cache:
+            self._cache[clave] = a_grises(original)
+        return self._cache[clave]
 
 
 def texto_parte(plantilla: str, alumno: Alumno, salida: datetime) -> str:
@@ -139,7 +163,7 @@ def _foto_recortada(img: QImage, caja: QRectF) -> tuple[QRectF, QRectF]:
     return caja, QRectF(0, (h - nh) * 0.4, w, nh)
 
 
-def _qr(lienzo: _Lienzo, texto: str, caja: QRectF) -> None:
+def _qr(lienzo: _Lienzo, texto: str, caja: QRectF, tinta: QColor = TINTA) -> None:
     import segno
 
     codigo = segno.make(texto, error="m", micro=False, boost_error=False)
@@ -158,7 +182,7 @@ def _qr(lienzo: _Lienzo, texto: str, caja: QRectF) -> None:
     p = lienzo.p
     p.save()
     p.setRenderHint(QPainter.RenderHint.Antialiasing, False)
-    p.fillPath(camino.simplified(), QBrush(TINTA))
+    p.fillPath(camino.simplified(), QBrush(tinta))
     p.restore()
 
 
@@ -239,9 +263,15 @@ def dibujar_parte(
     gestor: GestorAjustes,
     imagenes: ImagenesParte,
     origen: QPointF | None = None,
+    grises: bool = False,
 ) -> None:
-    """Dibuja el parte con `escala` píxeles del dispositivo por milímetro, en la orientación de los ajustes."""
+    """Dibuja el parte con `escala` píxeles del dispositivo por milímetro, en la orientación de los ajustes.
+
+    `grises`: blanco y negro (tintas, foto, logos, sello y firma en escala de grises), sin depender del controlador.
+    """
     a = gestor.valores
+    tinta, suave, fondo_foto = (color_gris(c) for c in _TINTAS) if grises else _TINTAS
+    imagen = imagenes.en_grises if grises else imagenes.__getitem__
     m = maqueta(a.orientacion)
     al = datos.alumno
     lz = _Lienzo(p, escala, origen or QPointF(0, 0))
@@ -252,30 +282,36 @@ def dibujar_parte(
     p.setRenderHint(QPainter.RenderHint.TextAntialiasing)
 
     # Marco
-    p.setPen(QPen(TINTA, 0.35 * escala))
+    p.setPen(QPen(tinta, 0.35 * escala))
     p.setBrush(Qt.BrushStyle.NoBrush)
     p.drawRoundedRect(lz.r(4, 4, m.ancho - 8, m.alto - 8), 1.5 * escala, 1.5 * escala)
 
     # Logos y título
-    lz.imagen(imagenes["logo_izquierdo"], lz.r(*m.logo_izq), A.AlignLeft)
-    lz.imagen(imagenes["logo_derecho"], lz.r(*m.logo_der), A.AlignRight)
-    lz.texto(lz.r(*m.titulo), a.titulo, lz.fuente(TITULAR, m.titulo_mm, B.ExtraBold, espacio=0.1), TINTA,
+    lz.imagen(imagen("logo_izquierdo"), lz.r(*m.logo_izq), A.AlignLeft)
+    lz.imagen(imagen("logo_derecho"), lz.r(*m.logo_der), A.AlignRight)
+    lz.texto(lz.r(*m.titulo), a.titulo, lz.fuente(TITULAR, m.titulo_mm, B.ExtraBold, espacio=0.1), tinta,
              ARRIBA_CENTRO | UNA)
-    lz.texto(lz.r(*m.centro), f"{a.centro} · {a.localidad}", lz.fuente(CUERPO, 2.5, B.Normal), TINTA_SUAVE,
+    lz.texto(lz.r(*m.centro), f"{a.centro} · {a.localidad}", lz.fuente(CUERPO, 2.5, B.Normal), suave,
              ARRIBA_CENTRO | UNA)
 
     # Foto
     caja = lz.r(*m.foto)
-    p.fillRect(caja, FONDO_FOTO)
+    p.fillRect(caja, fondo_foto)
     foto = QImage.fromData(datos.foto) if datos.foto else QImage()
+    if grises:
+        foto = a_grises(foto)
     if not foto.isNull():
         destino, origen_foto = _foto_recortada(foto, caja)
         p.drawImage(destino, foto, origen_foto)
     else:
         from .ui.estilo import silueta
 
-        p.drawPixmap(caja.toRect(), silueta(al.id, 100, 128, 1.0))
-    p.setPen(QPen(TINTA, 0.3 * escala))
+        figura = silueta(al.id, 100, 128, 1.0)
+        if grises:
+            p.drawImage(caja, a_grises(figura.toImage()))
+        else:
+            p.drawPixmap(caja.toRect(), figura)
+    p.setPen(QPen(tinta, 0.3 * escala))
     p.setBrush(Qt.BrushStyle.NoBrush)
     p.drawRect(caja)
 
@@ -283,22 +319,22 @@ def dibujar_parte(
     etiqueta = lz.fuente(CUERPO, 2.3, B.Bold, espacio=0.18)
     valor = lz.fuente(CUERPO, 3.8, B.DemiBold)
     for (x, y, w, _h), titulo, texto in ((m.etapa, "ETAPA", al.etapa), (m.curso, "CURSO", al.curso)):
-        lz.texto(lz.r(x, y, w, 3), titulo, etiqueta, TINTA_SUAVE, IZQ | UNA)
-        lz.texto(lz.r(x, y + 3, w, 5), texto, valor, TINTA, IZQ | UNA)
-    lz.texto(lz.r(*m.alumno), "ALUMNA" if al.es_mujer else "ALUMNO", etiqueta, TINTA_SUAVE, IZQ | UNA)
-    lz.texto(lz.r(*m.nombre), f"{al.nombre}\n{al.apellidos}", lz.fuente(TITULAR, 5.6, B.Bold), TINTA,
+        lz.texto(lz.r(x, y, w, 3), titulo, etiqueta, suave, IZQ | UNA)
+        lz.texto(lz.r(x, y + 3, w, 5), texto, valor, tinta, IZQ | UNA)
+    lz.texto(lz.r(*m.alumno), "ALUMNA" if al.es_mujer else "ALUMNO", etiqueta, suave, IZQ | UNA)
+    lz.texto(lz.r(*m.nombre), f"{al.nombre}\n{al.apellidos}", lz.fuente(TITULAR, 5.6, B.Bold), tinta,
              IZQ | AJUSTE, minimo_mm=2.6)
     if al.nia:
-        lz.texto(lz.r(*m.nia), f"NIA {al.nia}", lz.fuente(MONO, 2.4, B.Medium), TINTA_SUAVE, IZQ | UNA)
+        lz.texto(lz.r(*m.nia), f"NIA {al.nia}", lz.fuente(MONO, 2.4, B.Medium), suave, IZQ | UNA)
 
     # Hora de salida
-    p.setPen(QPen(TINTA, 0.6 * escala))
+    p.setPen(QPen(tinta, 0.6 * escala))
     p.drawRoundedRect(lz.r(*m.hora), 2 * escala, 2 * escala)
-    lz.texto(lz.r(*m.hora_etiqueta), "HORA DE SALIDA", etiqueta, TINTA, ARRIBA_CENTRO | UNA)
-    lz.texto(lz.r(*m.hora_valor), f"{datos.salida:%H:%M}", lz.fuente(TITULAR, m.hora_mm, B.ExtraBold), TINTA,
+    lz.texto(lz.r(*m.hora_etiqueta), "HORA DE SALIDA", etiqueta, tinta, ARRIBA_CENTRO | UNA)
+    lz.texto(lz.r(*m.hora_valor), f"{datos.salida:%H:%M}", lz.fuente(TITULAR, m.hora_mm, B.ExtraBold), tinta,
              CENTRO | UNA)
     lz.texto(lz.r(*m.hora_fecha), f"hoy, {fecha_corta(datos.salida.date())}", lz.fuente(CUERPO, 2.4, B.Normal),
-             TINTA_SUAVE, ARRIBA_CENTRO | UNA)
+             suave, ARRIBA_CENTRO | UNA)
 
     # Texto de autorización
     x, y, w, h = m.texto
@@ -307,7 +343,7 @@ def dibujar_parte(
     doc.documentLayout().setPaintDevice(p.device())
     doc.setDocumentMargin(0)
     doc.setDefaultFont(lz.fuente(CUERPO, m.texto_mm, B.Normal))
-    doc.setDefaultStyleSheet(f"body {{ color: {TINTA.name()}; }}")
+    doc.setDefaultStyleSheet(f"body {{ color: {tinta.name()}; }}")
     doc.setHtml(f"<body style='line-height:135%'>{texto_parte(plantilla, al, datos.salida)}</body>")
     doc.setTextWidth(w * escala)
     p.save()
@@ -316,24 +352,26 @@ def dibujar_parte(
     p.restore()
 
     # Pie: QR, fecha, sello y firma
-    _qr(lz, datos.qr, lz.r(*m.qr))
+    _qr(lz, datos.qr, lz.r(*m.qr), tinta)
     lz.texto(lz.r(*m.lugar), f"{a.localidad}, {fecha_larga(datos.expedido.date())}",
-             lz.fuente(CUERPO, 3.1 if not m.lugar_ajusta else 2.8, B.Bold), TINTA,
+             lz.fuente(CUERPO, 3.1 if not m.lugar_ajusta else 2.8, B.Bold), tinta,
              IZQ | (AJUSTE if m.lugar_ajusta else UNA))
     lz.texto(lz.r(*m.expedido), f"Expedido a las {datos.expedido:%H:%M}", lz.fuente(CUERPO, 2.7, B.Normal),
-             TINTA, IZQ | UNA)
-    lz.imagen(imagenes["sello"], lz.r(*m.sello))
-    lz.imagen(imagenes["firma"], lz.r(*m.firma))
-    lz.texto(lz.r(*m.cargo), a.cargo_firma, lz.fuente(CUERPO, 2.4, B.Normal, cursiva=True), TINTA,
+             tinta, IZQ | UNA)
+    lz.imagen(imagen("sello"), lz.r(*m.sello))
+    lz.imagen(imagen("firma"), lz.r(*m.firma))
+    lz.texto(lz.r(*m.cargo), a.cargo_firma, lz.fuente(CUERPO, 2.4, B.Normal, cursiva=True), tinta,
              ARRIBA_DCHA | UNA)
 
 
-def imagen_parte(datos: DatosParte, gestor: GestorAjustes, imagenes: ImagenesParte, ancho_px: int) -> QImage:
+def imagen_parte(
+    datos: DatosParte, gestor: GestorAjustes, imagenes: ImagenesParte, ancho_px: int, grises: bool = False
+) -> QImage:
     m = maqueta(gestor.valores.orientacion)
     escala = ancho_px / m.ancho
     img = QImage(ancho_px, round(m.alto * escala), QImage.Format.Format_ARGB32_Premultiplied)
     img.fill(QColor("#ffffff"))
     p = QPainter(img)
-    dibujar_parte(p, escala, datos, gestor, imagenes)
+    dibujar_parte(p, escala, datos, gestor, imagenes, grises=grises)
     p.end()
     return img

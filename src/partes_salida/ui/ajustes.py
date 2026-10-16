@@ -424,6 +424,16 @@ class DialogoAjustes(QDialog):
         ap.campo("Orientación del parte", orientacion,
                  "El mismo contenido en las dos: en vertical, la hora pasa a una franja a todo el ancho. "
                  "La vista previa y el parte de prueba la siguen.")
+        color = QComboBox()
+        color.addItem("Color", "color")
+        color.addItem("Blanco y negro", "grises")
+        color.setCurrentIndex(max(color.findData(self.g.valores.color_impresion), 0))
+        color.currentIndexChanged.connect(lambda: self.g.poner(color_impresion=color.currentData()))
+        color.setMaximumWidth(280)
+        self.color_impresion = color
+        ap.campo("Color", color,
+                 "En blanco y negro, la foto, los logos y el sello salen en grises, aunque la impresora "
+                 "esté puesta en color. La vista previa y el parte de prueba lo siguen.")
         ap.campo("Al pulsar «Imprimir»", self._casilla("Imprimir directamente, sin el diálogo del sistema", "imprimir_directo"))
         x, y = QDoubleSpinBox(), QDoubleSpinBox()
         for spin, clave in ((x, "ajuste_x_mm"), (y, "ajuste_y_mm")):

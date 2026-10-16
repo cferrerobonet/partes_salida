@@ -90,3 +90,10 @@ Formato: contexto → decisión → consecuencias. Una decisión no se reescribe
 - **Decisión**: servidor y remitente vacíos por defecto (el puerto 587, estándar, se mantiene). Se escriben en Ajustes → Correo de cada equipo o llegan con la copia de ajustes de otro equipo; la contraseña sigue en el llavero. Sin servidor o remitente, la app no intenta enviar y lo dice («falta configurar el servidor de correo en Ajustes → Correo»). Documentos y tests usan marcadores o direcciones `@ejemplo.es`.
 - **Barreras**: `scripts/comprobar_secretos.sh` (común a todas las apps) desde `.githooks/pre-commit` y desde la CI `Secretos`, más el escaneo de secretos y la protección de push de GitHub.
 - **Consecuencias**: los equipos ya instalados conservan sus ajustes (el archivo guarda todos los campos). Uno nuevo hay que configurarlo o importar la copia de ajustes. Sustituye en parte a ADR-008.
+
+## ADR-016 · El parte se ajusta al área imprimible de la impresora — 2026-10-16
+
+- **Contexto**: el parte se dibujaba a tamaño real desde la esquina del papel. Las impresoras que no llegan al filo (márgenes físicos) cortaban el borde derecho y el inferior (CarlosFB, en papel).
+- **Alternativas**: pedir que cada equipo corrija con el ajuste fino (no recupera lo que cae fuera); encoger siempre un porcentaje fijo (depende de la impresora); o leer el área imprimible real.
+- **Decisión**: `impresion.area_imprimible` resta al papel los márgenes físicos de la impresora (`minimumMargins`) o los de la página, los mayores; `colocacion` reduce el parte en proporción para caber, nunca lo amplía, lo centra y aplica el ajuste fino sin sacarlo del área. Igual en la impresión en bloque.
+- **Consecuencias**: en una impresora sin márgenes, el parte sale como antes (148 × 105 mm); en las demás, algo más pequeño pero entero. Junto a esto, el ajuste «Color / Blanco y negro» fija el modo de la impresora y dibuja en grises sin depender del controlador.

@@ -32,6 +32,8 @@ Cada jefatura instala la app en su equipo y la configura a su manera (logos, sel
 
 - De abrir la ventana a tener el parte en la mano, con teclado: escribir, Intro, ⌘P.
 - El parte impreso coincide con la vista previa (mismo dibujo, en milímetros).
+- El parte cabe entero en el área que la impresora puede imprimir: si no llega al filo del papel, se reduce en proporción (nunca se amplía ni se deforma) y se centra; también en los recurrentes, uno por hoja. El ajuste fino lo desplaza sin sacarlo de esa área.
+- En blanco y negro, la impresora se pone en escala de grises y el parte (foto, logos, sello, firma y tintas) se dibuja ya en grises, así no depende del controlador; la vista previa lo sigue. El parte del correo sale siempre en color.
 - Si la impresión se cancela o falla, no se envía ningún correo ni se apunta en el historial.
 - Si el correo falla, el parte ya impreso vale; se avisa con los teléfonos de la familia para llamar. Si fallaba el del alumno, se avisa para imprimirlo.
 - Por correo al alumno no se imprime nada; al elegir otro alumno, la entrega vuelve a «En papel».
@@ -56,7 +58,7 @@ Cada jefatura instala la app en su equipo y la configura a su manera (logos, sel
 | Textos del parte | Título y texto de dos líneas en femenino y masculino, con variables `{hora}`, `{nombre}`, `{curso}`, `{etapa}`, `{fecha}` |
 | Datos del alumnado | Importaciones, cifras, fotos por confirmar, etapas detectadas (se pueden ocultar), cifrado, vaciar el historial de todos, borrar datos |
 | Correo | SMTP, remitente, contraseña (llavero), contactos de jefatura de mañana y tarde, **correo de prueba** a una dirección cualquiera |
-| Impresión | Impresora, orientación del parte (horizontal 148 × 105 o vertical 105 × 148), imprimir sin diálogo, ajuste fino en mm, parte de prueba |
+| Impresión | Impresora, orientación del parte (horizontal 148 × 105 o vertical 105 × 148), color o blanco y negro, imprimir sin diálogo, ajuste fino en mm, parte de prueba |
 | QR y verificación | Nombre del equipo, QR con la clave pública para la app del vigilante |
 | General | Arrancar con la sesión, siempre encima, exportar o importar ajustes, versión y actualizaciones |
 
@@ -105,5 +107,5 @@ En la ficha, «Historial» resume cuántas salidas tiene y la última; «Ver his
 - **Ventana compacta** (1100 × 700, mínimo 980 × 620), modo claro y oscuro según el sistema.
 - **Privacidad**: ver [SEGURIDAD_Y_DATOS.md](SEGURIDAD_Y_DATOS.md).
 - **Presentación**: al abrir, una tarjeta corporativa (escudo, título, versión, autoría) muestra el progreso real de la carga; dura al menos 1,4 s y se cierra con un fundido. No sale al arrancar oculta con la sesión.
-- **Actualización**: al arrancar (y cada 4 horas) consulta GitHub. Si hay versión nueva: diálogo por encima de la app con las novedades del CHANGELOG y «Actualizar ahora» destacado; si se pospone, botón dorado «Actualizar a X.Y.Z» fijo en la barra superior. También en Ajustes → General → «Buscar actualizaciones».
+- **Actualización**: al arrancar (y cada 4 horas) consulta GitHub. El instalador descargado solo se abre si su suma sha256 coincide con la que publica GitHub; si no coincide o no se puede comprobar, se avisa y se ofrece la página de descargas. Si hay versión nueva: diálogo por encima de la app con las novedades del CHANGELOG y «Actualizar ahora» destacado; si se pospone, botón dorado «Actualizar a X.Y.Z» fijo en la barra superior. También en Ajustes → General → «Buscar actualizaciones».
 - **Plataformas**: macOS (Apple Silicon e Intel según el runner de GitHub) y Windows 10/11 x64; instalación sin permisos de administrador.

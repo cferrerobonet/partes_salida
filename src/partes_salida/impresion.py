@@ -6,13 +6,13 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 
-from PyQt6.QtCore import QBuffer, QIODevice, QMarginsF, QPointF
+from PyQt6.QtCore import QBuffer, QIODevice, QMarginsF, QPointF, QRectF
 from PyQt6.QtGui import QPageLayout, QPageSize, QPainter, QPdfWriter, QTextDocument
 from PyQt6.QtPrintSupport import QPrintDialog, QPrinter, QPrinterInfo
 
 from .correo import ParteAdjunto
 from .modelo import Alumno
-from .parte import DatosParte, dibujar_parte, imagen_parte
+from .parte import DatosParte, dibujar_parte, imagen_parte, maqueta
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +28,62 @@ def _pagina_a6(orientacion: str) -> QPageLayout:
         QMarginsF(0, 0, 0, 0),
         QPageLayout.Unit.Millimeter,
     )
+
+
+def area_imprimible(impresora: QPrinter) -> QRectF:
+    """Rectángulo, en píxeles del dispositivo y coordenadas del pintor, donde la impresora imprime de verdad.
+
+    En página completa el origen es la esquina del papel: se quitan los márgenes físicos de la impresora
+    (`minimumMargins`) o los de la página, los que sean mayores. Así el parte no pierde el borde derecho
+    ni el inferior en las impresoras que no llegan al filo del papel.
+    """
+    res = impresora.resolution()
+    capa = impresora.pageLayout()
+    if not impresora.fullPage():
+        r = capa.paintRectPixels(res)
+        return QRectF(0, 0, r.width(), r.height())
+    m, minimos = capa.margins(), capa.minimumMargins()
+    margenes = QMarginsF(max(m.left(), minimos.left()), max(m.top(), minimos.top()),
+                         max(m.right(), minimos.right()), max(m.bottom(), minimos.bottom()))
+    real = QPageLayout(capa.pageSize(), capa.orientation(), margenes, capa.units())
+    return QRectF(real.paintRectPixels(res))
+
+
+def colocacion(area: QRectF, ancho_mm: float, alto_mm: float, resolucion: int,
+               ajuste_mm: tuple[float, float] = (0.0, 0.0)) -> tuple[float, QPointF]:
+    """`(píxeles por mm, origen)` del parte: escalado en proporción para caber en `area` (nunca ampliado),
+    centrado, con el ajuste fino de Ajustes y sin salirse del área."""
+    px_mm = resolucion / 25.4
+    escala = px_mm * min(1.0, area.width() / (ancho_mm * px_mm), area.height() / (alto_mm * px_mm))
+    w, h = ancho_mm * escala, alto_mm * escala
+    x = area.x() + (area.width() - w) / 2 + ajuste_mm[0] * px_mm
+    y = area.y() + (area.height() - h) / 2 + ajuste_mm[1] * px_mm
+    x = min(max(x, area.left()), area.left() + area.width() - w)
+    y = min(max(y, area.top()), area.top() + area.height() - h)
+    return escala, QPointF(x, y)
+
+
+def pintar_partes(impresora: QPrinter, partes: list[DatosParte], contexto) -> None:
+    """Dibuja los partes, uno por hoja, dentro del área imprimible de `impresora` (ya configurada)."""
+    a = contexto.gestor.valores
+    m = maqueta(a.orientacion)
+    # Blanco y negro si lo dicen los Ajustes o el diálogo de la impresora: se dibuja ya en grises,
+    # sin depender de que el controlador respete el modo de color.
+    grises = a.color_impresion == "grises" or impresora.colorMode() == QPrinter.ColorMode.GrayScale
+    pintor = QPainter()
+    if not pintor.begin(impresora):
+        raise RuntimeError(f"No se puede usar la impresora «{impresora.printerName()}»")
+    try:
+        area = area_imprimible(impresora)
+        escala, origen = colocacion(area, m.ancho, m.alto, impresora.resolution(), (a.ajuste_x_mm, a.ajuste_y_mm))
+        logger.info("Área imprimible %.0f × %.0f px; parte al %.1f %%%s", area.width(), area.height(),
+                    escala * 2540 / impresora.resolution(), ", en blanco y negro" if grises else "")
+        for i, datos in enumerate(partes):
+            if i:
+                impresora.newPage()
+            dibujar_parte(pintor, escala, datos, contexto.gestor, contexto.imagenes, origen, grises=grises)
+    finally:
+        pintor.end()
 
 
 def imprimir(datos: DatosParte, contexto, padre=None) -> bool:
@@ -50,23 +106,15 @@ def imprimir_varios(partes: list[DatosParte], contexto, padre=None) -> bool:
         impresora.setPrinterName(a.impresora)
     impresora.setPageLayout(_pagina_a6(a.orientacion))
     impresora.setFullPage(True)
+    impresora.setColorMode(
+        QPrinter.ColorMode.GrayScale if a.color_impresion == "grises" else QPrinter.ColorMode.Color
+    )
     if not directa:
         dialogo = QPrintDialog(impresora, padre)
         dialogo.setWindowTitle("Imprimir parte de salida" if len(partes) == 1 else "Imprimir partes de salida")
         if dialogo.exec() != QPrintDialog.DialogCode.Accepted:
             return False
-    pintor = QPainter()
-    if not pintor.begin(impresora):
-        raise RuntimeError(f"No se puede usar la impresora «{impresora.printerName()}»")
-    try:
-        escala = impresora.resolution() / 25.4
-        origen = QPointF(a.ajuste_x_mm * escala, a.ajuste_y_mm * escala)
-        for i, datos in enumerate(partes):
-            if i:
-                impresora.newPage()
-            dibujar_parte(pintor, escala, datos, contexto.gestor, contexto.imagenes, origen)
-    finally:
-        pintor.end()
+    pintar_partes(impresora, partes, contexto)
     logger.info("%d parte(s) impreso(s) en %s", len(partes), impresora.printerName() or "(impresora por defecto)")
     return True
 

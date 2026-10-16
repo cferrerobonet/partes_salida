@@ -2,7 +2,11 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
-## [Sin publicar]
+## [1.1.1] - 2026-10-16
+
+### Seguridad
+
+- El programa ya no trae de serie el servidor ni el buzón de correo.
 
 ### Cambiado
 

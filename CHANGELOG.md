@@ -2,6 +2,20 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [1.1.2] - 2026-10-16
+
+### Corregido
+
+- **El parte ya no sale cortado por la derecha ni por abajo.** Muchas impresoras no llegan al filo del papel; ahora el parte se reduce lo justo para caber en lo que la impresora puede imprimir, centrado y sin deformarse. En una impresora que imprime hasta el borde sale igual que antes. También al imprimir varios partes de golpe (uno por hoja).
+
+### Añadido
+
+- **Impresión en color o en blanco y negro.** En Ajustes → Impresión → «Color» se elige para este equipo. En blanco y negro, la foto, los logos, el sello y la firma salen en grises aunque la impresora esté puesta en color, y la vista previa lo enseña así. El parte que llega por correo sigue en color.
+
+### Seguridad
+
+- **Las actualizaciones se comprueban antes de instalarse.** El instalador descargado solo se abre si es idéntico al publicado (misma suma sha256 que da GitHub). Si no coincide o no se puede comprobar, la app lo avisa y ofrece la página de descargas para hacerlo a mano. La descarga ya no se queda colgada si la red falla.
+
 ## [1.1.1] - 2026-10-16
 
 ### Seguridad

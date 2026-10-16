@@ -6,6 +6,9 @@
 *.xlsx
 *.zip
 *.bin
+*.sql
+*.db
+COPIAS DE SEGURIDAD/
 *.jpg
 *.jpeg
 *.webp

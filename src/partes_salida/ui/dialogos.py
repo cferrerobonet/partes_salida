@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 import tempfile
-import urllib.request
 import webbrowser
 from pathlib import Path
 
@@ -25,7 +24,7 @@ from PyQt6.QtWidgets import (
 )
 
 from .. import NOMBRE_APP, __version__
-from ..actualizaciones import PAGINA_DE_RELEASES, abrir_instalador, comprobar, contexto_ssl, url_de_confianza
+from ..actualizaciones import PAGINA_DE_RELEASES, abrir_instalador, comprobar, descargar_verificado
 from .componentes import boton, etiqueta
 
 logger = logging.getLogger(__name__)
@@ -201,26 +200,20 @@ class _Descargador(QThread):
         self._destino = destino
 
     def run(self):
+        # Solo se abre si el sha256 coincide con el digest del asset en la API de releases.
         try:
-            if not url_de_confianza(self._url):
-                self.error.emit("La dirección de descarga no es de confianza; se cancela.")
-                return
-            with urllib.request.urlopen(self._url, context=contexto_ssl()) as r:  # nosec B310
-                total = int(r.headers.get("Content-Length") or 0)
-                hecho = 0
-                with open(self._destino, "wb") as f:
-                    while trozo := r.read(64 * 1024):
-                        f.write(trozo)
-                        hecho += len(trozo)
-                        if total:
-                            self.avance.emit(min(100, hecho * 100 // total))
-            self.listo.emit(str(self._destino))
+            ruta = descargar_verificado(self._url, self._destino, self.avance.emit)
+        except ValueError:
+            self.error.emit("La dirección de descarga no es de confianza; se cancela.")
+            return
         except Exception as e:  # noqa: BLE001
-            self.error.emit(str(e))
+            self.error.emit(f"{e}\n\nSe puede descargar a mano desde {PAGINA_DE_RELEASES}")
+            return
+        self.listo.emit(str(ruta))
 
 
 def _descargar(padre, url: str, version: str) -> None:
-    destino = Path(tempfile.gettempdir()) / url.rsplit("/", 1)[-1]
+    destino = Path(tempfile.mkdtemp(prefix="partes-actualizacion-")) / url.rsplit("/", 1)[-1]
     progreso = QProgressDialog(f"Descargando {NOMBRE_APP} {version}…", "Cancelar", 0, 100, padre)
     progreso.setWindowTitle("Actualización")
     progreso.setMinimumDuration(0)

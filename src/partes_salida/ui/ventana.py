@@ -384,7 +384,10 @@ class VistaPrevia(QLabel):
         m = self._maqueta()
         self.setFixedHeight(self.heightForWidth(self.width()))
         ancho = min(self.width(), self.height() * m.ancho / m.alto)
-        img = imagen_parte(datos, self._ventana.ctx.gestor, self._ventana.ctx.imagenes, int(ancho * dpr))
+        gestor = self._ventana.ctx.gestor
+        # La vista previa sigue al modo de color de la impresión (lo que se ve es lo que sale)
+        img = imagen_parte(datos, gestor, self._ventana.ctx.imagenes, int(ancho * dpr),
+                           grises=gestor.valores.color_impresion == "grises")
         pm = QPixmap.fromImage(img)
         pm.setDevicePixelRatio(dpr)
         self.setPixmap(pm)

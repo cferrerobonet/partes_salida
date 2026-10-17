@@ -36,26 +36,7 @@ fi
 codesign --verify --deep --strict "$TMP/${APP_NAME}.app"
 ln -s /Applications "$TMP/Applications"
 
-if [ -z "${APPLE_ID:-}" ]; then
-    cat > "$TMP/LÉEME - si dice que está dañada.txt" <<'AVISO'
-Si al abrir la aplicación macOS dice que "está dañada y no se puede abrir"
-──────────────────────────────────────────────────────────────────────────
-
-No está dañada. macOS bloquea las aplicaciones que no llevan un certificado de
-pago de Apple, y el mensaje es el mismo que el de un archivo roto.
-
-Una sola vez por ordenador:
-  1. Arrastra «Partes de salida» a la carpeta Aplicaciones.
-  2. Abre Terminal (Launchpad → Otros → Terminal).
-  3. Pega esta línea y pulsa Intro:
-
-     xattr -dr com.apple.quarantine "/Applications/Partes de salida.app"
-
-  4. Abre la aplicación con normalidad.
-
-El comando solo quita la marca de "descargado de internet".
-AVISO
-fi
+# Sin LÉEME en el DMG (CarlosFB, 2026-10-17: la app abre bien). Si macOS dijera «está dañada»: docs/OPERACIONES.md.
 
 rm -f "$DMG_NAME"
 hdiutil create -volname "$APP_NAME $VERSION" -srcfolder "$TMP" -ov -format UDZO "$DMG_NAME"

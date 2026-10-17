@@ -275,3 +275,16 @@ def test_un_dmg_de_otra_app_no_sustituye_nada(entorno):
     llamadas = entorno.llamadas()
     assert any(ll.startswith("hdiutil detach") for ll in llamadas)
     assert llamadas[-1] == f"open {entorno.dmg}"
+
+
+def test_un_dmg_que_no_se_monta_abre_el_dmg_y_dice_donde(entorno, monkeypatch):
+    roto = '#!/bin/bash\necho "hdiutil $*" >> "$LLAMADAS"\nexit 1\n'
+    monkeypatch.setattr(am, "HDIUTIL", _ejecutable(entorno.binarios / "hdiutil", roto))
+    vieja = _bundle(entorno.instaladas, "App de prueba.app", "1.0")
+
+    resultado = _instalar(entorno, vieja)
+
+    assert not resultado.sustituida
+    assert str(entorno.instaladas) in resultado.aviso
+    assert entorno.llamadas()[-1] == f"open {entorno.dmg}"
+    assert _version(vieja) == "1.0"

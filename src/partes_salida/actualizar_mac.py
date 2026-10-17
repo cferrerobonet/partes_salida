@@ -182,7 +182,7 @@ def app_del_volumen(punto: Path, ident: str = "") -> Path | None:
 
 
 def _lanzar_separado(orden: list[str]) -> None:
-    subprocess.Popen(  # noqa: S603  # nosec B603 - rutas creadas por la app
+    subprocess.Popen(  # noqa: S603  # nosec B603
         orden,
         start_new_session=True,
         stdin=subprocess.DEVNULL,
@@ -245,7 +245,7 @@ def instalar(
         return _reserva(dmg, f"No hay permiso para escribir en «{carpeta}».", carpeta)
     try:
         punto = montar(dmg)
-    except Exception as e:  # noqa: BLE001 - cualquier fallo lleva a la vía manual
+    except (OSError, ValueError, AttributeError, RuntimeError, subprocess.SubprocessError) as e:
         logger.warning("No se pudo montar %s: %s", dmg, e)
         return _reserva(dmg, "No se ha podido abrir el DMG por dentro.", carpeta)
     nueva = app_del_volumen(punto, identificador(vieja))

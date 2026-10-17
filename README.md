@@ -24,7 +24,7 @@ Descargar la última versión en [Releases](https://github.com/cferrerobonet/par
 
 | Sistema | Archivo |
 | --- | --- |
-| macOS | `PartesSalida_vX.Y.Z_macOS.dmg` (si dice que está dañada, ver el `LÉEME` del DMG) |
+| macOS | `PartesSalida_vX.Y.Z_macOS.dmg` (si dice que está dañada, ver `docs/OPERACIONES.md`) |
 | Windows | `PartesDeSalida-X.Y.Z-Windows-Setup.exe` · sin permisos de administrador: `…-Windows-Portable.zip` |
 
 Primer uso: **Ajustes → Datos del alumnado** → importar el Excel y los ZIP de fotos; **Sello y firma**; **Correo** (contraseña y correo de prueba); **Impresión** (impresora con bandeja A6 y parte de prueba). Guía completa en [docs/OPERACIONES.md](docs/OPERACIONES.md).

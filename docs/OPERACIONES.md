@@ -3,7 +3,7 @@
 ## 1. Instalar en un equipo de jefatura
 
 1. Descargar de [Releases](https://github.com/cferrerobonet/partes_salida/releases/latest) el DMG (macOS) o el instalador `.exe` (Windows; sin permisos de administrador, el `.zip` portable).
-2. **macOS**: arrastrar a Aplicaciones. Si dice «está dañada», una vez: `xattr -dr com.apple.quarantine "/Applications/Partes de salida.app"` (lo explica el `LÉEME` del DMG). La primera vez el sistema puede pedir permiso para usar el llavero: «Permitir siempre».
+2. **macOS**: arrastrar a Aplicaciones. Si dice «está dañada», una vez: `xattr -dr com.apple.quarantine "/Applications/Partes de salida.app"`. La primera vez el sistema puede pedir permiso para usar el llavero: «Permitir siempre».
 3. Abrir y seguir **Ajustes**:
    - **Datos del alumnado**: arrastrar el Excel de Educamos y después los ZIP de fotos; confirmar las fotos parecidas.
    - **Sello y firma**: subir el sello de la etapa y la firma (fondo blanco; se quita solo).

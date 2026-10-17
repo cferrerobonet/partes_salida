@@ -187,3 +187,19 @@ def abrir_instalador(ruta: str) -> None:
         subprocess.run(["/usr/bin/open", ruta], check=False)  # nosec B603
     else:
         subprocess.run(["/usr/bin/xdg-open", ruta], check=False)  # nosec B603
+
+
+def instalar_descarga(ruta: str) -> str:
+    """Instala lo descargado; devuelve el aviso de la vía manual o vacío.
+
+    Windows: abre el instalador, que sustituye en la carpeta de antes (mismo `AppId`).
+    macOS: sustituye la app allí donde está instalada (`actualizar_mac`); si no se puede,
+    abre el DMG y el aviso dice a qué carpeta arrastrarla.
+    """
+    if platform.system() == "Darwin":
+        from . import actualizar_mac
+        from .rutas import carpeta_datos
+
+        return actualizar_mac.instalar(Path(ruta), carpeta_datos() / "logs").aviso
+    abrir_instalador(ruta)
+    return ""

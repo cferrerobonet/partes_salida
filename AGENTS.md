@@ -23,7 +23,7 @@ App de escritorio (macOS y Windows, Python 3.11 + PyQt6) que imprime en DIN-A6 e
 | Dibujo del parte (mm) e impresión | `parte.py` · `impresion.py` |
 | Excel · fotos · búsqueda | `importar_excel.py` (`COLUMNAS`) · `importar_fotos.py` · `busqueda.py` |
 | Cifrado · almacén · firma del QR | `cifrado.py` · `almacen.py` · `firma.py` |
-| Correo · ajustes · actualizaciones · registro | `correo.py` · `ajustes.py` · `actualizaciones.py` · `sistema.py` |
+| Correo · ajustes · actualizaciones (macOS: sustitución en su carpeta) · registro | `correo.py` · `ajustes.py` · `actualizaciones.py` (`actualizar_mac.py`) · `sistema.py` |
 | Compilación | `PartesSalida.spec`, `installer_windows.iss`, `scripts/build/`, `.github/workflows/compilar.yml` |
 | App del vigilante y contrato del QR | `android/` |
 | Documentación | `docs/README.md` (mapa) |

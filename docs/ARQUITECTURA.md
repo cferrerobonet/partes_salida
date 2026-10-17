@@ -49,6 +49,7 @@ flowchart TB
 | `correo.py` | Mensajes a la familia y al alumno (HTML + texto, logos y parte `cid:`, PDF adjunto); envío SMTP (STARTTLS o SSL) | Siempre en un hilo |
 | `ajustes.py` | `Ajustes` (JSON), imágenes propias, exportar e importar | Sin datos ni contraseñas |
 | `actualizaciones.py` | Última versión en GitHub (API y plan B por la web), descarga solo desde GitHub, con timeout y sha256 contra el `digest` del asset | Igual que Guardias |
+| `actualizar_mac.py` | macOS: monta el DMG y lanza un script que, cerrada la app, la sustituye en su carpeta (con `ditto`, sin dejar dos copias y restaurando la vieja si falla); si no se puede, abre el DMG | Mismo archivo en Guardias y el Asistente |
 | `sistema.py` | Registro rotatorio + faulthandler; arranque con la sesión (LaunchAgent / clave Run) | |
 | `ui/estilo.py` | Tokens claro y oscuro, hoja de estilos, tipografías, iconos dibujados | Fuente de verdad visual |
 | `ui/ventana.py` | Ventana principal: lista con delegado, ficha con seguimiento, vista previa, entrega y `emitir_partes()` (uno o un lote) | |

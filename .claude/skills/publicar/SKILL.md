@@ -16,7 +16,7 @@ Sin pedir confirmación en cada paso: es el flujo acordado. Se compila **solo en
 ## 2. Preparar
 
 1. Subir la versión en **los dos sitios**: `pyproject.toml` (`version = "X.Y.Z"`) y `src/partes_salida/__init__.py` (`__version__`). Un test vigila que coincidan.
-2. `CHANGELOG.md`: entrada nueva **arriba** con `## [X.Y.Z] - AAAA-MM-DD`, escrita para quien usa la app (qué cambia en su pantalla), con secciones `Añadido`, `Cambiado`, `Corregido` o `Seguridad` según toque. Es la nota del release en GitHub.
+2. `CHANGELOG.md`: entrada nueva **arriba** con `## [X.Y.Z] - AAAA-MM-DD` (si hay `## [Sin publicar]`, se convierte en ella), escrita para quien usa la app (qué cambia en su pantalla), con secciones `Añadido`, `Cambiado`, `Corregido` o `Seguridad` según toque. Es la nota del release en GitHub.
 3. Impacto documental (regla `documentacion.md`): actualizar lo que toque o decir «sin impacto documental».
 4. `scripts/qa.sh todo` → tiene que acabar en `QA todo: OK`. Si falla, leer el log con `grep`, no relanzar.
 

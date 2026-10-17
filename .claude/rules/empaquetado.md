@@ -7,6 +7,7 @@ paths:
   - "scripts/*.ps1"
   - ".github/workflows/**"
   - "src/partes_salida/actualizaciones.py"
+  - "src/partes_salida/actualizar_mac.py"
   - "src/partes_salida/app.py"
   - "src/partes_salida/rutas.py"
 ---
@@ -20,3 +21,4 @@ paths:
 - **Nombres fijos de los instaladores** (`PartesSalida_v<v>_macOS.dmg`, `PartesDeSalida-<v>-Windows-Setup.exe`): `actualizaciones.py` los usa para el plan B sin API. Si cambian aquí, cambian allí.
 - Versión: `pyproject.toml` y `src/partes_salida/__init__.py` coinciden (test) y la CI rechaza una etiqueta que no case con `pyproject.toml`.
 - Registro de la app instalada: macOS `~/Library/Application Support/PartesSalida/logs/`, Windows `%APPDATA%\PartesSalida\logs\`. Si «la app no abre», pedir antes ese registro.
+- **Actualización en macOS**: `actualizar_mac.py` sustituye la app en la carpeta donde está instalada (no siempre `/Applications`). Es el mismo archivo en Guardias y el Asistente: un arreglo se lleva a los tres. Sus pruebas (`tests/test_actualizar_mac.py`) simulan `hdiutil`, `ditto`, `open`, `xattr` y `osascript`.

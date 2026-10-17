@@ -39,6 +39,8 @@ Skill `publicar` (`.claude/skills/publicar/SKILL.md`): versión en `pyproject.to
 
 Los equipos ven el aviso de versión nueva al abrir la app y la instalan con un clic. **No se compila en local.**
 
+**Actualizar en macOS** (desde la versión posterior a la 1.1.2): la app descarga el DMG, comprueba su sha256, se cierra y un script auxiliar la sustituye **en la carpeta donde está instalada** (también `/Applications/EPLA`), con el nombre del `.app` nuevo, le quita la cuarentena y la vuelve a abrir (`src/partes_salida/actualizar_mac.py`, el mismo módulo que Guardias y el Asistente). Si la copia falla, deja la anterior en su sitio, la abre y avisa. Sin permiso de escritura en la carpeta (o en modo desarrollo), abre el DMG y dice a qué carpeta arrastrarla: no al acceso «Applications» del DMG si la app no está ahí. En Windows, el instalador sustituye en la carpeta de antes gracias al `AppId`.
+
 Compilación manual sin publicar: GitHub → Actions → Compilar → Run workflow (los instaladores quedan como artefactos).
 
 ## 6. Diagnóstico
@@ -51,6 +53,7 @@ Compilación manual sin publicar: GitHub → Actions → Compilar → Run workfl
 | El parte sale desplazado o cortado | Desde 1.1.2 se reduce solo para caber en lo que la impresora puede imprimir. Si aún sale desplazado: Ajustes → Impresión → ajuste fino y parte de prueba; comprobar que la bandeja está en A6 horizontal |
 | Una foto no aparece | El nombre del archivo debe ser `APELLIDOS, NOMBRE` como en Educamos; las casi iguales se confirman al importar |
 | No avisa de versiones nuevas | Red o límite de GitHub: Ajustes → General → Buscar actualizaciones |
+| macOS: tras actualizar sigue la versión anterior o vuelve el mismo aviso | `~/Library/Application Support/PartesSalida/logs/actualizacion_mac_*.log`; comprobar que no hay dos copias (`/Applications` y `/Applications/EPLA`) y dejar solo la nueva |
 
 ## 7. Desarrollo local
 

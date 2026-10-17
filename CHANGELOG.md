@@ -2,6 +2,13 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [Sin publicar]
+
+### Corregido
+
+- **macOS: la actualización sustituye la app allí donde está instalada.** Hasta ahora se abría el DMG y, al arrastrar la app al acceso «Applications», la versión nueva quedaba en `/Applications` mientras el Dock seguía abriendo la vieja (por ejemplo, la de `/Applications/EPLA`), que volvía a avisar de la misma actualización. Ahora, tras descargarla y comprobar su sha256, la app se cierra, se cambia sola por la nueva en su misma carpeta y se vuelve a abrir. Si algo falla, se queda la versión anterior y lo avisa; si la carpeta no admite escritura, abre el DMG como antes y dice a qué carpeta arrastrarla. Deja un registro en `~/Library/Application Support/PartesSalida/logs/actualizacion_mac_*.log`.
+- **Solo funciona a partir de la versión que lo lleve.** La actualización *a* esa versión todavía va por el camino antiguo: arrastrar la app del DMG a la carpeta donde está instalada (por ejemplo, `/Applications/EPLA`) y sustituir la anterior. En Windows no cambia nada: el instalador ya sustituye en la carpeta de antes (mismo `AppId`).
+
 ## [1.1.2] - 2026-10-16
 
 ### Corregido

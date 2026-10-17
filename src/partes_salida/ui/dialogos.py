@@ -24,7 +24,7 @@ from PyQt6.QtWidgets import (
 )
 
 from .. import NOMBRE_APP, __version__
-from ..actualizaciones import PAGINA_DE_RELEASES, abrir_instalador, comprobar, descargar_verificado
+from ..actualizaciones import PAGINA_DE_RELEASES, comprobar, descargar_verificado, instalar_descarga
 from .componentes import boton, etiqueta
 
 logger = logging.getLogger(__name__)
@@ -224,7 +224,10 @@ def _descargar(padre, url: str, version: str) -> None:
 
     def instalar(ruta):
         progreso.close()
-        abrir_instalador(ruta)
+        # En macOS, el script auxiliar espera a que la app se cierre para sustituirla.
+        aviso = instalar_descarga(ruta)
+        if aviso:
+            QMessageBox.information(padre, "Actualización", aviso)
         app = QApplication.instance()
         ventana = getattr(app, "ventana", None)
         if ventana is not None:

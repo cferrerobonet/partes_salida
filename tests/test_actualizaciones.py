@@ -111,3 +111,29 @@ def test_el_dialogo_no_abre_un_instalador_manipulado(qtbot, red, tmp_path):
     assert listos == []
     assert errores and "no coincide" in errores[0]
     assert not (tmp_path / NOMBRE).exists()
+
+
+def test_en_macos_la_descarga_sustituye_la_app_donde_esta(monkeypatch, tmp_path):
+    """macOS ya no abre el DMG sin más: lo pasa a `actualizar_mac` con la carpeta de registros."""
+    from partes_salida import actualizar_mac
+    from partes_salida.rutas import carpeta_datos
+
+    pedidas, abiertos = [], []
+    monkeypatch.setattr(act.platform, "system", lambda: "Darwin")
+    monkeypatch.setattr(act, "abrir_instalador", abiertos.append)
+    monkeypatch.setattr(
+        actualizar_mac,
+        "instalar",
+        lambda dmg, registros: pedidas.append((dmg, registros)) or actualizar_mac.Resultado(False, "arrástrala"),
+    )
+    assert act.instalar_descarga(str(tmp_path / "x.dmg")) == "arrástrala"
+    assert pedidas == [(tmp_path / "x.dmg", carpeta_datos() / "logs")]
+    assert abiertos == []
+
+
+def test_en_windows_la_descarga_abre_el_instalador(monkeypatch):
+    abiertos = []
+    monkeypatch.setattr(act.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(act, "abrir_instalador", abiertos.append)
+    assert act.instalar_descarga("C:\\temp\\instalador.exe") == ""
+    assert abiertos == ["C:\\temp\\instalador.exe"]

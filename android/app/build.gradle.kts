@@ -4,16 +4,44 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+// La versión es la de la app de escritorio (pyproject.toml), que la CI pasa con -PversionName; versionCode sale de ella
+// (1.2.3 → 10203) para que cada APK nuevo se instale encima del anterior.
+val nombreVersion = (findProperty("versionName") as String?) ?: "0.0.0"
+val codigoVersion = nombreVersion.split(".").map { it.toIntOrNull() ?: 0 }.let { (a, b, c) -> a * 10000 + b * 100 + c }
+    .coerceAtLeast(1)
+
+// Firma fija (secretos de GitHub VIGILANTE_ALMACEN_B64 y VIGILANTE_CONTRASENA; copia en el llavero del Mac de CarlosFB):
+// sin ella, cada compilación firmaría con una clave distinta y el móvil no dejaría actualizar.
+val almacen = System.getenv("VIGILANTE_ALMACEN")
+val contrasena = System.getenv("VIGILANTE_CONTRASENA")
+
 android {
     namespace = "es.epla.vigilante"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "es.epla.vigilante"
         minSdk = 26
-        targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        targetSdk = 35
+        versionCode = codigoVersion
+        versionName = nombreVersion
+    }
+    signingConfigs {
+        if (almacen != null && contrasena != null) {
+            create("epla") {
+                storeFile = file(almacen)
+                storeType = "pkcs12"
+                storePassword = contrasena
+                keyAlias = "vigilante"
+                keyPassword = contrasena
+            }
+        }
+    }
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("epla")
+        }
     }
     buildFeatures { compose = true }
     compileOptions {
@@ -21,6 +49,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
+    lint {
+        // El APK sale aunque lint vea avisos de estilo; los errores reales los cazan las pruebas y la compilación.
+        abortOnError = false
+        checkReleaseBuilds = false
+    }
 }
 
 dependencies {

@@ -6,6 +6,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
+import java.time.LocalDateTime
 
 /** Los mismos casos que pasa la app de escritorio (tests/test_seguridad.py). */
 class VerificadorTest {
@@ -36,5 +37,16 @@ class VerificadorTest {
         val qr = vectores.getString("qr_de_clave").replaceFirst("|", "|0")
         assertEquals(null, Verificador.claveDeQr(qr))
         assertNotNull(Verificador.claveDeQr(vectores.getString("qr_de_clave")))
+    }
+
+    @Test
+    fun veredictoSegunElDiaYLaHora() {
+        val salida = LocalDateTime.of(2030, 1, 15, 12, 30)
+        val r = Resultado.Autentico("1", salida, salida.minusHours(3), "Jefatura")
+        assertEquals(Veredicto.PUEDE_SALIR, Verificador.veredicto(r, salida))
+        assertEquals(Veredicto.PUEDE_SALIR, Verificador.veredicto(r, salida.plusMinutes(40)))
+        assertEquals(Veredicto.TODAVIA_NO, Verificador.veredicto(r, salida.minusMinutes(1)))
+        assertEquals(Veredicto.OTRO_DIA, Verificador.veredicto(r, salida.plusDays(1)))
+        assertEquals(Veredicto.NO_VALE, Verificador.veredicto(Resultado.Rechazado("x"), salida))
     }
 }

@@ -1,6 +1,6 @@
-# Compila Windows y macOS en GitHub, sin compilar nada en local (decisión de
-# CarlosFB, igual que Guardias de patio). El repositorio es público: los
-# ordenadores de GitHub no cuestan nada.
+# Compila Windows, macOS y la app Android del vigilante en GitHub, sin compilar nada
+# en local (decisión de CarlosFB, igual que Guardias de patio). El repositorio es
+# público: los ordenadores de GitHub no cuestan nada.
 #
 #   · Al publicar una etiqueta vX.Y.Z (`docs/OPERACIONES.md`): pruebas, compila las dos
 #     y las adjunta al release. La app avisa sola a cada equipo de la versión nueva.
@@ -23,7 +23,7 @@ on:
       plataforma:
         description: "Qué compilar"
         type: choice
-        options: [todas, macos, windows]
+        options: [todas, macos, windows, android]
         default: todas
 
 permissions:
@@ -66,7 +66,7 @@ jobs:
   windows:
     name: Instalador de Windows
     needs: pruebas
-    if: ${{ inputs.plataforma != 'macos' }}
+    if: ${{ inputs.plataforma != 'macos' && inputs.plataforma != 'android' }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
@@ -107,7 +107,7 @@ jobs:
   macos:
     name: DMG de macOS
     needs: pruebas
-    if: ${{ inputs.plataforma != 'windows' }}
+    if: ${{ inputs.plataforma != 'windows' && inputs.plataforma != 'android' }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
@@ -144,9 +144,50 @@ jobs:
           path: "*.dmg"
           if-no-files-found: error
 
+  android:
+    name: APK del vigilante
+    needs: pruebas
+    if: ${{ inputs.plataforma != 'windows' && inputs.plataforma != 'macos' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: "8.11.1"
+      - name: Leer la versión
+        id: version
+        run: echo "numero=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml | head -1)" >> "$GITHUB_OUTPUT"
+      # La clave de firma fija (secretos; copia en el llavero de CarlosFB): sin ella, el móvil no deja actualizar.
+      - name: Clave de firma
+        env:
+          ALMACEN_B64: ${{ secrets.VIGILANTE_ALMACEN_B64 }}
+        run: |
+          test -n "$ALMACEN_B64" || { echo "Falta el secreto VIGILANTE_ALMACEN_B64"; exit 1; }
+          echo "$ALMACEN_B64" | base64 -d > "$RUNNER_TEMP/vigilante.p12"
+      - name: Pruebas del verificador (vectores del QR) y APK firmado
+        working-directory: android
+        env:
+          VIGILANTE_ALMACEN: ${{ runner.temp }}/vigilante.p12
+          VIGILANTE_CONTRASENA: ${{ secrets.VIGILANTE_CONTRASENA }}
+        run: gradle --no-daemon test assembleRelease -PversionName=${{ steps.version.outputs.numero }}
+      - name: Nombre del APK
+        run: |
+          mkdir -p apk
+          cp android/app/build/outputs/apk/release/app-release.apk "apk/Vigilante-EPLA-${{ steps.version.outputs.numero }}.apk"
+          rm -f "$RUNNER_TEMP/vigilante.p12"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Vigilante-Android
+          path: apk/*.apk
+          if-no-files-found: error
+
   publicar:
     name: Adjuntar al release
-    needs: [windows, macos]
+    needs: [windows, macos, android]
     if: startsWith(github.ref, 'refs/tags/v') || inputs.publicar
     runs-on: ubuntu-latest
     steps:
@@ -163,7 +204,7 @@ jobs:
           set -euo pipefail
           etiqueta="${GITHUB_REF_NAME}"
           if [ "${GITHUB_REF_TYPE}" != "tag" ]; then etiqueta=$(git describe --tags --abbrev=0); fi
-          archivos=$(find instaladores -type f \( -name '*.dmg' -o -name '*.exe' -o -name '*.zip' \))
+          archivos=$(find instaladores -type f \( -name '*.dmg' -o -name '*.exe' -o -name '*.zip' -o -name '*.apk' \))
           # Notas del release: la entrada de la versión en CHANGELOG.md.
           v="${etiqueta#v}"
           awk -v v="$v" '$0 ~ "^## \\[" v "\\]" {p=1; next} /^## \[/ {p=0} p' CHANGELOG.md > notas.md || true

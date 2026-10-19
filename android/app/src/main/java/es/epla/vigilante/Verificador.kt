@@ -13,6 +13,9 @@ data class ClaveEquipo(val id: String, val publica: ByteArray, val nombre: Strin
     override fun hashCode() = id.hashCode()
 }
 
+/** Lo que ve el vigilante: el resultado de la firma y la hora del parte, juntos. */
+enum class Veredicto { PUEDE_SALIR, TODAVIA_NO, OTRO_DIA, NO_VALE }
+
 sealed class Resultado {
     data class Autentico(
         val idAlumno: String,
@@ -65,5 +68,15 @@ object Verificador {
                 equipo = equipo.nombre,
             )
         }.getOrElse { Resultado.Rechazado("Firma no válida: el parte está alterado o es falso") }
+    }
+
+    /** El veredicto de un resultado a una hora dada: firma buena, de hoy y ya es la hora → puede salir. */
+    fun veredicto(r: Resultado, ahora: LocalDateTime): Veredicto = when (r) {
+        is Resultado.Rechazado -> Veredicto.NO_VALE
+        is Resultado.Autentico -> when {
+            r.salida.toLocalDate() != ahora.toLocalDate() -> Veredicto.OTRO_DIA
+            ahora.isBefore(r.salida) -> Veredicto.TODAVIA_NO
+            else -> Veredicto.PUEDE_SALIR
+        }
     }
 }

@@ -21,13 +21,49 @@ def impresoras() -> list[str]:
     return sorted(QPrinterInfo.availablePrinterNames())
 
 
-def _pagina_a6(orientacion: str) -> QPageLayout:
-    return QPageLayout(
-        QPageSize(QPageSize.PageSizeId.A6),
-        QPageLayout.Orientation.Portrait if orientacion == "vertical" else QPageLayout.Orientation.Landscape,
-        QMarginsF(0, 0, 0, 0),
-        QPageLayout.Unit.Millimeter,
-    )
+A6 = QPageSize(QPageSize.PageSizeId.A6)
+
+
+def tamano_a6(nombre_impresora: str) -> QPageSize:
+    """El A6 tal como lo declara la propia impresora si lo tiene (así el diálogo del sistema lo enseña elegido con su
+    nombre); si no, el A6 estándar (105 × 148 mm)."""
+    if nombre_impresora:
+        for tamano in QPrinterInfo.printerInfo(nombre_impresora).supportedPageSizes():
+            if tamano.id() == QPageSize.PageSizeId.A6 or tamano.isEquivalentTo(A6):
+                return tamano
+    return A6
+
+
+def _orientacion(orientacion: str) -> QPageLayout.Orientation:
+    return QPageLayout.Orientation.Portrait if orientacion == "vertical" else QPageLayout.Orientation.Landscape
+
+
+def _pagina_a6(orientacion: str, tamano: QPageSize | None = None) -> QPageLayout:
+    return QPageLayout(tamano or A6, _orientacion(orientacion), QMarginsF(0, 0, 0, 0), QPageLayout.Unit.Millimeter)
+
+
+def aplicar_a6(impresora: QPrinter, orientacion: str) -> None:
+    """Pone la impresora en A6, página completa y la orientación de los ajustes.
+
+    No vale `setPageLayout` con el A6 y márgenes cero: los controladores con márgenes mínimos (la Brother del centro,
+    4,32 mm) lo rechazan y la impresora se queda en su A4 por defecto, que es lo que enseñaba el diálogo del sistema.
+    Primero página completa y después tamaño, orientación y márgenes por separado: así lo aceptan.
+    """
+    impresora.setFullPage(True)
+    impresora.setPageSize(tamano_a6(impresora.printerName()))
+    impresora.setPageOrientation(_orientacion(orientacion))
+    impresora.setPageMargins(QMarginsF(0, 0, 0, 0), QPageLayout.Unit.Millimeter)
+
+
+def asegurar_a6(impresora: QPrinter, orientacion: str) -> bool:
+    """El parte es siempre A6: si el diálogo del sistema ha dejado la impresora en otro papel (el A4 por defecto de la
+    impresora) o en otra orientación, se vuelve a poner el A6 de los ajustes. `True` si hubo que corregirlo."""
+    capa = impresora.pageLayout()
+    bien = capa.pageSize().isEquivalentTo(A6) and capa.orientation() == _orientacion(orientacion)
+    if not bien:
+        logger.info("El diálogo traía %s en %s: el parte se imprime en A6", capa.pageSize().name(), capa.orientation().name)
+        aplicar_a6(impresora, orientacion)
+    return not bien
 
 
 def area_imprimible(impresora: QPrinter) -> QRectF:
@@ -111,8 +147,7 @@ def imprimir_varios(partes: list[DatosParte], contexto, padre=None) -> bool:
     directa = a.imprimir_directo and a.impresora and a.impresora in impresoras()
     if a.impresora and a.impresora in impresoras():
         impresora.setPrinterName(a.impresora)
-    impresora.setPageLayout(_pagina_a6(a.orientacion))
-    impresora.setFullPage(True)
+    aplicar_a6(impresora, a.orientacion)
     impresora.setColorMode(
         QPrinter.ColorMode.GrayScale if a.color_impresion == "grises" else QPrinter.ColorMode.Color
     )
@@ -121,6 +156,8 @@ def imprimir_varios(partes: list[DatosParte], contexto, padre=None) -> bool:
         dialogo.setWindowTitle("Imprimir parte de salida" if len(partes) == 1 else "Imprimir partes de salida")
         if dialogo.exec() != QPrintDialog.DialogCode.Accepted:
             return False
+        # Aunque en el diálogo quede el papel por defecto de la impresora (A4), el parte sale en A6
+        asegurar_a6(impresora, a.orientacion)
     pintar_partes(impresora, partes, contexto)
     logger.info("%d parte(s) impreso(s) en %s", len(partes), impresora.printerName() or "(impresora por defecto)")
     return True

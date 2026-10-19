@@ -186,6 +186,62 @@ def test_el_tamano_se_guarda_y_llega_a_la_colocacion(qapp, datos, tmp_path, monk
     assert recibidos and recibidos[0][0][5] == 115
 
 
+def test_asegurar_a6_devuelve_el_papel_y_la_orientacion_del_parte(qapp, tmp_path):
+    impresora = _impresora_pdf(tmp_path / "a4.pdf")
+    impresora.setPageLayout(QPageLayout(QPageSize(QPageSize.PageSizeId.A4), QPageLayout.Orientation.Portrait,
+                                        QMarginsF(10, 10, 10, 10), QPageLayout.Unit.Millimeter))
+    assert impresion.asegurar_a6(impresora, "horizontal")
+    capa = impresora.pageLayout()
+    assert capa.pageSize().id() == QPageSize.PageSizeId.A6 and capa.orientation() == QPageLayout.Orientation.Landscape
+    assert impresora.fullPage()
+    assert not impresion.asegurar_a6(impresora, "horizontal")       # ya estaba bien: no se toca
+    assert impresion.asegurar_a6(impresora, "vertical")             # otra orientación: se corrige
+    assert impresora.pageLayout().orientation() == QPageLayout.Orientation.Portrait
+
+
+def test_tras_el_dialogo_el_parte_sale_en_a6_aunque_venga_en_a4(qapp, datos, monkeypatch):
+    g = GestorAjustes(datos)
+    g.poner(imprimir_directo=False, orientacion="horizontal")
+
+    class DialogoFalso:
+        """El diálogo del sistema deja la impresora en el papel por defecto (A4 vertical) y acepta."""
+
+        def __init__(self, impresora, padre=None):
+            self.impresora = impresora
+
+        def setWindowTitle(self, _t):
+            pass
+
+        def exec(self):
+            self.impresora.setPageLayout(QPageLayout(QPageSize(QPageSize.PageSizeId.A4), QPageLayout.Orientation.Portrait,
+                                                     QMarginsF(5, 5, 5, 5), QPageLayout.Unit.Millimeter))
+            return impresion.QPrintDialog.DialogCode.Accepted
+
+    DialogoFalso.DialogCode = impresion.QPrintDialog.DialogCode
+    capas = []
+    monkeypatch.setattr(impresion, "QPrintDialog", DialogoFalso)
+    monkeypatch.setattr(impresion, "impresoras", lambda: [])
+    monkeypatch.setattr(impresion, "pintar_partes", lambda imp, partes, ctx: capas.append((imp.isValid(), imp.pageLayout())))
+    assert impresion.imprimir_varios([_datos()], _Contexto(g))
+    valida, capa = capas[0]
+    if not valida:
+        pytest.skip("sin ninguna impresora en este equipo: el papel no se puede fijar")
+    assert capa.pageSize().id() == QPageSize.PageSizeId.A6 and capa.orientation() == QPageLayout.Orientation.Landscape
+    assert capa.margins().left() == 0 and capa.mode() == QPageLayout.Mode.FullPageMode
+
+
+def test_aplicar_a6_en_la_impresora_de_este_equipo(qapp):
+    """Con el A6 y márgenes cero en un `setPageLayout`, el controlador con márgenes mínimos lo rechazaba y la impresora
+    se quedaba en A4: por partes lo acepta."""
+    impresora = QPrinter(QPrinter.PrinterMode.HighResolution)
+    if not impresora.isValid():
+        pytest.skip("sin ninguna impresora en este equipo")
+    impresion.aplicar_a6(impresora, "vertical")
+    capa = impresora.pageLayout()
+    assert capa.pageSize().isEquivalentTo(impresion.A6) and capa.orientation() == QPageLayout.Orientation.Portrait
+    assert impresora.fullPage() and capa.margins().left() == 0
+
+
 def test_el_ajuste_de_color_se_guarda_y_llega_a_la_impresora(qapp, datos, monkeypatch):
     g = GestorAjustes(datos)
     assert g.valores.color_impresion == "color"

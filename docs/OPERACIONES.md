@@ -50,7 +50,7 @@ Compilación manual sin publicar: GitHub → Actions → Compilar → Run workfl
 | La app no abre | Registro: macOS `~/Library/Application Support/PartesSalida/logs/app_*.log`, Windows `%APPDATA%\PartesSalida\logs\app_*.log` y `faulthandler.log` |
 | «Los datos guardados no se pueden abrir…» | El llavero cambió (equipo restaurado, perfil nuevo): reimportar Excel y ZIP |
 | El correo no sale | Ajustes → Correo → correo de prueba; revisar contraseña y puerto 587. El parte ya impreso vale: avisar por teléfono |
-| El parte sale desplazado o cortado | Desde 1.1.2 se reduce solo para caber en lo que la impresora puede imprimir. Si aún sale desplazado: Ajustes → Impresión → ajuste fino y parte de prueba; si queda pequeño o cortado, el tamaño (%); comprobar que la bandeja está en A6 horizontal |
+| El parte sale desplazado o cortado | Desde 1.1.2 se reduce solo para caber en lo que la impresora puede imprimir. Si aún sale desplazado: Ajustes → Impresión → ajuste fino y parte de prueba; si queda pequeño o cortado, el tamaño (%); comprobar que la bandeja está en A6 horizontal. El papel del trabajo es siempre A6, aunque el diálogo del sistema enseñe otro |
 | Una foto no aparece | El nombre del archivo debe ser `APELLIDOS, NOMBRE` como en Educamos; las casi iguales se confirman al importar |
 | No avisa de versiones nuevas | Red o límite de GitHub: Ajustes → General → Buscar actualizaciones |
 | macOS: tras actualizar sigue la versión anterior o vuelve el mismo aviso | `~/Library/Application Support/PartesSalida/logs/actualizacion_mac_*.log`; comprobar que no hay dos copias (`/Applications` y `/Applications/EPLA`) y dejar solo la nueva |

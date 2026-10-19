@@ -2,6 +2,12 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [1.2.1] - 2026-10-19
+
+### Corregido
+
+- **El parte sale siempre en A6.** En las impresoras con márgenes mínimos (como la Brother del centro) el A6 que pedía la app no llegaba a aplicarse y el diálogo del sistema salía con el A4 por defecto, que había que cambiar a mano cada vez. Ahora el A6 se aplica de forma que el controlador lo acepta, el diálogo lo propone ya elegido (con el A6 de la propia impresora, si lo declara) y, si aun así el diálogo lo deja en otro papel, la app vuelve a poner el A6 en la orientación de los ajustes antes de imprimir.
+
 ## [1.2.0] - 2026-10-19
 
 ### Añadido

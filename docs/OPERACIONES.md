@@ -17,6 +17,8 @@
 
 Buscar → comprobar → ⌘P / Ctrl+P. La app queda en la barra de menús o la bandeja: cerrar la ventana no la cierra; «Salir» desde el icono.
 
+**Móvil del vigilante** (Android 8 o posterior con Google Play): en el móvil, abrir el último release del repositorio, descargar `Vigilante-EPLA-X.Y.Z.apk`, permitir la primera vez «instalar apps de origen desconocido» para el navegador e instalar. Después, «Equipos de confianza» → «Dar de alta» y escanear el QR de Ajustes → QR y verificación de cada equipo de jefatura. Una versión nueva se instala encima de la anterior del mismo modo.
+
 ## 3. Actualizar el alumnado
 
 Cuando cambie la matrícula (inicio de curso, altas): en Educamos, **Datos → Import/Export → Exportación de datos de los alumnos → Exportar**, y arrastrar el Excel a Ajustes → Datos del alumnado (la «?» lo recuerda). Sustituye el padrón y borra las fotos de las bajas. Fotos nuevas: arrastrar los ZIP; sustituyen a las que había y añaden las que faltaban.
@@ -36,6 +38,7 @@ Publicar: versión en `pyproject.toml` y `src/partes_salida/__init__.py`, `CHANG
 - `PartesSalida_vX.Y.Z_macOS.dmg`
 - `PartesDeSalida-X.Y.Z-Windows-Setup.exe`
 - `PartesDeSalida-X.Y.Z-Windows-Portable.zip`
+- `Vigilante-EPLA-X.Y.Z.apk`: la app Android del vigilante, firmada con la clave fija (secretos `VIGILANTE_ALMACEN_B64` y `VIGILANTE_CONTRASENA`; copia en el llavero del Mac de CarlosFB, «Partes de salida · firma APK del vigilante»). Si la clave se perdiera, los móviles tendrían que desinstalar y volver a instalar.
 
 Los equipos ven el aviso de versión nueva al abrir la app y la instalan con un clic. **No se compila en local.**
 

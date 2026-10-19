@@ -2,6 +2,12 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [Sin publicar]
+
+### Añadido
+
+- **App del vigilante (Android).** En cada versión, el release trae `Vigilante-EPLA-X.Y.Z.apk` (la primera, adjunta a la 1.2.1): escanea el QR del parte y dice en grande si el alumno puede salir, si todavía no es su hora, si el parte es de otro día o si no vale. Los equipos de jefatura se dan de alta escaneando el QR de Ajustes → QR y verificación.
+
 ## [1.2.1] - 2026-10-19
 
 ### Corregido

@@ -11,7 +11,7 @@ Cuando un alumno sale del centro antes de su hora con autorización, Jefatura de
 | Quién | Qué hace | Contexto |
 | --- | --- | --- |
 | Jefatura de Estudios de cada etapa (usuario principal) | Busca al alumno, comprueba la familia, fija la hora, imprime y avisa | La app está abierta todo el día en segundo plano; se usa muchas veces y con prisa |
-| Vigilante de la puerta | Lee el pase; en el futuro escanea el QR con la app Android | Mira foto, nombre y hora en un segundo |
+| Vigilante de la puerta | Lee el pase y escanea su QR con la app Android del vigilante | Mira foto, nombre y hora en un segundo |
 | Familia | Recibe el aviso por correo | Correo corporativo, sin responder |
 
 Cada jefatura instala la app en su equipo y la configura a su manera (logos, sello, firma, textos, etapas visibles); las instalaciones no se comunican entre sí.
@@ -69,9 +69,9 @@ Cada cambio se guarda al momento.
 
 Instalar, importar el Excel y los ZIP y, opcionalmente, la copia de ajustes exportada. La contraseña del correo se vuelve a escribir. Sin nube ni copias de datos.
 
-### CU-5 Verificar un parte (app Android, *pendiente*)
+### CU-5 Verificar un parte (app Android)
 
-El vigilante escanea el QR: «auténtico» con NIA y hora de salida, o «falso / alterado / de un equipo desconocido». Contrato en [../android/ESPECIFICACION_QR.md](../android/ESPECIFICACION_QR.md).
+El vigilante pulsa «Escanear parte» y apunta al QR. La tarjeta sale en grande: **PUEDE SALIR** (verde: firma buena, de hoy y ya es la hora, con NIA, hora y equipo que lo firmó), **TODAVÍA NO** (ámbar: auténtico pero antes de su hora), **OTRO DÍA** o **NO VALE** (rojo: falso, alterado o de un equipo que no está dado de alta). Los equipos de confianza se dan de alta escaneando el QR de Ajustes → QR y verificación y se pueden quitar. La pantalla no se apaga mientras la app está abierta. Sin red y sin datos del alumnado. Contrato en [../android/ESPECIFICACION_QR.md](../android/ESPECIFICACION_QR.md).
 
 ### CU-6 Consultar, imprimir o vaciar el historial de un alumno
 

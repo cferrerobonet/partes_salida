@@ -19,6 +19,11 @@
 | Alta | Comprobar con un móvil que el QR del parte recibido por correo se lee en la puerta | 1.1.0; cuando exista la app del vigilante |
 | Alta | Comprobar en la impresora real con bandeja A6: márgenes, orientación, tamaño (%) y ajuste fino | Parte de prueba en Ajustes → Impresión |
 | Alta | Primera instalación en macOS y Windows desde el release de GitHub | Ver [OPERACIONES.md](OPERACIONES.md) |
-| Media | App Android del vigilante (`android/`) | Esqueleto y contrato listos; falta JDK y compilación en GitHub |
+| Alta | Probar la app del vigilante en su móvil con un parte real impreso (y uno de otro día y otro antes de su hora) | APK en el release desde la 1.2.1; instalación en [OPERACIONES.md](OPERACIONES.md) |
+
+## Aparcado (CarlosFB, 2026-10-19: no se pregunta hasta que lo retome)
+
+| Prioridad | Qué | Notas |
+| --- | --- | --- |
 | Baja | Atajo de teclado global para traer la ventana desde cualquier app | Exige una librería por sistema |
 | Baja | Firma de código de pago (Apple Developer ID, certificado de Windows) | Quita los avisos al instalar |

@@ -146,6 +146,46 @@ def test_colocacion_escala_en_proporcion_centra_y_no_amplia():
     assert origen.x() + 148 * escala <= area.right() + 1e-6
 
 
+def test_colocacion_aplica_el_tamano_de_ajustes_y_lo_acota():
+    px_mm = RES / 25.4
+    area = QRectF(10, 20, 130 * px_mm, 100 * px_mm)
+    base, _ = impresion.colocacion(area, 148, 105, RES)
+    # Reducido: proporcional y centrado
+    escala, origen = impresion.colocacion(area, 148, 105, RES, escala_pct=80)
+    assert escala == pytest.approx(base * 0.8)
+    assert origen.x() == pytest.approx(10 + (130 * px_mm - 148 * escala) / 2)
+    assert origen.y() == pytest.approx(20 + (100 * px_mm - 105 * escala) / 2)
+    # Ampliado por encima del área: sigue centrado y sobresale por igual a los dos lados
+    escala, origen = impresion.colocacion(area, 148, 105, RES, escala_pct=120)
+    assert escala == pytest.approx(base * 1.2)
+    assert origen.x() == pytest.approx(10 + (130 * px_mm - 148 * escala) / 2)
+    assert origen.x() < area.left()
+    # Ampliado pero cabe: el ajuste fino no lo saca del área
+    escala, origen = impresion.colocacion(area, 148, 105, RES, (10, 0), escala_pct=90)
+    assert origen.x() + 148 * escala <= area.right() + 1e-6
+    # Fuera de los límites del control, se acota
+    assert impresion.colocacion(area, 148, 105, RES, escala_pct=500)[0] == pytest.approx(base * 2)
+    assert impresion.colocacion(area, 148, 105, RES, escala_pct=1)[0] == pytest.approx(base * 0.5)
+
+
+def test_el_tamano_se_guarda_y_llega_a_la_colocacion(qapp, datos, tmp_path, monkeypatch):
+    g = GestorAjustes(datos)
+    assert g.valores.escala_pct == 100
+    g.poner(escala_pct=115)
+    assert GestorAjustes(datos).valores.escala_pct == 115
+
+    recibidos = []
+    original = impresion.colocacion
+
+    def espia(*args, **kwargs):
+        recibidos.append((args, kwargs))
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(impresion, "colocacion", espia)
+    impresion.pintar_partes(_impresora_pdf(tmp_path / "t.pdf"), [_datos()], _Contexto(g))
+    assert recibidos and recibidos[0][0][5] == 115
+
+
 def test_el_ajuste_de_color_se_guarda_y_llega_a_la_impresora(qapp, datos, monkeypatch):
     g = GestorAjustes(datos)
     assert g.valores.color_impresion == "color"

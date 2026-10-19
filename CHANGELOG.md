@@ -2,6 +2,12 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [1.2.0] - 2026-10-19
+
+### Añadido
+
+- **Tamaño del parte en papel.** En Ajustes → Impresión → «Tamaño», un zoom del 50 al 200 % (con botones −5 %, +5 % y 100 %) amplía o reduce el parte para aprovechar toda la superficie del A6, junto al ajuste fino de posición. 100 % es lo de siempre: lo que cabe en el área que declara la impresora. Solo cambia la impresión; la vista previa y el parte del correo siguen igual. Se comprueba con el parte de prueba y viaja en la copia de ajustes.
+
 ## [1.1.3] - 2026-10-19
 
 ### Corregido

@@ -49,17 +49,23 @@ def area_imprimible(impresora: QPrinter) -> QRectF:
     return QRectF(real.paintRectPixels(res))
 
 
+ESCALA_MIN, ESCALA_MAX = 50, 200  # límites del tamaño del parte (%), los mismos que el control de Ajustes
+
+
 def colocacion(area: QRectF, ancho_mm: float, alto_mm: float, resolucion: int,
-               ajuste_mm: tuple[float, float] = (0.0, 0.0)) -> tuple[float, QPointF]:
+               ajuste_mm: tuple[float, float] = (0.0, 0.0), escala_pct: int = 100) -> tuple[float, QPointF]:
     """`(píxeles por mm, origen)` del parte: escalado en proporción para caber en `area` (nunca ampliado),
-    centrado, con el ajuste fino de Ajustes y sin salirse del área."""
+    multiplicado por el tamaño de Ajustes (`escala_pct`, 100 = lo que cabe), centrado, con el ajuste fino
+    y sin salirse del área mientras quepa. Si el tamaño elegido lo hace más grande que el área, se queda
+    centrado y sobresale por igual a los dos lados: es decisión de quien ajusta la impresora."""
     px_mm = resolucion / 25.4
-    escala = px_mm * min(1.0, area.width() / (ancho_mm * px_mm), area.height() / (alto_mm * px_mm))
+    cabe = min(1.0, area.width() / (ancho_mm * px_mm), area.height() / (alto_mm * px_mm))
+    escala = px_mm * cabe * min(max(int(escala_pct), ESCALA_MIN), ESCALA_MAX) / 100
     w, h = ancho_mm * escala, alto_mm * escala
     x = area.x() + (area.width() - w) / 2 + ajuste_mm[0] * px_mm
     y = area.y() + (area.height() - h) / 2 + ajuste_mm[1] * px_mm
-    x = min(max(x, area.left()), area.left() + area.width() - w)
-    y = min(max(y, area.top()), area.top() + area.height() - h)
+    x = min(max(x, min(area.left(), area.right() - w)), max(area.left(), area.right() - w))
+    y = min(max(y, min(area.top(), area.bottom() - h)), max(area.top(), area.bottom() - h))
     return escala, QPointF(x, y)
 
 
@@ -75,7 +81,8 @@ def pintar_partes(impresora: QPrinter, partes: list[DatosParte], contexto) -> No
         raise RuntimeError(f"No se puede usar la impresora «{impresora.printerName()}»")
     try:
         area = area_imprimible(impresora)
-        escala, origen = colocacion(area, m.ancho, m.alto, impresora.resolution(), (a.ajuste_x_mm, a.ajuste_y_mm))
+        escala, origen = colocacion(area, m.ancho, m.alto, impresora.resolution(), (a.ajuste_x_mm, a.ajuste_y_mm),
+                                    a.escala_pct)
         logger.info("Área imprimible %.0f × %.0f px; parte al %.1f %%%s", area.width(), area.height(),
                     escala * 2540 / impresora.resolution(), ", en blanco y negro" if grises else "")
         for i, datos in enumerate(partes):

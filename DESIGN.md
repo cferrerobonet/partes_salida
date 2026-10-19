@@ -35,7 +35,7 @@ Fuente de verdad del código: `src/partes_salida/ui/estilo.py` (tokens `CLARO` y
 - **The Just Enough Fields Rule.** Solo los campos que pide el flujo. Un campo nuevo necesita un motivo de uso real (se quitó «motivo» de la maqueta por esta regla).
 - **The Token Rule.** Todo color de la interfaz sale de `T[...]`; nada de hexadecimales sueltos en widgets.
 - **The Paper Rule.** El parte impreso y el correo no siguen el tema: tinta oscura sobre blanco siempre.
-- **The What-You-See Rule.** La vista previa es el mismo dibujo que va a la impresora (`parte.dibujar_parte`), también en blanco y negro. En papel, el parte se reduce en proporción al área imprimible de la impresora (`impresion.area_imprimible`), centrado.
+- **The What-You-See Rule.** La vista previa es el mismo dibujo que va a la impresora (`parte.dibujar_parte`), también en blanco y negro. En papel, el parte se reduce en proporción al área imprimible de la impresora (`impresion.area_imprimible`), centrado, y el tamaño de Ajustes → Impresión lo amplía o reduce sobre eso (solo en papel; la vista previa no cambia).
 
 ## Colors
 

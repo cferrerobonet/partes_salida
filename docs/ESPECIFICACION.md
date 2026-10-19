@@ -32,7 +32,7 @@ Cada jefatura instala la app en su equipo y la configura a su manera (logos, sel
 
 - De abrir la ventana a tener el parte en la mano, con teclado: escribir, Intro, ⌘P.
 - El parte impreso coincide con la vista previa (mismo dibujo, en milímetros).
-- El parte cabe entero en el área que la impresora puede imprimir: si no llega al filo del papel, se reduce en proporción (nunca se amplía ni se deforma) y se centra; también en los recurrentes, uno por hoja. El ajuste fino lo desplaza sin sacarlo de esa área.
+- El parte cabe entero en el área que la impresora puede imprimir: si no llega al filo del papel, se reduce en proporción (nunca se deforma) y se centra; también en los recurrentes, uno por hoja. El tamaño de Ajustes (50–200 %) lo amplía o reduce sobre eso para aprovechar el papel; el ajuste fino lo desplaza sin sacarlo de esa área mientras quepa.
 - En blanco y negro, la impresora se pone en escala de grises y el parte (foto, logos, sello, firma y tintas) se dibuja ya en grises, así no depende del controlador; la vista previa lo sigue. El parte del correo sale siempre en color.
 - Si la impresión se cancela o falla, no se envía ningún correo ni se apunta en el historial.
 - Si el correo falla, el parte ya impreso vale; se avisa con los teléfonos de la familia para llamar. Si fallaba el del alumno, se avisa para imprimirlo.
@@ -58,7 +58,7 @@ Cada jefatura instala la app en su equipo y la configura a su manera (logos, sel
 | Textos del parte | Título y texto de dos líneas en femenino y masculino, con variables `{hora}`, `{nombre}`, `{curso}`, `{etapa}`, `{fecha}` |
 | Datos del alumnado | Importaciones, cifras, fotos por confirmar, etapas detectadas (se pueden ocultar), cifrado, vaciar el historial de todos, borrar datos |
 | Correo | SMTP, remitente, contraseña (llavero), contactos de jefatura de mañana y tarde, **correo de prueba** a una dirección cualquiera |
-| Impresión | Impresora, orientación del parte (horizontal 148 × 105 o vertical 105 × 148), color o blanco y negro, imprimir sin diálogo, ajuste fino en mm, parte de prueba |
+| Impresión | Impresora, orientación del parte (horizontal 148 × 105 o vertical 105 × 148), color o blanco y negro, imprimir sin diálogo, tamaño en % (zoom), ajuste fino en mm, parte de prueba |
 | QR y verificación | Nombre del equipo, QR con la clave pública para la app del vigilante |
 | General | Arrancar con la sesión, siempre encima, exportar o importar ajustes, versión y actualizaciones |
 

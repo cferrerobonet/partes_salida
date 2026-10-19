@@ -51,6 +51,7 @@ class Ajustes:
     orientacion: str = "horizontal"  # «horizontal» (148 × 105) o «vertical» (105 × 148)
     ajuste_x_mm: float = 0.0
     ajuste_y_mm: float = 0.0
+    escala_pct: int = 100  # tamaño del parte en papel: 100 = lo que cabe en el área imprimible; 50–200
     color_impresion: str = "color"  # «color» o «grises» (blanco y negro): modo de la impresora y del dibujo
     etapas_ocultas: list[str] = field(default_factory=list)
     nombre_equipo: str = "Jefatura de Estudios"

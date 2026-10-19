@@ -37,7 +37,7 @@ from ..cifrado import guardar_secreto
 from ..correo import construir_mensaje, contrasena_smtp, correo_configurado, enviar, nombre_secreto_smtp
 from ..importar_excel import importar_excel
 from ..importar_fotos import importar_fotos
-from ..impresion import impresoras, imprimir, parte_de_prueba
+from ..impresion import ESCALA_MAX, ESCALA_MIN, impresoras, imprimir, parte_de_prueba
 from ..modelo import ETAPA_CORTA, Alumno
 from ..rutas import carpeta_datos
 from ..sistema import arranque_con_sistema
@@ -435,6 +435,23 @@ class DialogoAjustes(QDialog):
                  "En blanco y negro, la foto, los logos y el sello salen en grises, aunque la impresora "
                  "esté puesta en color. La vista previa y el parte de prueba lo siguen.")
         ap.campo("Al pulsar «Imprimir»", self._casilla("Imprimir directamente, sin el diálogo del sistema", "imprimir_directo"))
+        tamano = QSpinBox()
+        tamano.setRange(ESCALA_MIN, ESCALA_MAX)
+        tamano.setSingleStep(1)
+        tamano.setSuffix(" %")
+        tamano.setValue(int(self.g.valores.escala_pct))
+        tamano.setMaximumWidth(110)
+        tamano.valueChanged.connect(lambda v: self.g.poner(escala_pct=int(v)))
+        self.escala_pct = tamano
+        menor, mayor = boton("−5 %", pequeno=True), boton("+5 %", pequeno=True)
+        menor.clicked.connect(lambda: tamano.setValue(tamano.value() - 5))
+        mayor.clicked.connect(lambda: tamano.setValue(tamano.value() + 5))
+        normal = boton("100 %", pequeno=True)
+        normal.clicked.connect(lambda: tamano.setValue(100))
+        ap.campo("Tamaño", _fila(etiqueta("Zoom"), tamano, menor, mayor, normal),
+                 "Amplía o reduce el parte en el papel para aprovechar toda la superficie del A6. 100 % es lo que "
+                 "cabe en el área que declara la impresora; por encima puede sobresalir si la impresora no llega al "
+                 "filo. Solo afecta a la impresión, no a la vista previa: compruébalo con el parte de prueba.")
         x, y = QDoubleSpinBox(), QDoubleSpinBox()
         for spin, clave in ((x, "ajuste_x_mm"), (y, "ajuste_y_mm")):
             spin.setRange(-10, 10)

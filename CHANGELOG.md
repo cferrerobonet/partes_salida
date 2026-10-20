@@ -2,13 +2,13 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
-## [Sin publicar]
+## [1.3.0] - 2026-10-20
 
 ### Añadido
 
 - **Contacto de jefatura de ESO.** El aviso a la familia de un alumno de ESO lleva al pie el contacto de su jefatura (jefaturaestudios.eso@epla.es de serie, editable en Ajustes → Correo); el de Bachillerato, el de mañana, que es el mismo que el de FP; FP y el resto, mañana y tarde como hasta ahora.
 
-- **App del vigilante (Android).** En cada versión, el release trae `Vigilante-EPLA-X.Y.Z.apk` (la primera, adjunta a la 1.2.1): escanea el QR del parte y dice en grande si el alumno puede salir, si todavía no es su hora, si el parte es de otro día o si no vale. Los equipos de jefatura se dan de alta escaneando el QR de Ajustes → QR y verificación.
+- **App del vigilante (Android).** En cada versión, el release trae `Vigilante-EPLA-X.Y.Z.apk` (la primera salió adjunta a la 1.2.1): escanea el QR del parte y dice en grande si el alumno puede salir, si todavía no es su hora, si el parte es de otro día o si no vale. Los equipos de jefatura se dan de alta escaneando el QR de Ajustes → QR y verificación.
 
 ## [1.2.1] - 2026-10-19
 

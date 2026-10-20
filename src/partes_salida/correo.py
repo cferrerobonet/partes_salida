@@ -69,11 +69,18 @@ def asunto(alumno: Alumno, salida: datetime, para_alumno: bool = False) -> str:
     return f"Salida del centro: {alumno.nombre} {alumno.apellido1} · hoy a las {salida:%H:%M}"
 
 
-def _contactos(a: Ajustes) -> list[tuple[str, str, str]]:
-    filas = [
-        ("Turno de mañana", a.contacto_manana_email.strip(), a.contacto_manana_tel.strip()),
-        ("Turno de tarde", a.contacto_tarde_email.strip(), a.contacto_tarde_tel.strip()),
-    ]
+def _contactos(a: Ajustes, alumno: Alumno | None = None) -> list[tuple[str, str, str]]:
+    """Los contactos de jefatura del pie según la etapa del alumno (CarlosFB, 2026-10-20): ESO, el de su jefatura;
+    Bachillerato, el de mañana (es el mismo que el de FP de mañana); el resto, mañana y tarde."""
+    manana = ("Turno de mañana", a.contacto_manana_email.strip(), a.contacto_manana_tel.strip())
+    tarde = ("Turno de tarde", a.contacto_tarde_email.strip(), a.contacto_tarde_tel.strip())
+    etapa = alumno.etapa_codigo if alumno is not None else ""
+    if etapa == "ESO":
+        filas = [("Jefatura de ESO", a.contacto_eso_email.strip(), a.contacto_eso_tel.strip())]
+    elif etapa == "BAC":
+        filas = [("Jefatura de Bachillerato", manana[1], manana[2])]
+    else:
+        filas = [manana, tarde]
     return [f for f in filas if f[1] or f[2]]
 
 
@@ -111,7 +118,7 @@ def texto_plano(a: Ajustes, alumno: Alumno, salida: datetime, para_alumno: bool 
         "",
         ("Si tienes cualquier duda, pregunta en Jefatura de Estudios:" if para_alumno else
          "Si tienen cualquier duda, contacten con Jefatura de Estudios:"),
-        *[f"  {t}: {' · '.join(p for p in (e, tel) if p)}" for t, e, tel in _contactos(a)],
+        *[f"  {t}: {' · '.join(p for p in (e, tel) if p)}" for t, e, tel in _contactos(a, alumno)],
         "",
         "Atentamente,",
         f"Jefatura de Estudios · {a.centro}",
@@ -146,7 +153,7 @@ def texto_html(a: Ajustes, alumno: Alumno, salida: datetime, cid_izq: str | None
         f'<td align="{alinear}"><img src="cid:{cid[1:-1]}" height="{alto}" alt=""></td>' if cid else "<td></td>"
     )
     contactos = "".join(
-        f"<br>{e(t)}: " + " · ".join(e(p) for p in (em, tel) if p) for t, em, tel in _contactos(a)
+        f"<br>{e(t)}: " + " · ".join(e(p) for p in (em, tel) if p) for t, em, tel in _contactos(a, alumno)
     )
     return f"""<!doctype html><html lang="es"><body style="margin:0;background:#f3f5f1;font-family:Arial,Helvetica,sans-serif;color:#1b1f1c">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f5f1;padding:20px 8px"><tr><td align="center">

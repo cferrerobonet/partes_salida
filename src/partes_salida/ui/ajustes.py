@@ -391,8 +391,11 @@ class DialogoAjustes(QDialog):
         ap.campo("Jefatura · mañana", _fila(self._texto("contacto_manana_email", marcador="Correo"),
                                            self._texto("contacto_manana_tel", 170, "Teléfono"), estirar=False))
         ap.campo("Jefatura · tarde", _fila(self._texto("contacto_tarde_email", marcador="Correo"),
-                                          self._texto("contacto_tarde_tel", 170, "Teléfono"), estirar=False),
-                 "Salen al pie del correo para que la familia sepa a quién llamar. Si uno queda vacío, no se muestra.")
+                                          self._texto("contacto_tarde_tel", 170, "Teléfono"), estirar=False))
+        ap.campo("Jefatura · ESO", _fila(self._texto("contacto_eso_email", marcador="Correo"),
+                                        self._texto("contacto_eso_tel", 170, "Teléfono"), estirar=False),
+                 "Salen al pie del correo para que la familia sepa a quién llamar: ESO, el de su jefatura; "
+                 "Bachillerato, el de mañana; FP y el resto, mañana y tarde. Si uno queda vacío, no se muestra.")
         ap.separador()
         self.destino_prueba = QLineEdit()
         self.destino_prueba.setPlaceholderText("tu.correo@epla.es")

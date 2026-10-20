@@ -53,6 +53,25 @@ def test_correo_en_masculino(datos, alumnos):
     assert "su hijo MARC" in texto and "autorizado" in texto
 
 
+def test_contactos_de_jefatura_segun_la_etapa(datos):
+    """CarlosFB (2026-10-20): ESO, su jefatura; Bachillerato, la de FP de mañana; FP y el resto, mañana y tarde."""
+    from partes_salida.modelo import Alumno
+
+    g = GestorAjustes(datos)
+    salida = datetime(2026, 10, 8, 9, 0)
+
+    def pie(clase):
+        a = Alumno(id="1", nia="1", nombre="ANA", apellido1="FICTICIA", apellido2="PRUEBA", sexo="F", clase=clase)
+        return texto_plano(g.valores, a, salida)
+
+    eso = pie("3ESOA")
+    assert "Jefatura de ESO: jefaturaestudios.eso@epla.es" in eso and "Turno de tarde" not in eso
+    bac = pie("1BACC")
+    assert "Jefatura de Bachillerato: jefaturafpbach@epla.es" in bac and "Turno de tarde" not in bac
+    fp = pie("1CFS-SEA")
+    assert "Turno de mañana" in fp and "Turno de tarde" in fp and "jefaturaestudios.eso" not in fp
+
+
 def test_contacto_vacio_no_sale(datos, alumnos):
     g = GestorAjustes(datos)
     g.poner(contacto_tarde_email="", contacto_tarde_tel="")

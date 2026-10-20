@@ -58,7 +58,7 @@ Cada jefatura instala la app en su equipo y la configura a su manera (logos, sel
 | Sello y firma | Sello de la etapa y firma del Jefe de Estudios (se les quita el fondo blanco), texto bajo la firma |
 | Textos del parte | Título y texto de dos líneas en femenino y masculino, con variables `{hora}`, `{nombre}`, `{curso}`, `{etapa}`, `{fecha}` |
 | Datos del alumnado | Importaciones, cifras, fotos por confirmar, etapas detectadas (se pueden ocultar), cifrado, vaciar el historial de todos, borrar datos |
-| Correo | SMTP, remitente, contraseña (llavero), contactos de jefatura de mañana y tarde, **correo de prueba** a una dirección cualquiera |
+| Correo | SMTP, remitente, contraseña (llavero), contactos de jefatura de mañana, tarde y ESO (al pie del aviso según la etapa: ESO, el suyo; Bachillerato, el de mañana; FP y el resto, mañana y tarde), **correo de prueba** a una dirección cualquiera |
 | Impresión | Impresora, orientación del parte (horizontal 148 × 105 o vertical 105 × 148), color o blanco y negro, imprimir sin diálogo, tamaño en % (zoom), ajuste fino en mm, parte de prueba |
 | QR y verificación | Nombre del equipo, QR con la clave pública para la app del vigilante |
 | General | Arrancar con la sesión, siempre encima, exportar o importar ajustes, versión y actualizaciones |

@@ -46,6 +46,9 @@ class Ajustes:
     contacto_manana_tel: str = "96 363 73 54"
     contacto_tarde_email: str = "jefaturafptarde@epla.es"
     contacto_tarde_tel: str = "96 363 73 54"
+    # Alumnado de ESO: su jefatura (CarlosFB, 2026-10-20); Bachillerato usa la de FP de mañana
+    contacto_eso_email: str = "jefaturaestudios.eso@epla.es"
+    contacto_eso_tel: str = "96 363 73 54"
     impresora: str = ""
     imprimir_directo: bool = True
     orientacion: str = "horizontal"  # «horizontal» (148 × 105) o «vertical» (105 × 148)

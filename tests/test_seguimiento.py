@@ -153,6 +153,12 @@ def test_paginacion_como_en_web_pedidos():
 
     assert ventana_paginas(1, 10) == [1, 2, 3, 4, 5]
     assert ventana_paginas(6, 10) == [4, 5, 6, 7, 8]
-    assert ventana_paginas(10, 10) == [8, 9, 10]
+    assert ventana_paginas(10, 10) == [6, 7, 8, 9, 10], "siempre cinco números, también al final"
+    assert ventana_paginas(9, 10) == [6, 7, 8, 9, 10]
+    assert ventana_paginas(1, 12) == [1, 2, 3, 4, 5]
+    assert ventana_paginas(6, 12) == [4, 5, 6, 7, 8]
+    assert ventana_paginas(12, 12) == [8, 9, 10, 11, 12]
+    assert ventana_paginas(3, 3) == [1, 2, 3]
+    assert ventana_paginas(1, 1) == [1]
     assert texto_recuento(2, 10, 42, "salidas") == "Mostrando 11–20 de 42 salidas"
     assert texto_recuento(1, 10, 0, "salidas") == "Sin resultados"

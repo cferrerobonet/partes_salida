@@ -1,6 +1,6 @@
 [project]
 name = "partes-salida"
-version = "1.3.0"
+version = "1.3.1"
 description = "Imprime en DIN-A6 el parte de salida del alumnado de EPLA y avisa a la familia por correo"
 readme = "README.md"
 requires-python = ">=3.11"

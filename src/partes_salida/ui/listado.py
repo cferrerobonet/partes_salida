@@ -43,8 +43,9 @@ class Columna:
 
 
 def ventana_paginas(actual: int, total: int) -> list[int]:
-    """Los cinco números del pie, como en Web Pedidos: desde la actual − 2."""
-    inicio = max(1, actual - 2)
+    """Los cinco números del pie, como en Web Pedidos: la actual centrada y, junto a un extremo,
+    los cinco de ese extremo. Desde la actual − 2 sin más, la última página enseñaba solo tres."""
+    inicio = max(1, min(actual - 2, total - 4))
     return list(range(inicio, min(total, inicio + 4) + 1))
 
 

@@ -2,6 +2,12 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [1.3.1] - 2026-10-22
+
+### Corregido
+
+- **Paginación del seguimiento con cinco números.** Al llegar a la última página, el pie enseñaba solo tres números (8, 9, 10 de 10); ahora enseña siempre cinco (6 a 10), como en el resto de listados.
+
 ## [1.3.0] - 2026-10-20
 
 ### Añadido

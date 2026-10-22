@@ -12,7 +12,7 @@ Aplicación de escritorio (macOS y Windows) de las **Escuelas Profesionales Luis
 
 - **Sin servidor y sin nube.** Los datos del alumnado se importan del Excel de Educamos y de los ZIP de fotos, y se guardan **cifrados** en el equipo. Para rehacer un equipo basta con volver a importarlos.
 - **Cada jefatura en su equipo.** Cada instalación tiene sus propios logos, sello, firma, textos y etapas visibles, sin interferir con las demás.
-- **QR firmado** (Ed25519) para que la app Android del vigilante distinga un parte auténtico de uno falso.
+- **QR firmado** (Ed25519) para que la [app del vigilante](https://cferrerobonet.github.io/partes_salida/), una web que se instala en el móvil de la puerta (Android o iPhone), distinga un parte auténtico de uno falso.
 - Se actualiza sola: avisa de cada versión nueva publicada en este repositorio.
 
 > [!WARNING]
@@ -26,6 +26,7 @@ Descargar la última versión en [Releases](https://github.com/cferrerobonet/par
 | --- | --- |
 | macOS | `PartesSalida_vX.Y.Z_macOS.dmg` (si dice que está dañada, ver `docs/OPERACIONES.md`) |
 | Windows | `PartesDeSalida-X.Y.Z-Windows-Setup.exe` · sin permisos de administrador: `…-Windows-Portable.zip` |
+| Móvil del vigilante | Abrir <https://cferrerobonet.github.io/partes_salida/> y «Añadir a pantalla de inicio» ([vigilante/README.md](vigilante/README.md)) |
 
 Primer uso: **Ajustes → Datos del alumnado** → importar el Excel y los ZIP de fotos; **Sello y firma**; **Correo** (contraseña y correo de prueba); **Impresión** (impresora con bandeja A6 y parte de prueba). Guía completa en [docs/OPERACIONES.md](docs/OPERACIONES.md).
 
@@ -38,7 +39,7 @@ make run         # abre la app
 scripts/qa.sh todo   # ruff + tests (unitarios, interfaz, correo en navegador)
 ```
 
-**No se compila en local**: al publicar una etiqueta `vX.Y.Z`, GitHub Actions compila Windows y macOS y los adjunta al release (`docs/OPERACIONES.md`).
+**No se compila en local**: al publicar una etiqueta `vX.Y.Z`, GitHub Actions compila Windows y macOS y los adjunta al release; la web del vigilante se publica en GitHub Pages con cada push que la toque (`docs/OPERACIONES.md`).
 
 ## Documentación
 
@@ -54,6 +55,6 @@ scripts/qa.sh todo   # ruff + tests (unitarios, interfaz, correo en navegador)
 | [docs/PENDIENTE.md](docs/PENDIENTE.md) | Hoja de ruta y pendientes |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Cómo trabajar en el repositorio |
 | [CHANGELOG.md](CHANGELOG.md) | Historial de versiones |
-| [android/README.md](android/README.md) | App del vigilante (verificación del QR) |
+| [vigilante/README.md](vigilante/README.md) | App del vigilante (web que verifica el QR) |
 
 Licencia MIT.

@@ -17,7 +17,7 @@
 
 Buscar → comprobar → ⌘P / Ctrl+P. La app queda en la barra de menús o la bandeja: cerrar la ventana no la cierra; «Salir» desde el icono.
 
-**Móvil del vigilante** (Android 8 o posterior con Google Play): en el móvil, abrir el último release del repositorio, descargar `Vigilante-EPLA-X.Y.Z.apk`, permitir la primera vez «instalar apps de origen desconocido» para el navegador e instalar. Después, «Equipos de confianza» → «Dar de alta» y escanear el QR de Ajustes → QR y verificación de cada equipo de jefatura. Una versión nueva se instala encima de la anterior del mismo modo.
+**Móvil del vigilante** (Android con Chrome o iPhone con Safari): abrir <https://cferrerobonet.github.io/partes_salida/> e instalarla en la pantalla de inicio (Android: menú ⋮ → «Instalar aplicación»; iPhone: Compartir → «Añadir a pantalla de inicio»). Abrirla desde su icono, permitir la cámara, «Equipos de confianza» → «Dar de alta» y escanear el QR de Ajustes → QR y verificación de cada equipo de jefatura. Después funciona sin cobertura y se actualiza sola al abrirla con conexión. Si el móvil tenía la app Android antigua (`Vigilante-EPLA-X.Y.Z.apk`, hasta la 1.3.1), desinstalarla: los equipos se vuelven a dar de alta en la web.
 
 ## 3. Actualizar el alumnado
 
@@ -38,9 +38,10 @@ Publicar: versión en `pyproject.toml` y `src/partes_salida/__init__.py`, `CHANG
 - `PartesSalida_vX.Y.Z_macOS.dmg`
 - `PartesDeSalida-X.Y.Z-Windows-Setup.exe`
 - `PartesDeSalida-X.Y.Z-Windows-Portable.zip`
-- `Vigilante-EPLA-X.Y.Z.apk`: la app Android del vigilante, firmada con la clave fija (secretos `VIGILANTE_ALMACEN_B64` y `VIGILANTE_CONTRASENA`; copia en el llavero del Mac de CarlosFB, «Partes de salida · firma APK del vigilante»). Si la clave se perdiera, los móviles tendrían que desinstalar y volver a instalar.
 
 Los equipos ven el aviso de versión nueva al abrir la app y la instalan con un clic. **No se compila en local.**
+
+**Web del vigilante**: `vigilante.yml` la prueba en Chromium y la publica en GitHub Pages (<https://cferrerobonet.github.io/partes_salida/>) con cada push a `main` que toque `vigilante/`, sus iconos, sus fuentes o su prueba; también a mano desde Actions → Vigilante → Run workflow. Requisito de una vez en el repositorio: Settings → Pages → Source: «GitHub Actions». Los móviles toman la versión nueva la siguiente vez que abren la app con conexión. Para probarla en local: `make vigilante` y <http://localhost:8000>.
 
 **Actualizar en macOS** (desde la versión posterior a la 1.1.2): la app descarga el DMG, comprueba su sha256, se cierra y un script auxiliar la sustituye **en la carpeta donde está instalada** (también `/Applications/EPLA`), con el nombre del `.app` nuevo, le quita la cuarentena y la vuelve a abrir (`src/partes_salida/actualizar_mac.py`, el mismo módulo que Guardias y el Asistente). Si la copia falla, deja la anterior en su sitio, la abre y avisa. Sin permiso de escritura en la carpeta (o en modo desarrollo), abre el DMG y dice a qué carpeta arrastrarla: no al acceso «Applications» del DMG si la app no está ahí. En Windows, el instalador sustituye en la carpeta de antes gracias al `AppId`.
 
@@ -56,6 +57,9 @@ Compilación manual sin publicar: GitHub → Actions → Compilar → Run workfl
 | El parte sale desplazado o cortado | Desde 1.1.2 se reduce solo para caber en lo que la impresora puede imprimir. Si aún sale desplazado: Ajustes → Impresión → ajuste fino y parte de prueba; si queda pequeño o cortado, el tamaño (%); comprobar que la bandeja está en A6 horizontal. El papel del trabajo es siempre A6, aunque el diálogo del sistema enseñe otro |
 | Una foto no aparece | El nombre del archivo debe ser `APELLIDOS, NOMBRE` como en Educamos; las casi iguales se confirman al importar |
 | No avisa de versiones nuevas | Red o límite de GitHub: Ajustes → General → Buscar actualizaciones |
+| Vigilante: «SIN CÁMARA» | Permiso de cámara del navegador para la app (Android: mantener pulsado el icono → Información de la app → Permisos; iPhone: Ajustes → Safari → Cámara) |
+| Vigilante: todos los partes salen «Firmado por un equipo desconocido» | Ese equipo no está dado de alta en el móvil, o se borraron los datos del navegador: «Equipos de confianza» → «Dar de alta» |
+| Vigilante: «Todavía no» u «Otro día» con un parte bueno | La app usa la hora de Madrid; comprobar la hora de salida impresa en el parte |
 | macOS: tras actualizar sigue la versión anterior o vuelve el mismo aviso | `~/Library/Application Support/PartesSalida/logs/actualizacion_mac_*.log`; comprobar que no hay dos copias (`/Applications` y `/Applications/EPLA`) y dejar solo la nueva |
 
 ## 7. Desarrollo local

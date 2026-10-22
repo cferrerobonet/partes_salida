@@ -1,4 +1,4 @@
-.PHONY: help venv test test-rapido lint qa icono app dmg capturas vectores ganchos limpiar run
+.PHONY: help venv test test-rapido lint qa icono app dmg capturas vectores vigilante ganchos limpiar run
 
 # El entorno vive FUERA del repositorio: iCloud duplica los binarios y deja a Qt
 # sin complementos (lección de Guardias de patio).
@@ -16,7 +16,8 @@ help:
 	@echo "  make lint        ruff"
 	@echo "  make qa          lint + test, con la salida completa en /tmp/partes-qa-*.log"
 	@echo "  make capturas    Capturas de la interfaz con datos ficticios en docs/capturas/"
-	@echo "  make vectores    Regenerar android/vectores_qr.json"
+	@echo "  make vectores    Regenerar vigilante/vectores_qr.json"
+	@echo "  make vigilante   Montar la web del vigilante en _site/ y abrirla en http://localhost:8000"
 	@echo "  make app|dmg     Solo para la CI de GitHub: en local no se compila"
 	@echo "  make limpiar     Borrar build/, dist/ y cachés"
 
@@ -52,6 +53,10 @@ capturas:
 vectores:
 	$(PY) scripts/generar_vectores_qr.py
 
+vigilante:
+	$(PY) scripts/web_vigilante.py _site
+	$(PY) -m http.server 8000 --bind 127.0.0.1 --directory _site
+
 icono:
 	scripts/build/crear_icono.sh
 
@@ -62,5 +67,5 @@ dmg: icono
 	SKIP_RELEASE=1 PY="$(PY)" scripts/build/build_dmg.sh
 
 limpiar:
-	rm -rf build dist Output *.dmg test-results imagenes/*.iconset
+	rm -rf build dist Output _site *.dmg test-results imagenes/*.iconset
 	find . -path ./.git -prune -o -name "__pycache__" -type d -print0 | xargs -0 rm -rf

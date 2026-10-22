@@ -2,6 +2,18 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [1.4.0] - 2026-10-22
+
+### Cambiado
+
+- **La app del vigilante es ahora una web que se instala en el móvil, también en iPhone.** Se abre en <https://cferrerobonet.github.io/partes_salida/> (Chrome en Android, Safari en iPhone) y se añade a la pantalla de inicio: sin APK, sin tiendas y sin cuenta de desarrollador. Hace lo mismo que la app Android y con la misma pantalla: escanea el QR del parte y dice en grande si el alumno puede salir, si todavía no es su hora, si el parte es de otro día o si no vale. Funciona sin cobertura, mantiene la pantalla encendida, tiene botón de linterna si el móvil la trae y se actualiza sola. La hora que cuenta es la de Madrid.
+- **Primer uso en el móvil de la puerta**: instalarla, permitir la cámara y volver a dar de alta cada equipo de jefatura («Equipos de confianza» → «Dar de alta» y el QR de Ajustes → QR y verificación). Si estaba la app Android, desinstalarla.
+- Ajustes → QR y verificación indica la dirección de la app del vigilante.
+
+### Eliminado
+
+- **App Android del vigilante.** El release ya no trae `Vigilante-EPLA-X.Y.Z.apk`; la última es la de la 1.3.1.
+
 ## [1.3.1] - 2026-10-22
 
 ### Corregido

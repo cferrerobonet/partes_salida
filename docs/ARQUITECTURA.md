@@ -43,7 +43,7 @@ flowchart TB
 | `almacen.py` | `alumnado.bin`, `seguimiento.bin` y `fotos/<hmac>.bin` cifrados; escritura atómica | `DatosIlegibles` si la clave cambió |
 | `seguimiento.py` | Historial de salidas (`Salida`) y partes recurrentes (`Recurrencia`) por alumno; partes del día por etapas visibles; poda de las bajas; informe A4 en HTML | Sin Qt |
 | `busqueda.py` | Prefijos sin tildes en cualquier orden; si no hay, tolerancia a erratas | Filtros de etapa, clase y etapas visibles |
-| `firma.py` | Contenido del QR firmado Ed25519 y verificación | Contrato con Android |
+| `firma.py` | Contenido del QR firmado Ed25519 y verificación; `URL_VIGILANTE` | Contrato con la app del vigilante |
 | `parte.py` | `dibujar_parte(painter, px_por_mm, …)`; `imagen_parte()` para la vista previa | Textos que se ajustan solos |
 | `impresion.py` | `QPrinter` A6, directa o con diálogo; varios partes en un trabajo (uno por hoja); el parte en PNG y PDF para el correo; documento A4 (historial); parte de prueba | |
 | `correo.py` | Mensajes a la familia y al alumno (HTML + texto, logos y parte `cid:`, PDF adjunto); envío SMTP (STARTTLS o SSL) | Siempre en un hilo |
@@ -121,9 +121,22 @@ La interfaz nunca espera a la red ni al disco largo: importar y enviar correo va
 | Cambiar la maquetación del parte | Las maquetas `HORIZONTAL` y `VERTICAL` de `parte.py` (posiciones en mm; `dibujar_parte` no tiene coordenadas) + `make capturas` + parte de prueba impreso |
 | Un ajuste nuevo | campo en `ajustes.Ajustes` (con valor por defecto: los JSON antiguos siguen valiendo) + control en `ui/ajustes.py` |
 | Otra etapa | `modelo.ETAPAS`, `ORDEN_ETAPAS`, `ETAPA_CORTA` |
-| Cambiar el QR | `firma.py` + `android/ESPECIFICACION_QR.md` + `make vectores` + versión mayor |
+| Cambiar el QR | `firma.py` + `vigilante/verificador.js` + `vigilante/ESPECIFICACION_QR.md` + `make vectores` + versión mayor |
 | Guardar otro dato de cada salida | campo en `seguimiento.Salida` (con valor por defecto: los archivos antiguos siguen valiendo) + `informe_html` + columna en `DialogoHistorial` |
 
 ## 7. Pruebas
 
-`tests/` con pytest: dominio sin pantalla, interfaz con pytest-qt (`QT_QPA_PLATFORM=offscreen`), correo en Chromium con Playwright y datos reales solo en local (`-m datos_reales`). Datos ficticios en `tests/ficticios.py`. La CI (`comprobar.yml`) pasa todo en cada push; `compilar.yml` además arranca la app compilada en Windows y macOS.
+`tests/` con pytest: dominio sin pantalla, interfaz con pytest-qt (`QT_QPA_PLATFORM=offscreen`), correo y app del vigilante en Chromium con Playwright y datos reales solo en local (`-m datos_reales`). Datos ficticios en `tests/ficticios.py`. La CI (`comprobar.yml`) pasa todo en cada push; `compilar.yml` además arranca la app compilada en Windows y macOS, y `vigilante.yml` vuelve a probar la web del vigilante antes de publicarla.
+
+## 8. App del vigilante (`vigilante/`)
+
+Web estática instalable (PWA), sin servidor propio: GitHub Pages la sirve por HTTPS y el móvil la guarda entera (`sw.js`) para funcionar sin conexión. Sin dependencias de compilación: HTML, CSS y módulos JavaScript tal cual, más dos librerías de terceros en `vendor/`.
+
+| Pieza | Responsabilidad |
+| --- | --- |
+| `verificador.js` | `claveDeQr` (alta `PSK1`), `verificar` (formato, equipo, firma), `veredicto` con `ahoraEnMadrid`. Firma con el Ed25519 de WebCrypto y, si el navegador no lo tiene, `vendor/noble-ed25519.js` |
+| `app.js` | Pantalla, equipos de confianza en `localStorage` (solo los QR `PSK1`: claves públicas y nombres), escáner (`BarcodeDetector` o `vendor/jsQR.js`), pantalla encendida (Wake Lock) y recarga al actualizarse |
+| `sw.js` | Guarda todo al instalarse; primero la copia guardada; cada versión, una caché nueva |
+| `scripts/web_vigilante.py` | Monta lo que se publica: la app, las fuentes de `recursos/fuentes`, los iconos de `imagenes/vigilante-*.png` y la versión en `app.js` y `sw.js` |
+
+El contrato con `firma.py` son `ESPECIFICACION_QR.md` y `vectores_qr.json`; `tests/test_vigilante.py` los pasa en Chromium con los dos motores de firma.

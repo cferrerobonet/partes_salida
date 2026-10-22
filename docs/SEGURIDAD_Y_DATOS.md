@@ -22,6 +22,7 @@ La lista exacta de columnas leídas está en `src/partes_salida/importar_excel.p
 | Clave de datos, clave de firma, contraseña SMTP | Llavero del sistema (Llavero de macOS, Administrador de credenciales de Windows), servicio `PartesSalida` | La del sistema y la sesión del usuario |
 | Ajustes e imágenes | `ajustes.json`, `imagenes/` | Sin datos personales |
 | Registro | `logs/` | Sin nombres, correos ni teléfonos |
+| Equipos de confianza del vigilante | Almacenamiento del navegador del móvil (`localStorage`) | Solo claves públicas y nombres de equipo; nada del alumnado |
 
 No hay servidor ni nube. El repositorio de GitHub es público y **nunca** contiene datos: `.gitignore`, `.githooks/pre-commit` y `tests/test_seguridad.py` lo impiden (incluidas imágenes fuera de las carpetas propias y nombres «APELLIDOS, NOMBRE»).
 
@@ -43,7 +44,9 @@ Se envía solo a los familiares marcados en el momento y, si se elige «Por corr
 
 ## 5. Firma del QR
 
-Cada instalación genera su par Ed25519 la primera vez; la privada se queda en su llavero. La pública se entrega a la app del vigilante escaneando el QR de Ajustes → QR y verificación. Contenido firmado: identificador del alumno, hora de salida y hora de expedición (ver `android/ESPECIFICACION_QR.md`). No hay datos de nombre ni de familia en el QR.
+Cada instalación genera su par Ed25519 la primera vez; la privada se queda en su llavero. La pública se entrega a la app del vigilante escaneando el QR de Ajustes → QR y verificación. Contenido firmado: identificador del alumno, hora de salida y hora de expedición (ver `vigilante/ESPECIFICACION_QR.md`). No hay datos de nombre ni de familia en el QR.
+
+La app del vigilante es una web estática en GitHub Pages: el QR se lee y se verifica en el propio móvil y no se envía a ningún sitio (sin servidor propio, sin analítica ni recursos de terceros; la política de seguridad de contenidos de `index.html` solo deja cargar archivos de la propia app). Del móvil solo recuerda los equipos dados de alta. Quien consiga la dirección no obtiene nada: sin un equipo dado de alta, todo parte sale como «NO VALE».
 
 ## 6. Derechos y conservación
 

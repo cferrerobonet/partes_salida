@@ -29,7 +29,7 @@ La carpeta del repositorio está en iCloud: el entorno virtual, las cachés y lo
 
 `feat(ui): …` · `fix(correo): …` · `docs: …` · `test: …` · `refactor(parte): …` · `chore(release): v0.2.0`
 
-Zonas habituales: `ui`, `parte`, `importar`, `cifrado`, `correo`, `qr`, `build`, `android`. Sin línea de coautoría.
+Zonas habituales: `ui`, `parte`, `importar`, `cifrado`, `correo`, `qr`, `build`, `vigilante`. Sin línea de coautoría.
 
 ## Versiones
 

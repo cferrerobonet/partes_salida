@@ -41,13 +41,8 @@ playwright-report/
 imagenes/*.iconset
 imagenes/icono.icns
 
-# Android (Gradle y Android Studio)
-android/.gradle/
-android/build/
-android/app/build/
-android/local.properties
-android/.idea/
-android/*.iml
+# Web del vigilante montada en local (scripts/web_vigilante.py)
+/_site/
 
 # Sistema y editores
 .DS_Store

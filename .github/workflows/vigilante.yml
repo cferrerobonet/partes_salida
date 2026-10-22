@@ -1,0 +1,70 @@
+# Publica la web del vigilante (`vigilante/`) en GitHub Pages:
+#   https://cferrerobonet.github.io/partes_salida/
+# Antes, la prueba en Chromium: los vectores del QR (con el Ed25519 del navegador y con la
+# librería de respaldo), la pantalla, la cámara simulada y el modo sin conexión. Si fallan, no
+# se publica. Cada publicación cambia el service worker y los móviles se actualizan solos.
+# Requisito de una vez: Settings → Pages → Source: «GitHub Actions».
+name: Vigilante
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "vigilante/**"
+      - "scripts/web_vigilante.py"
+      - "imagenes/vigilante-*"
+      - "src/partes_salida/recursos/fuentes/**"
+      - "tests/test_vigilante.py"
+      - ".github/workflows/vigilante.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  montar:
+    name: Probar y montar la web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Dependencias
+        run: |
+          python -m pip install --upgrade pip setuptools
+          pip install -r requirements-dev.txt
+          # Las mismas bibliotecas que en «Comprobar»: pytest-qt carga Qt al arrancar la suite.
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libgl1 libxkbcommon-x11-0 libdbus-1-3 \
+            libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 \
+            libxcb-render-util0 libxcb-shape0 libxcb-xinerama0 libxcb-cursor0 fonts-dejavu-core
+          python -m playwright install --with-deps chromium
+      - name: Pruebas de la web y del contrato del QR
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: pytest tests/test_vigilante.py tests/test_seguridad.py
+      - name: Montar
+        run: python scripts/web_vigilante.py _site
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  publicar:
+    name: Publicar en GitHub Pages
+    needs: montar
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - id: despliegue
+        uses: actions/deploy-pages@v4

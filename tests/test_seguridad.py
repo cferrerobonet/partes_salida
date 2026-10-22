@@ -80,9 +80,9 @@ def test_qr_de_otro_equipo_es_desconocido():
     assert not verificar("hola", {}).valido
 
 
-def test_vectores_para_la_app_android_siguen_valiendo():
-    """`android/vectores_qr.json` es el contrato con la app del vigilante."""
-    vectores = json.loads((RAIZ / "android" / "vectores_qr.json").read_text(encoding="utf-8"))
+def test_vectores_para_la_app_del_vigilante_siguen_valiendo():
+    """`vigilante/vectores_qr.json` es el contrato con la app del vigilante (la web lo prueba en `test_vigilante.py`)."""
+    vectores = json.loads((RAIZ / "vigilante" / "vectores_qr.json").read_text(encoding="utf-8"))
     claves = {vectores["id_clave"]: de_b64url(vectores["clave_publica"])}
     for caso in vectores["casos"]:
         assert verificar(caso["qr"], claves).valido is caso["valido"], caso["descripcion"]

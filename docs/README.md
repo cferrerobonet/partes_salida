@@ -13,6 +13,7 @@ Cada documento tiene un dueño temático: un cambio actualiza el suyo en la mism
 | [PENDIENTE.md](PENDIENTE.md) | ¿Qué falta? Hoja de ruta y datos pendientes | aparece o se cierra algo |
 | [../CHANGELOG.md](../CHANGELOG.md) | ¿Qué cambió en cada versión? | se publica una versión |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | ¿Cómo se trabaja? Entorno, ramas, commits, PR | cambia el flujo de trabajo |
-| [../android/ESPECIFICACION_QR.md](../android/ESPECIFICACION_QR.md) | Contrato del QR entre escritorio y Android | cambia el formato del QR |
+| [../vigilante/ESPECIFICACION_QR.md](../vigilante/ESPECIFICACION_QR.md) | Contrato del QR entre escritorio y la app del vigilante | cambia el formato del QR |
+| [../vigilante/README.md](../vigilante/README.md) | App del vigilante: instalación, piezas y publicación | cambia la app del vigilante |
 | [capturas/](capturas/) | Capturas con datos ficticios (`make capturas`) | cambia una pantalla |
 

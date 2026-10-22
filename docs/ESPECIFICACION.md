@@ -11,7 +11,7 @@ Cuando un alumno sale del centro antes de su hora con autorización, Jefatura de
 | Quién | Qué hace | Contexto |
 | --- | --- | --- |
 | Jefatura de Estudios de cada etapa (usuario principal) | Busca al alumno, comprueba la familia, fija la hora, imprime y avisa | La app está abierta todo el día en segundo plano; se usa muchas veces y con prisa |
-| Vigilante de la puerta | Lee el pase y escanea su QR con la app Android del vigilante | Mira foto, nombre y hora en un segundo |
+| Vigilante de la puerta | Lee el pase y escanea su QR con la app del vigilante (web instalada en el móvil) | Mira foto, nombre y hora en un segundo |
 | Familia | Recibe el aviso por correo | Correo corporativo, sin responder |
 
 Cada jefatura instala la app en su equipo y la configura a su manera (logos, sello, firma, textos, etapas visibles); las instalaciones no se comunican entre sí.
@@ -60,7 +60,7 @@ Cada jefatura instala la app en su equipo y la configura a su manera (logos, sel
 | Datos del alumnado | Importaciones, cifras, fotos por confirmar, etapas detectadas (se pueden ocultar), cifrado, vaciar el historial de todos, borrar datos |
 | Correo | SMTP, remitente, contraseña (llavero), contactos de jefatura de mañana, tarde y ESO (al pie del aviso según la etapa: ESO, el suyo; Bachillerato, el de mañana; FP y el resto, mañana y tarde), **correo de prueba** a una dirección cualquiera |
 | Impresión | Impresora, orientación del parte (horizontal 148 × 105 o vertical 105 × 148), color o blanco y negro, imprimir sin diálogo, tamaño en % (zoom), ajuste fino en mm, parte de prueba |
-| QR y verificación | Nombre del equipo, QR con la clave pública para la app del vigilante |
+| QR y verificación | Nombre del equipo, QR con la clave pública para la app del vigilante y dirección de esa app |
 | General | Arrancar con la sesión, siempre encima, exportar o importar ajustes, versión y actualizaciones |
 
 Cada cambio se guarda al momento.
@@ -69,9 +69,9 @@ Cada cambio se guarda al momento.
 
 Instalar, importar el Excel y los ZIP y, opcionalmente, la copia de ajustes exportada. La contraseña del correo se vuelve a escribir. Sin nube ni copias de datos.
 
-### CU-5 Verificar un parte (app Android)
+### CU-5 Verificar un parte (app del vigilante)
 
-El vigilante pulsa «Escanear parte» y apunta al QR. La tarjeta sale en grande: **PUEDE SALIR** (verde: firma buena, de hoy y ya es la hora, con NIA, hora y equipo que lo firmó), **TODAVÍA NO** (ámbar: auténtico pero antes de su hora), **OTRO DÍA** o **NO VALE** (rojo: falso, alterado o de un equipo que no está dado de alta). Los equipos de confianza se dan de alta escaneando el QR de Ajustes → QR y verificación y se pueden quitar. La pantalla no se apaga mientras la app está abierta. Sin red y sin datos del alumnado. Contrato en [../android/ESPECIFICACION_QR.md](../android/ESPECIFICACION_QR.md).
+El vigilante pulsa «Escanear parte» y apunta al QR. La tarjeta sale en grande: **PUEDE SALIR** (verde: firma buena, de hoy y ya es la hora, con NIA, hora y equipo que lo firmó), **TODAVÍA NO** (ámbar: auténtico pero antes de su hora), **OTRO DÍA** o **NO VALE** (rojo: falso, alterado o de un equipo que no está dado de alta). Los equipos de confianza se dan de alta escaneando el QR de Ajustes → QR y verificación y se pueden quitar. La pantalla no se apaga mientras la app está abierta. Sin red y sin datos del alumnado. Es una web instalable (Android con Chrome, iPhone con Safari) en <https://cferrerobonet.github.io/partes_salida/>: «Escanear parte» abre la cámara a pantalla completa (con linterna si el móvil la tiene) y se cierra sola al leer el QR; «Cancelar» vuelve sin leer. La hora que cuenta es la de Madrid. Contrato en [../vigilante/ESPECIFICACION_QR.md](../vigilante/ESPECIFICACION_QR.md).
 
 ### CU-6 Consultar, imprimir o vaciar el historial de un alumno
 

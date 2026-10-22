@@ -26,7 +26,7 @@ Formato: contexto → decisión → consecuencias. Una decisión no se reescribe
 - **Decisión**: sin usuarios ni contraseña en la app; se confía en la sesión del sistema.
 - **Consecuencias**: ver §3 de [SEGURIDAD_Y_DATOS.md](SEGURIDAD_Y_DATOS.md). Revisable si la app se usa en equipos compartidos.
 
-## ADR-005 · QR firmado con Ed25519, una clave por instalación — 2026-10-08
+## ADR-005 · QR firmado con Ed25519, una clave por instalación — 2026-10-08 · **La app Android, sustituida por la web (ADR-018)**
 
 - **Contexto**: la futura app del vigilante debe distinguir partes auténticos. Un QR con solo NIA y hora se falsifica en un minuto.
 - **Decisión**: el QR lleva NIA (o ID), salida, expedición, id de clave y firma Ed25519. Cada instalación tiene su clave; la pública se da de alta en la app Android escaneando un QR.
@@ -104,3 +104,10 @@ Formato: contexto → decisión → consecuencias. Una decisión no se reescribe
 - **Alternativas**: un zoom sobre el papel (100 % = 148 × 105 reales, perdiendo la reducción automática de ADR-016); calcular solo el tamaño que llena el papel con un botón; o un zoom sobre lo que cabe, acotado.
 - **Decisión**: `Ajustes.escala_pct` (50–200, 100 de serie) multiplica la escala que calcula `colocacion` tras la reducción automática. Por debajo del 100 % se centra y el ajuste fino lo mueve sin sacarlo del área; por encima puede sobresalir del área declarada, centrado, porque es quien calibra la impresora quien decide hasta dónde llega el papel. Solo afecta al papel: la vista previa y el parte del correo no cambian. Control en Ajustes → Impresión → «Tamaño» (número en %, −5 %, +5 % y 100 %), encima del ajuste fino y con el parte de prueba al lado.
 - **Consecuencias**: los equipos ya instalados siguen al 100 % (igual que hasta ahora). La copia de ajustes lo lleva, como el resto de campos.
+
+## ADR-018 · La app del vigilante pasa a ser una web instalable (PWA) — 2026-10-22
+
+- **Contexto**: la app del vigilante era nativa de Android (Kotlin, APK firmado en la CI con una clave guardada en secretos). Solo servía en Android, exigía instalar un APK de origen desconocido y guardar la clave de firma. CarlosFB quiere que valga también en iPhone sin cuenta de desarrollador de Apple ni tiendas.
+- **Alternativas**: Flutter para Android e iOS (en iPhone, sin la cuenta de pago de Apple, la app caduca a los 7 días y solo se instala desde el Mac); mantener Android y añadir iOS nativo (dos códigos y la misma cuenta de pago); o una web instalable.
+- **Decisión**: web estática instalable en `vigilante/`, publicada en GitHub Pages por `vigilante.yml` tras pasar sus pruebas. Mismo contrato del QR (`ESPECIFICACION_QR.md` y `vectores_qr.json`), misma pantalla que la app Android. Firma con el Ed25519 del navegador y, si no lo tiene, noble-ed25519; lector con `BarcodeDetector` y, si no lo hay (iPhone), jsQR. Sin conexión gracias al service worker; los equipos de confianza, en el almacenamiento del navegador. Se retira `android/`, el trabajo del APK de `compilar.yml` y su clave de firma.
+- **Consecuencias**: un solo código para Android y iPhone, sin instalar APK ni firmar nada; se actualiza sola. La primera vez pide permiso para la cámara y los equipos hay que darlos de alta otra vez en cada móvil (la app Android guardaba los suyos aparte). Si se borran los datos del navegador, se pierden los equipos dados de alta y hay que volver a escanearlos. La hora del veredicto es la de Madrid, no la del móvil.

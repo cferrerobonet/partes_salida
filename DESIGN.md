@@ -128,6 +128,17 @@ Al alumno: «Hola, Nombre:», el texto en segunda persona y el parte como imagen
 
 600 px de ancho, cabecera blanca con los dos logos y filete verde de 4 px, cuerpo en Arial 15 px, tabla curso/hora, caja verde claro con los contactos de jefatura y pie gris con el aviso de buzón sin respuesta y RGPD. Probado en Chromium a 700 y 380 px (`tests/test_correo_navegador.py`).
 
+## App del vigilante (web, móvil en vertical)
+
+Mismo patrón que tenía la app Android, con los tokens y las letras de la app de escritorio (`vigilante/estilos.css`; oscuro según el sistema, salvo la tarjeta). Una columna de 20 px de margen, máx. 560 px:
+
+- Cabecera: «Vigilante EPLA» (Barlow Condensed Bold 28 px) y, a la derecha, «N equipos» o «sin equipos» en `muted`. Sin equipos, debajo, el aviso en `warn` de cómo dar de alta el primero.
+- **Tarjeta del resultado** (ocupa el resto, radio 16, texto blanco siempre): símbolo de 72 px, título condensado de 34 px y líneas de 18 px. Verde `accent` ✓ «PUEDE SALIR»; ámbar `warn` ⏱ «TODAVÍA NO»; rojo `danger` ✕ «OTRO DÍA» y «NO VALE»; gris `muted` ⌁ «Listo» al abrir. El móvil vibra corto si vale y doble si no.
+- «Escanear parte» (verde, 72 px de alto, 22 px negrita) y debajo «Equipos de confianza» (secundario, borde `line`).
+- Equipos de confianza: diálogo con la ayuda, la lista (nombre en negrita, «Clave XXXXXXXX» en JetBrains Mono, «Quitar» en rojo), la versión y «Cerrar» · «Dar de alta».
+- Escáner a pantalla completa: vídeo de la cámara, marco blanco cuadrado con el resto oscurecido, instrucción arriba («Apunta al QR del parte» o «… de Ajustes → QR y verificación») y abajo «Linterna» (si el móvil la tiene) y «Cancelar».
+- Icono: QR blanco con un sello dorado ✓ sobre el verde EPLA (`vigilante/icono.svg`; PNG en `imagenes/vigilante-*.png`). Capturas: `test-results/vigilante-*.png` (`tests/test_vigilante.py`).
+
 ## Do's and Don'ts
 
 **Do:** leer este documento antes de tocar una pantalla · regenerar `docs/capturas/` tras un cambio visible · imprimir un parte de prueba tras tocar `parte.py` · mantener el flujo con teclado.

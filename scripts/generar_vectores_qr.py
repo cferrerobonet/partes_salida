@@ -1,9 +1,9 @@
-"""Genera `android/vectores_qr.json`: casos de QR válidos y falsos para la app del vigilante.
+"""Genera `vigilante/vectores_qr.json`: casos de QR válidos y falsos para la app del vigilante.
 
     ~/.venvs/partes-salida/bin/python scripts/generar_vectores_qr.py
 
 Usa una clave de PRUEBA fija (semilla pública en este archivo), nunca la de un
-equipo real. La app Android y `tests/test_seguridad.py` comprueban estos mismos
+equipo real. La web del vigilante (`tests/test_vigilante.py`) y `tests/test_seguridad.py` comprueban estos mismos
 casos: si cambia el formato del QR, se regenera y ambos lados deben seguir en verde.
 """
 
@@ -49,7 +49,7 @@ def main() -> None:
         "qr_de_clave": f.qr_de_clave("Equipo de prueba"),
         "casos": casos,
     }
-    destino = RAIZ / "android" / "vectores_qr.json"
+    destino = RAIZ / "vigilante" / "vectores_qr.json"
     destino.write_text(json.dumps(vectores, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"{len(casos)} casos en {destino}")
 

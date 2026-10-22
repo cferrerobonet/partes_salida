@@ -35,6 +35,7 @@ from .. import __version__
 from ..ajustes import TEXTO_ALUMNA, TEXTO_ALUMNO
 from ..cifrado import guardar_secreto
 from ..correo import construir_mensaje, contrasena_smtp, correo_configurado, enviar, nombre_secreto_smtp
+from ..firma import URL_VIGILANTE
 from ..importar_excel import importar_excel
 from ..importar_fotos import importar_fotos
 from ..impresion import ESCALA_MAX, ESCALA_MIN, impresoras, imprimir, parte_de_prueba
@@ -492,7 +493,9 @@ class DialogoAjustes(QDialog):
             self.ctx.firmante.qr_de_clave(self.g.valores.nombre_equipo)))
         explica = etiqueta(
             "La app del vigilante escaneará este código una vez para fiarse de los partes de este equipo. "
-            "Un QR alterado o hecho fuera de aquí sale como falso.", "muted", envolver=True)
+            "Un QR alterado o hecho fuera de aquí sale como falso.\n\n"
+            f"La app se abre en el móvil de la puerta desde {URL_VIGILANTE.removeprefix('https://')} "
+            "y se instala con «Añadir a pantalla de inicio».", "muted", envolver=True)
         columna = QVBoxLayout()
         columna.addWidget(explica)
         columna.addWidget(copiar, 0, Qt.AlignmentFlag.AlignLeft)

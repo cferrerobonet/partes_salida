@@ -1,6 +1,6 @@
 """Contenido firmado del QR del parte y su verificación.
 
-Formato (texto, separado por barras; especificación en `android/ESPECIFICACION_QR.md`):
+Formato (texto, separado por barras; especificación en `vigilante/ESPECIFICACION_QR.md`):
 
     PS1|<id clave>|<id alumno>|<salida AAAAMMDDhhmm>|<expedido AAAAMMDDhhmm>|<firma>
 
@@ -26,6 +26,8 @@ from .cifrado import guardar_secreto, leer_secreto
 
 PREFIJO = "PS1"
 PREFIJO_CLAVE = "PSK1"
+# La app del vigilante: web instalable que verifica este QR en el móvil de la puerta (`vigilante/`).
+URL_VIGILANTE = "https://cferrerobonet.github.io/partes_salida/"
 _FORMATO = "%Y%m%d%H%M"
 
 

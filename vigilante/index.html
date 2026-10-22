@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; font-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#2c7a3a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Vigilante">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Vigilante EPLA</title>
+  <meta name="description" content="Comprueba el QR del parte de salida de EPLA: auténtico, de otro día, todavía no o falso.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icono.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="iconos/apple-touch-icon.png">
+  <link rel="stylesheet" href="estilos.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <main class="app">
+    <header class="cabecera">
+      <h1>Vigilante EPLA</h1>
+      <span id="recuento" class="recuento">sin equipos</span>
+    </header>
+
+    <p id="aviso-sin-equipos" class="aviso" hidden>
+      Antes de nada, da de alta el equipo de jefatura: en su ordenador, Ajustes → QR y verificación, y aquí
+      «Equipos de confianza» → «Dar de alta».
+    </p>
+
+    <section id="tarjeta" class="tarjeta tarjeta--secundario" aria-live="assertive" aria-atomic="true">
+      <div id="simbolo" class="simbolo" aria-hidden="true">⌁</div>
+      <h2 id="titulo" class="titulo">Listo</h2>
+      <div id="detalle" class="detalle"><p>Pulsa «Escanear parte» y apunta al QR del parte.</p></div>
+    </section>
+
+    <button id="escanear" class="boton boton--principal" type="button">Escanear parte</button>
+    <button id="ver-equipos" class="boton boton--secundario" type="button">Equipos de confianza</button>
+  </main>
+
+  <dialog id="equipos" class="dialogo" aria-labelledby="equipos-titulo">
+    <h2 id="equipos-titulo">Equipos de confianza</h2>
+    <p class="ayuda">
+      Solo se aceptan los partes firmados por estos equipos. Para dar de alta uno, escanea el QR de
+      Ajustes → QR y verificación de su ordenador.
+    </p>
+    <ul id="lista-equipos" class="lista"></ul>
+    <p class="version">Versión <span id="version"></span></p>
+    <div class="acciones">
+      <button id="cerrar-equipos" class="enlace" type="button">Cerrar</button>
+      <button id="dar-de-alta" class="enlace enlace--principal" type="button">Dar de alta</button>
+    </div>
+  </dialog>
+
+  <div id="escaner" class="escaner" hidden>
+    <video id="video" class="escaner__video" playsinline muted></video>
+    <div class="escaner__marco" aria-hidden="true"></div>
+    <p id="escaner-texto" class="escaner__texto">Apunta al QR del parte</p>
+    <div class="escaner__acciones">
+      <button id="linterna" class="boton boton--oscuro" type="button" hidden>Linterna</button>
+      <button id="cancelar" class="boton boton--oscuro" type="button">Cancelar</button>
+    </div>
+  </div>
+</body>
+</html>

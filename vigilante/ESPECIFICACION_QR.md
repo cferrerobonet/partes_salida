@@ -1,6 +1,6 @@
 # Especificación del QR del parte (versión PS1)
 
-Contrato entre la app de escritorio (que firma) y la app Android del vigilante (que verifica). Implementaciones: `src/partes_salida/firma.py` y `android/app/src/main/java/es/epla/vigilante/Verificador.kt`. Casos de prueba comunes: `vectores_qr.json` (`make vectores`).
+Contrato entre la app de escritorio (que firma) y la app del vigilante (web, que verifica). Implementaciones: `src/partes_salida/firma.py` y `vigilante/verificador.js`. Casos de prueba comunes: `vectores_qr.json` (`make vectores`).
 
 ## 1. QR impreso en el parte
 
@@ -29,14 +29,14 @@ Se muestra en Ajustes → QR y verificación de cada instalación:
 PSK1|<id clave>|<clave pública base64url (32 bytes)>|<nombre del equipo>
 ```
 
-La app Android lo acepta solo si `id clave` coincide con el SHA-256 de la clave pública.
+La app del vigilante lo acepta solo si `id clave` coincide con el SHA-256 de la clave pública.
 
 ## 3. Verificación
 
 1. Separar por `|`; si no hay 6 campos o el prefijo no es `PS1` → «No es un parte de salida».
 2. Buscar la clave por `id clave` entre las dadas de alta → si no está, «Firmado por un equipo desconocido».
 3. Verificar la firma Ed25519 → si falla, «Firma no válida: alterado o falso».
-4. Parte auténtico. La app Android añade:
+4. Parte auténtico. La app del vigilante añade (con la hora de Madrid, sea cual sea la del móvil):
    - fecha de salida distinta de hoy → «Parte de otro día» (no vale);
    - hora actual anterior a la de salida → «Todavía no: sale a las hh:mm».
 

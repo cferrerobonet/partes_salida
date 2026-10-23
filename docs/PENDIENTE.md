@@ -12,7 +12,6 @@
 
 | Prioridad | Qué | Notas |
 | --- | --- | --- |
-| Alta | Activar GitHub Pages (Settings → Pages → Source: «GitHub Actions») y lanzar Actions → Vigilante | Sin esto, la web del vigilante no se publica (ADR-018) |
 | Alta | Probar la web del vigilante en el móvil de la puerta con partes impresos: uno bueno de hoy, uno de otro día, uno antes de su hora y uno de un equipo sin dar de alta; también sin cobertura | Las pruebas automáticas cubren Chromium con cámara simulada, no un móvil real ni Safari en iPhone |
 | — | Las pruebas en equipos reales de la app de escritorio (lote de recurrentes, QR con el móvil, parte de prueba en la bandeja A6, primera instalación) las da por hechas CarlosFB (2026-10-20) | — |
 

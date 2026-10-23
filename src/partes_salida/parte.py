@@ -179,10 +179,13 @@ def _qr(lienzo: _Lienzo, texto: str, caja: QRectF, tinta: QColor = TINTA) -> Non
             elif not v and x0 is not None:
                 camino.addRect(QRectF(caja.x() + x0 * modulo, caja.y() + y * modulo, (x - x0) * modulo, modulo))
                 x0 = None
+    # Un solo trazado con relleno de bobinado: los tramos que se tocan se pintan como uno, sin rendijas.
+    # Nada de `simplified()`: con escala decimal (PDF, impresora) perdía módulos y rompía el QR.
+    camino.setFillRule(Qt.FillRule.WindingFill)
     p = lienzo.p
     p.save()
     p.setRenderHint(QPainter.RenderHint.Antialiasing, False)
-    p.fillPath(camino.simplified(), QBrush(tinta))
+    p.fillPath(camino, QBrush(tinta))
     p.restore()
 
 

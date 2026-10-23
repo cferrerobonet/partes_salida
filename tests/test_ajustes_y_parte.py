@@ -75,6 +75,29 @@ def test_parte_a6_se_dibuja_en_proporcion(qapp, datos):
     assert oscuros > 500, "el parte no puede salir en blanco"
 
 
+@pytest.mark.parametrize("ancho_px", [1200, 1480, 1750, 2400])
+def test_el_qr_del_parte_sale_entero(qapp, datos, ancho_px):
+    """Regresión: unir los módulos con `simplified()` perdía tramos con escala decimal (PDF, impresora):
+    a los cuadros de las esquinas les faltaba un lado y ningún lector reconocía el QR."""
+    import segno
+
+    from partes_salida.parte import HORIZONTAL
+
+    qr = "PS1|7A90B341|10519873|202610081230|202610080914|" + "mQ3v" * 21 + "Ab"  # largo real: versión 8
+    a = Alumno(id="1", nia="10519873", nombre="NEREA", apellido1="BELTRÁN", sexo="F", clase="2BACC")
+    datos_parte = DatosParte(a, None, datetime(2026, 10, 8, 12, 30), datetime(2026, 10, 8, 9, 14), qr)
+    g = GestorAjustes(datos)
+    img = imagen_parte(datos_parte, g, ImagenesParte(g), ancho_px)
+    matriz = [list(fila) for fila in segno.make(qr, error="m", boost_error=False).matrix_iter(border=0)]
+    n, escala = len(matriz), ancho_px / HORIZONTAL.ancho
+    x0, y0, lado = (v * escala for v in HORIZONTAL.qr[:3])
+    modulo = lado / n
+    malos = [(f, c) for f in range(n) for c in range(n)
+             if (img.pixelColor(int(x0 + (c + 0.5) * modulo), int(y0 + (f + 0.5) * modulo)).lightness() < 128)
+             != bool(matriz[f][c])]
+    assert malos == []
+
+
 def test_parte_con_nombre_muy_largo_no_falla(qapp, datos):
     g = GestorAjustes(datos)
     a = Alumno(id="1", nombre="MARÍA DE LOS REMEDIOS INMACULADA", apellido1="FERNÁNDEZ-CASTELLANOS",

@@ -2,6 +2,12 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [1.4.2] - 2026-10-23
+
+### Corregido
+
+- **El QR del parte impreso no se podía leer.** Al imprimir o guardar en PDF, a los tres cuadros de las esquinas del QR les faltaba un lado y se perdían más trozos, así que ningún lector lo reconocía (la app del vigilante se quedaba con la cámara abierta sin hacer nada). Ahora el QR sale entero. **Los partes impresos con versiones anteriores no se pueden comprobar: hay que volver a imprimirlos.**
+
 ## [1.4.1] - 2026-10-23
 
 ### Corregido

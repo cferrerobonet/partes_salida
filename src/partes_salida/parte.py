@@ -214,9 +214,9 @@ class Maqueta:
     nia: tuple
     hora: tuple
     hora_etiqueta: tuple
+    fecha_valor: tuple
     hora_valor: tuple
     hora_mm: float
-    hora_fecha: tuple
     texto: tuple
     texto_mm: float
     qr: tuple
@@ -228,22 +228,23 @@ class Maqueta:
     cargo: tuple
 
 
-#: El diseño aprobado (2026-10-08): foto a la izquierda y hora en un recuadro a la derecha.
+#: Foto a la izquierda; etapa y curso en una fila y, bajo ella, el nombre y el recuadro con la fecha
+#: y la hora de salida, igual de grandes (CarlosFB, 2026-10-23).
 HORIZONTAL = Maqueta(
     ancho=148, alto=105,
     logo_izq=(7, 6.5, 19, 19), logo_der=(111, 7.5, 30, 16),
     titulo=(29, 8.5, 80, 9), titulo_mm=7.4, centro=(29, 17.4, 80, 4),
     foto=(7, 29, 25, 32),
-    etapa=(36, 29, 30, 8), curso=(68, 29, 34, 8), alumno=(36, 38.6, 40, 3), nombre=(36, 41.6, 66, 14),
-    nia=(36, 57, 66, 3.5),
-    hora=(105, 29, 36, 32), hora_etiqueta=(105, 33, 36, 3), hora_valor=(106, 37, 34, 14), hora_mm=13,
-    hora_fecha=(105, 53.5, 36, 3.5),
+    etapa=(36, 29, 50, 8), curso=(88, 29, 53, 8), alumno=(36, 38.6, 44, 3), nombre=(36, 41.6, 44, 14),
+    nia=(36, 57, 44, 3.5),
+    hora=(82, 38.5, 59, 22.5), hora_etiqueta=(82, 40.5, 59, 3), fecha_valor=(84, 44, 35, 15),
+    hora_valor=(121, 44, 18, 15), hora_mm=8,
     texto=(7, 64.5, 134, 12), texto_mm=3.15,
     qr=(7, 77, 20, 20), lugar=(30, 83.5, 78, 5), lugar_ajusta=False, expedido=(30, 88.4, 78, 4),
     sello=(117, 70, 25, 25), firma=(110, 78, 27, 15), cargo=(90, 95.8, 51, 3.5),
 )
 
-#: Misma información en 105 × 148 mm: la hora pasa a una franja a todo el ancho.
+#: Misma información en 105 × 148 mm: la fecha y la hora van en una franja a todo el ancho.
 VERTICAL = Maqueta(
     ancho=105, alto=148,
     logo_izq=(7, 7, 17, 17), logo_der=(70, 9, 28, 13),
@@ -251,8 +252,8 @@ VERTICAL = Maqueta(
     foto=(7, 42, 26, 33),
     etapa=(37, 42, 61, 8), curso=(37, 51, 61, 8), alumno=(37, 60, 61, 3), nombre=(37, 63, 61, 10),
     nia=(37, 73, 61, 3.5),
-    hora=(7, 79, 91, 22), hora_etiqueta=(7, 81, 91, 3), hora_valor=(8, 84, 89, 12), hora_mm=11.5,
-    hora_fecha=(7, 96.5, 91, 3.5),
+    hora=(7, 79, 91, 22), hora_etiqueta=(7, 81, 91, 3), fecha_valor=(9, 84.5, 51, 14),
+    hora_valor=(62, 84.5, 34, 14), hora_mm=11.5,
     texto=(7, 103.5, 91, 14), texto_mm=2.8,
     qr=(7, 121, 20, 20), lugar=(30, 122, 40, 8), lugar_ajusta=True, expedido=(30, 130.5, 40, 4),
     sello=(74, 117, 24, 22), firma=(67, 124, 26, 12), cargo=(40, 139.5, 58, 3.5),
@@ -336,14 +337,17 @@ def dibujar_parte(
     if al.nia:
         lz.texto(lz.r(*m.nia), f"NIA {al.nia}", lz.fuente(MONO, 2.4, B.Medium), suave, IZQ | UNA)
 
-    # Hora de salida
+    # Fecha y hora de salida: igual de grandes, la fecha a la izquierda y la hora a la derecha
     p.setPen(QPen(tinta, 0.6 * escala))
     p.drawRoundedRect(lz.r(*m.hora), 2 * escala, 2 * escala)
-    lz.texto(lz.r(*m.hora_etiqueta), "HORA DE SALIDA", etiqueta, tinta, ARRIBA_CENTRO | UNA)
-    lz.texto(lz.r(*m.hora_valor), f"{datos.salida:%H:%M}", lz.fuente(TITULAR, m.hora_mm, B.ExtraBold), tinta,
-             CENTRO | UNA)
-    lz.texto(lz.r(*m.hora_fecha), f"hoy, {fecha_corta(datos.salida.date())}", lz.fuente(CUERPO, 2.4, B.Normal),
-             suave, ARRIBA_CENTRO | UNA)
+    lz.texto(lz.r(*m.hora_etiqueta), "FECHA Y HORA DE SALIDA", etiqueta, tinta, ARRIBA_CENTRO | UNA)
+    grande = lz.fuente(TITULAR, m.hora_mm, B.ExtraBold)
+    lz.texto(lz.r(*m.fecha_valor), fecha_corta(datos.salida.date()), grande, tinta, CENTRO | UNA)
+    lz.texto(lz.r(*m.hora_valor), f"{datos.salida:%H:%M}", grande, tinta, CENTRO | UNA)
+    fx, fy, fw, fh = m.fecha_valor
+    medio = (fx + fw + m.hora_valor[0]) / 2
+    p.setPen(QPen(suave, 0.3 * escala))
+    p.drawLine(lz.r(medio, fy + 1, 0, 0).topLeft(), lz.r(medio, fy + fh - 1, 0, 0).topLeft())
 
     # Texto de autorización
     x, y, w, h = m.texto

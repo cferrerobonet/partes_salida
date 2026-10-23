@@ -2,6 +2,12 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [1.5.0] - 2026-10-23
+
+### Cambiado
+
+- **Fecha y hora de salida, igual de grandes en el parte.** El recuadro dice «FECHA Y HORA DE SALIDA» y lleva la fecha a la izquierda y la hora a la derecha, al mismo tamaño; desaparece la línea pequeña «hoy, dd/mm/aaaa». En el parte vertical es la franja a todo el ancho; en el horizontal, etapa y curso pasan a una fila arriba y el recuadro, más ancho, queda junto al nombre.
+
 ## [1.4.3] - 2026-10-23
 
 ### Corregido

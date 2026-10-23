@@ -159,6 +159,32 @@ def test_maquetas_caben_en_su_papel():
             assert x >= 4 and x + w <= m.ancho - 4 and y >= 4 and y + h <= m.alto - 4, (m.ancho, nombre)
 
 
+def test_fecha_y_hora_de_salida_caben_igual_de_grandes_en_su_recuadro(qapp):
+    """La fecha a la izquierda y la hora a la derecha, al mismo tamaño y dentro del recuadro (CarlosFB, 2026-10-23)."""
+    from PyQt6.QtCore import QPointF
+    from PyQt6.QtGui import QFont, QFontMetricsF, QImage, QPainter
+
+    from partes_salida.parte import HORIZONTAL, VERTICAL, _Lienzo
+    from partes_salida.ui import estilo
+
+    estilo.cargar_fuentes()
+    img = QImage(2000, 100, QImage.Format.Format_RGB32)
+    p = QPainter(img)
+    try:
+        for m in (HORIZONTAL, VERTICAL):
+            lz = _Lienzo(p, 10, QPointF())
+            grande = lz.fuente(estilo.TITULAR, m.hora_mm, QFont.Weight.ExtraBold)
+            hx, hy, hw, hh = m.hora
+            fx, fy, fw, fh = m.fecha_valor
+            vx, vy, vw, vh = m.hora_valor
+            assert hx < fx < fx + fw < vx < vx + vw < hx + hw and hy < fy and fy + fh < hy + hh, m.ancho
+            assert fy == vy and fh == vh, m.ancho
+            for texto, ancho in (("23/10/2026", fw), ("19:30", vw)):
+                assert QFontMetricsF(grande, img).horizontalAdvance(texto) / 10 <= ancho, (m.ancho, texto)
+    finally:
+        p.end()
+
+
 def test_la_impresora_recibe_la_orientacion(qapp, datos, tmp_path):
     from PyQt6.QtGui import QPageLayout
     from PyQt6.QtPrintSupport import QPrinter

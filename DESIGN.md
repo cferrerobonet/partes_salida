@@ -110,8 +110,9 @@ Botón dorado (`gold`, texto blanco) «↑ Actualizar a X.Y.Z» en la barra supe
 | Logo izquierdo / derecho | (7, 6.5) 19×19 · (111, 7.5) 30×16 | proporción respetada |
 | Título | centrado 29–109, y 8.5 | Barlow Condensed ExtraBold 7,4 mm, encoge si no cabe |
 | Foto | (7, 29) 25×32 | recorte centrado, borde 0,3 |
-| Etapa · curso · alumno/a · NIA | x 36, y 29–60 | etiquetas 2,3 mm; nombre condensado 5,6 mm, dos líneas |
-| Hora de salida | caja (105, 29) 36×32 | 13 mm ExtraBold; «hoy, dd/mm/aaaa» |
+| Etapa · curso | fila (36, 29) a (141, 37) | etiquetas 2,3 mm; valores 3,8 mm |
+| Alumno/a · NIA | x 36, y 38.6–60.5, 44 de ancho | nombre condensado 5,6 mm, dos líneas (encoge si no cabe) |
+| Fecha y hora de salida | caja (82, 38.5) 59×22.5 | rótulo «FECHA Y HORA DE SALIDA»; fecha (dd/mm/aaaa) a la izquierda y hora a la derecha, las dos en 8 mm ExtraBold, con una raya fina en medio |
 | Texto | (7, 64.5) 134 de ancho | 3,15 mm, dos líneas, hora en negrita, género según SEXO |
 | QR | (7, 77) 20×20 | Ed25519, corrección M |
 | Lugar y fecha · expedición | (30, 83.5) | 3,1 mm negrita · 2,7 mm |
@@ -120,7 +121,7 @@ Botón dorado (`gold`, texto blanco) «↑ Actualizar a X.Y.Z» en la barra supe
 
 ### Parte vertical (105 × 148 mm)
 
-Mismo contenido y tipografía. Logos arriba (escudo 17 × 17 a la izquierda, Colegios Amigó 28 × 13 a la derecha), título a todo el ancho (6,6 mm) en y 27, foto 26 × 33 a la izquierda con etapa, curso, alumno/a y NIA apilados a su derecha, **franja de la hora** a todo el ancho (91 × 22, hora de 11,5 mm), texto de 2,8 mm, y pie con QR, lugar y fecha (en dos líneas) y sello y firma a la derecha. Las dos maquetas están en `parte.py` (`HORIZONTAL`, `VERTICAL`) y un test comprueba que todo cabe dentro del marco. Capturas: `docs/capturas/parte-horizontal.png` y `parte-vertical.png`.
+Mismo contenido y tipografía; el recuadro de fecha y hora es el mismo que en horizontal, más grande (CarlosFB, 2026-10-23). Logos arriba (escudo 17 × 17 a la izquierda, Colegios Amigó 28 × 13 a la derecha), título a todo el ancho (6,6 mm) en y 27, foto 26 × 33 a la izquierda con etapa, curso, alumno/a y NIA apilados a su derecha, **franja de la fecha y la hora** a todo el ancho (91 × 22: fecha a la izquierda y hora a la derecha, las dos de 11,5 mm), texto de 2,8 mm, y pie con QR, lugar y fecha (en dos líneas) y sello y firma a la derecha. Las dos maquetas están en `parte.py` (`HORIZONTAL`, `VERTICAL`) y un test comprueba que todo cabe dentro del marco. Capturas: `docs/capturas/parte-horizontal.png` y `parte-vertical.png`.
 
 ## Correo a la familia y al alumno
 

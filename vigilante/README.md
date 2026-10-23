@@ -28,5 +28,5 @@ Las librerías de `vendor/` son de terceros, con su licencia al lado: noble-ed25
 
 ## Publicar y probar
 
-- Se publica sola en GitHub Pages (`.github/workflows/vigilante.yml`) con cada push a `main` que la toque, después de pasar sus pruebas en Chromium: vectores del QR con los dos motores de firma, pantalla, cámara simulada con un QR de verdad y modo sin conexión. `scripts/web_vigilante.py` monta lo que se publica (añade las fuentes de la app de escritorio, los iconos de `imagenes/vigilante-*.png` y la versión).
+- Se publica sola en GitHub Pages (`.github/workflows/vigilante.yml`) con cada push a `main` que la toque, después de pasar sus pruebas en Chromium: vectores del QR con los dos motores de firma, pantalla, cámara simulada con un QR de verdad, lector sin `BarcodeDetector` con el QR del parte pequeño (como en el iPhone) y modo sin conexión. `scripts/web_vigilante.py` monta lo que se publica (añade las fuentes de la app de escritorio, los iconos de `imagenes/vigilante-*.png` y la versión).
 - En local: `make vigilante` y abrir <http://localhost:8000> (la cámara del navegador funciona en `localhost`).

@@ -181,11 +181,20 @@ async function prepararDetector() {
   });
   const lienzo = document.createElement("canvas");
   const ctx = lienzo.getContext("2d", { willReadFrequently: true });
+  // El QR del parte es denso (49 módulos en 20 mm): reducido con el fotograma entero se pierde si
+  // es pequeño. Cada fotograma prueba una pasada: el centro (bajo el marco) a tamaño real, el centro
+  // a la mitad (aguanta mejor el desenfoque) o la imagen entera.
+  const PASADAS = [[true, 1080], [true, 540], [false, 720]];
+  let pasada = 0;
   detector = async (video) => {
-    const escala = Math.min(1, 720 / Math.max(video.videoWidth, video.videoHeight));
-    lienzo.width = Math.round(video.videoWidth * escala);
-    lienzo.height = Math.round(video.videoHeight * escala);
-    ctx.drawImage(video, 0, 0, lienzo.width, lienzo.height);
+    const vw = video.videoWidth, vh = video.videoHeight;
+    const [centro, maximo] = PASADAS[pasada++ % PASADAS.length];
+    const lado = Math.round(Math.min(vw, vh) * 0.75);
+    const [sx, sy, sw, sh] = centro ? [(vw - lado) / 2, (vh - lado) / 2, lado, lado] : [0, 0, vw, vh];
+    const escala = Math.min(1, maximo / Math.max(sw, sh));
+    lienzo.width = Math.round(sw * escala);
+    lienzo.height = Math.round(sh * escala);
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, lienzo.width, lienzo.height);
     const img = ctx.getImageData(0, 0, lienzo.width, lienzo.height);
     return window.jsQR(img.data, img.width, img.height, { inversionAttempts: "dontInvert" })?.data ?? null;
   };
@@ -201,7 +210,7 @@ async function escanear(texto) {
   try {
     const leer = await prepararDetector();
     flujo = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
       audio: false,
     });
     video.srcObject = flujo;
@@ -210,9 +219,15 @@ async function escanear(texto) {
     await video.play();
 
     const pista = flujo.getVideoTracks()[0];
+    const capacidades = pista.getCapabilities?.() ?? {};
+    // Enfoque continuo y algo de zoom: el QR se ve grande sin acercar el móvil más de lo que enfoca.
+    const ajustes = {};
+    if (capacidades.focusMode?.includes("continuous")) ajustes.focusMode = "continuous";
+    if (capacidades.zoom?.max >= 2 && capacidades.zoom.min <= 2) ajustes.zoom = 2;
+    if (Object.keys(ajustes).length) await pista.applyConstraints({ advanced: [ajustes] }).catch(() => {});
     const linterna = $("linterna");
     let encendida = false;
-    linterna.hidden = !pista.getCapabilities?.().torch;
+    linterna.hidden = !capacidades.torch;
     linterna.onclick = async () => {
       encendida = !encendida;
       try {
@@ -322,7 +337,7 @@ function iniciar() {
   navigator.storage?.persist?.().catch(() => {});
   registrarServiceWorker();
 
-  window.vigilante = { procesarParte, procesarAlta, version: VERSION };
+  window.vigilante = { procesarParte, procesarAlta, prepararDetector, version: VERSION };
 }
 
 iniciar();

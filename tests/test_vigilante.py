@@ -226,6 +226,50 @@ def _video_con_qr(texto: str, destino: Path) -> Path:
 
 
 @pytest.mark.navegador
+def test_lee_el_parte_impreso_sin_barcodedetector(page, url):
+    """Regresión: en el iPhone (sin BarcodeDetector, con jsQR) el QR del parte impreso no se leía nunca
+    y el escáner no hacía nada. Es denso (49 módulos en 20 mm) y reducir el fotograma vertical entero
+    (720×1280) a 720 px lo dejaba por debajo de 2 px por módulo. Aquí ocupa 140 px de 720 de ancho (2,9 px por módulo), enfocado."""
+    import segno
+
+    matriz = [[int(bool(v)) for v in fila]
+              for fila in segno.make(AUTENTICO, error="m", boost_error=False).matrix_iter(border=0)]
+    page.add_init_script("delete window.BarcodeDetector")
+    page.goto(url)
+    expect(page.locator("#version")).not_to_be_empty()
+    leido = page.evaluate(
+        """async (matriz) => {
+            const lienzo = Object.assign(document.createElement("canvas"), { width: 720, height: 1280 });
+            const ctx = lienzo.getContext("2d");
+            const papel = Object.assign(document.createElement("canvas"), { width: 720, height: 1280 });
+            const p = papel.getContext("2d");
+            p.fillStyle = "#d2d2d2";
+            p.fillRect(0, 0, 720, 1280);
+            p.fillStyle = "#303030";
+            const lado = 140, m = lado / matriz.length, x0 = (720 - lado) / 2, y0 = (1280 - lado) / 2;
+            matriz.forEach((fila, y) => fila.forEach((v, x) => v && p.fillRect(x0 + x * m, y0 + y * m, m, m)));
+            ctx.filter = "blur(0.8px)"; // enfocado, como con zoom y enfoque continuo
+            const pintar = () => ctx.drawImage(papel, 0, 0);
+            pintar();
+            const video = Object.assign(document.createElement("video"), { muted: true, playsInline: true });
+            video.srcObject = lienzo.captureStream(10);
+            await video.play();
+            const leer = await window.vigilante.prepararDetector();
+            for (let i = 0; i < 20; i++) {
+                pintar();
+                await new Promise((r) => setTimeout(r, 100));
+                if (video.videoWidth !== 720 || video.videoHeight !== 1280) continue;
+                const texto = await leer(video);
+                if (texto) return texto;
+            }
+            return null;
+        }""",
+        matriz,
+    )
+    assert leido == AUTENTICO
+
+
+@pytest.mark.navegador
 @pytest.mark.parametrize("que", ["alta", "parte"])
 def test_lee_el_qr_con_la_camara(playwright, url, tmp_path, que):
     """De punta a punta: el botón abre la cámara, lee el QR y la tarjeta da el resultado."""

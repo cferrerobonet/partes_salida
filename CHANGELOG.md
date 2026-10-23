@@ -2,6 +2,12 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [1.4.1] - 2026-10-23
+
+### Corregido
+
+- **La app del vigilante no leía el QR del parte impreso.** Leía el QR de alta y cualquier otro, pero con el del parte se quedaba con la cámara abierta sin hacer nada: es más denso y, a la distancia a la que el móvil enfoca, salía demasiado pequeño. Ahora la cámara se abre con más resolución, con zoom 2× y enfoque continuo si el móvil los tiene, y el lector busca el QR en el centro del marco sin reducir la imagen. Se actualiza sola la próxima vez que se abra con conexión.
+
 ## [1.4.0] - 2026-10-22
 
 ### Cambiado

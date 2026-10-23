@@ -109,6 +109,9 @@ def texto_parte(plantilla: str, alumno: Alumno, salida: datetime) -> str:
     return texto.replace("\n", "<br>")
 
 
+_MAYUSCULAS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+
 class _Lienzo:
     def __init__(self, p: QPainter, escala: float, origen: QPointF):
         self.p = p
@@ -124,7 +127,10 @@ class _Lienzo:
         f.setWeight(peso)
         f.setItalic(cursiva)
         if espacio:
-            f.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, espacio * self.s)
+            # En porcentaje del ancho medio de la letra: el espaciado absoluto Qt lo multiplica por
+            # ppp/96 en la impresora y el PDF (a 1200 ppp, «HORA DE SALIDA» no cabía en su recuadro).
+            ancho = QFontMetricsF(f).horizontalAdvance(_MAYUSCULAS) / len(_MAYUSCULAS)
+            f.setLetterSpacing(QFont.SpacingType.PercentageSpacing, 100 * (1 + espacio * self.s / ancho))
         return f
 
     def texto(self, rect: QRectF, texto: str, f: QFont, color: QColor, flags, minimo_mm: float = 1.6) -> None:

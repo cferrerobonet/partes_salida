@@ -98,6 +98,36 @@ def test_el_qr_del_parte_sale_entero(qapp, datos, ancho_px):
     assert malos == []
 
 
+@pytest.mark.parametrize("ppp", [300, 600, 1200])
+def test_rotulos_espaciados_miden_lo_mismo_en_papel(qapp, ppp):
+    """Regresión: el espaciado de letras absoluto crecía con la resolución de la impresora y del PDF
+    (×12 a 1200 ppp) y «HORA DE SALIDA» no cabía en su recuadro."""
+    from PyQt6.QtCore import QBuffer, QIODevice, QPointF
+    from PyQt6.QtGui import QFont, QFontMetricsF, QImage, QPainter, QPdfWriter
+
+    from partes_salida.parte import _Lienzo
+    from partes_salida.ui import estilo
+
+    estilo.cargar_fuentes()
+    s = ppp / 25.4
+
+    def ancho_mm(dispositivo) -> float:
+        pintor = QPainter(dispositivo)
+        try:
+            f = _Lienzo(pintor, s, QPointF()).fuente(estilo.CUERPO, 2.3, QFont.Weight.Bold, espacio=0.18)
+            return QFontMetricsF(f, dispositivo).horizontalAdvance("HORA DE SALIDA") / s
+        finally:
+            pintor.end()
+
+    buf = QBuffer()
+    buf.open(QIODevice.OpenModeFlag.WriteOnly)
+    pdf = QPdfWriter(buf)
+    pdf.setResolution(ppp)
+    en_pdf, en_imagen = ancho_mm(pdf), ancho_mm(QImage(round(148 * s), 50, QImage.Format.Format_RGB32))
+    assert en_pdf == pytest.approx(en_imagen, rel=0.03)
+    assert en_pdf < 36 - 2  # el recuadro de la hora mide 36 mm
+
+
 def test_parte_con_nombre_muy_largo_no_falla(qapp, datos):
     g = GestorAjustes(datos)
     a = Alumno(id="1", nombre="MARÍA DE LOS REMEDIOS INMACULADA", apellido1="FERNÁNDEZ-CASTELLANOS",

@@ -2,6 +2,12 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [1.4.3] - 2026-10-23
+
+### Corregido
+
+- **Rótulos del parte en papel y en PDF.** Al imprimir o guardar como PDF, el título «AUTORIZACIÓN DE SALIDA» salía con las letras muy separadas y «HORA DE SALIDA» no cabía en su recuadro (se cortaba por los lados). Ahora el parte impreso es igual que la vista previa.
+
 ## [1.4.2] - 2026-10-23
 
 ### Corregido

@@ -12,13 +12,13 @@ import io
 import smtplib
 import ssl
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from email.message import EmailMessage
 from email.utils import formataddr, make_msgid
 
 from .ajustes import Ajustes, GestorAjustes
 from .cifrado import leer_secreto
-from .fechas import fecha_larga
+from .fechas import fecha_corta, fecha_larga
 from .modelo import Alumno, nombre_propio
 
 VERDE = "#2c7a3a"
@@ -63,10 +63,20 @@ def _logo_png(gestor: GestorAjustes, nombre: str) -> bytes | None:
         return salida.getvalue()
 
 
+def _es_hoy(salida: datetime) -> bool:
+    return salida.date() == date.today()
+
+
+def _dia(salida: datetime) -> str:
+    """«hoy, jueves, 8 de octubre de 2026» o, si el parte es para otro día, «el jueves, 8 de octubre de 2026»."""
+    return f"{'hoy,' if _es_hoy(salida) else 'el'} {fecha_larga(salida.date())}"
+
+
 def asunto(alumno: Alumno, salida: datetime, para_alumno: bool = False) -> str:
+    cuando = f"{'hoy' if _es_hoy(salida) else f'el {fecha_corta(salida.date())}'} a las {salida:%H:%M}"
     if para_alumno:
-        return f"Tu parte de salida · hoy a las {salida:%H:%M}"
-    return f"Salida del centro: {alumno.nombre} {alumno.apellido1} · hoy a las {salida:%H:%M}"
+        return f"Tu parte de salida · {cuando}"
+    return f"Salida del centro: {alumno.nombre} {alumno.apellido1} · {cuando}"
 
 
 def _contactos(a: Ajustes, alumno: Alumno | None = None) -> list[tuple[str, str, str]]:
@@ -87,7 +97,7 @@ def _contactos(a: Ajustes, alumno: Alumno | None = None) -> list[tuple[str, str,
 def _saludo_y_cuerpo(alumno: Alumno, salida: datetime, para_alumno: bool) -> tuple[str, str]:
     """Saludo y primer párrafo (texto plano, sin negritas)."""
     autorizado = "autorizada" if alumno.es_mujer else "autorizado"
-    cuando = f"hoy, {fecha_larga(salida.date())}, a las {salida:%H:%M} h"
+    cuando = f"{_dia(salida)}, a las {salida:%H:%M} h"
     if para_alumno:
         return (f"Hola, {nombre_propio(alumno.nombre)}:",
                 f"Jefatura de Estudios te ha {autorizado} a salir del centro {cuando}.")
@@ -133,7 +143,7 @@ def texto_html(a: Ajustes, alumno: Alumno, salida: datetime, cid_izq: str | None
     e = html.escape
     hijo = "su hija" if alumno.es_mujer else "su hijo"
     autorizado = "autorizada" if alumno.es_mujer else "autorizado"
-    cuando = f"hoy, {e(fecha_larga(salida.date()))}, a las <b>{salida:%H:%M}&nbsp;h</b>"
+    cuando = f"{e(_dia(salida))}, a las <b>{salida:%H:%M}&nbsp;h</b>"
     if para_alumno:
         saludo = f"Hola, {e(nombre_propio(alumno.nombre))}:"
         cuerpo = f"Jefatura de Estudios te ha {autorizado} a salir del centro {cuando}."

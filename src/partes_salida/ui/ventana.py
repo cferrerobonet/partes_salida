@@ -8,12 +8,23 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from datetime import time as dtime
 
-from PyQt6.QtCore import QAbstractListModel, QRectF, QSize, Qt, QTime, QTimer
-from PyQt6.QtGui import QColor, QFont, QGuiApplication, QKeySequence, QPainter, QPixmap, QShortcut
+from PyQt6.QtCore import QAbstractListModel, QDate, QLocale, QRectF, QSize, Qt, QTime, QTimer
+from PyQt6.QtGui import (
+    QColor,
+    QFont,
+    QGuiApplication,
+    QKeySequence,
+    QPainter,
+    QPixmap,
+    QShortcut,
+    QTextCharFormat,
+)
 from PyQt6.QtWidgets import (
     QButtonGroup,
+    QCalendarWidget,
     QCheckBox,
     QComboBox,
+    QDateEdit,
     QFrame,
     QGraphicsDropShadowEffect,
     QGridLayout,
@@ -35,6 +46,7 @@ from PyQt6.QtWidgets import (
 
 from .. import NOMBRE_APP, __version__
 from ..correo import mensajes_del_parte
+from ..fechas import fecha_larga
 from ..impresion import imprimir_varios, parte_adjunto
 from ..modelo import ETAPA_CORTA, Alumno, Tutor
 from ..parte import DatosParte, imagen_parte, maqueta
@@ -428,6 +440,7 @@ class VentanaPrincipal(QMainWindow):
         self._reloj.start()
         self.envios = Envios(self.ctx, self)
         self._reloj.timeout.connect(self.actualizar_recurrentes)
+        self._reloj.timeout.connect(self._comprobar_dia)
         self.ctx.padron_cambiado.connect(self.recargar)
         self.ctx.ajustes_cambiados.connect(self.recargar)
         self.ctx.seguimiento_cambiado.connect(self._seguimiento_cambiado)
@@ -540,7 +553,34 @@ class VentanaPrincipal(QMainWindow):
         v = QVBoxLayout(col)
         v.setContentsMargins(16, 16, 16, 14)
         v.setSpacing(10)
-        v.addWidget(etiqueta("Hora de salida", "etiqueta"))
+        v.addWidget(etiqueta("Fecha y hora de salida", "etiqueta"))
+        fila_fecha = QHBoxLayout()
+        self.fecha = QDateEdit()
+        self.fecha.setObjectName("fecha")
+        espanol = QLocale(QLocale.Language.Spanish, QLocale.Country.Spain)
+        self.fecha.setLocale(espanol)
+        self.fecha.setDisplayFormat("ddd dd/MM/yyyy")
+        self.fecha.setCalendarPopup(True)
+        self.fecha.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.fecha.setToolTip("Escribe la fecha o elígela en el calendario de la flecha")
+        calendario = self.fecha.calendarWidget()
+        calendario.setLocale(espanol)
+        calendario.setFirstDayOfWeek(Qt.DayOfWeek.Monday)
+        calendario.setVerticalHeaderFormat(QCalendarWidget.VerticalHeaderFormat.NoVerticalHeader)
+        finde = QTextCharFormat()
+        finde.setForeground(QColor(estilo.T["muted"]))
+        for dia in (Qt.DayOfWeek.Saturday, Qt.DayOfWeek.Sunday):
+            calendario.setWeekdayTextFormat(dia, finde)
+        self._hoy = date.today()
+        self.fecha.setMinimumDate(QDate(self._hoy))
+        self.fecha.setDate(QDate(self._hoy))
+        self.fecha.dateChanged.connect(self._hora_cambiada)
+        fila_fecha.addWidget(self.fecha, 1)
+        hoy = boton("Hoy")
+        hoy.setMinimumHeight(44)
+        hoy.clicked.connect(lambda: self.fecha.setDate(QDate.currentDate()))
+        fila_fecha.addWidget(hoy)
+        v.addLayout(fila_fecha)
         fila = QHBoxLayout()
         self.hora = QTimeEdit()
         self.hora.setObjectName("hora")
@@ -553,10 +593,11 @@ class VentanaPrincipal(QMainWindow):
         fila.addWidget(self.hora, 1)
         ahora = boton("Ahora")
         ahora.setMinimumHeight(58)
-        ahora.clicked.connect(lambda: self.hora.setTime(QTime.currentTime()))
+        ahora.setToolTip("Hoy y la hora de ahora")
+        ahora.clicked.connect(self._ahora)
         fila.addWidget(ahora)
         v.addLayout(fila)
-        self.aviso_hora = etiqueta("", "pequeno")
+        self.aviso_hora = etiqueta("", "pequeno", envolver=True)
         v.addWidget(self.aviso_hora)
         v.addSpacing(4)
         v.addWidget(etiqueta("Vista previa", "etiqueta"))
@@ -729,7 +770,7 @@ class VentanaPrincipal(QMainWindow):
     # Parte
     def salida(self) -> datetime:
         t = self.hora.time()
-        return datetime.combine(date.today(), dtime(t.hour(), t.minute()))
+        return datetime.combine(self.fecha.date().toPyDate(), dtime(t.hour(), t.minute()))
 
     def datos_parte(self) -> DatosParte | None:
         a = self.ficha.alumno
@@ -740,9 +781,31 @@ class VentanaPrincipal(QMainWindow):
         return DatosParte(a, self.ctx.foto(a.id), salida, ahora, self.ctx.firmante.contenido_qr(a.id, salida, ahora))
 
     def _hora_cambiada(self) -> None:
+        dia = self.fecha.date().toPyDate()
+        otro_dia = dia != date.today()
         pasada = self.salida() < datetime.now() - timedelta(minutes=10)
-        self.aviso_hora.setText("Esa hora ya ha pasado." if pasada else "")
+        self.aviso_hora.setText(
+            f"Parte para otro día: {fecha_larga(dia)}." if otro_dia else "Esa hora ya ha pasado." if pasada else ""
+        )
+        if self.aviso_hora.property("rol") != ("aviso" if otro_dia else "pequeno"):
+            self.aviso_hora.setProperty("rol", "aviso" if otro_dia else "pequeno")
+            refrescar_estilo(self.aviso_hora)
         self.vista.actualizar()
+
+    def _ahora(self) -> None:
+        self.fecha.setDate(QDate.currentDate())
+        self.hora.setTime(QTime.currentTime())
+
+    def _comprobar_dia(self) -> None:
+        """A medianoche, la fecha que seguía en «hoy» pasa al día nuevo; la de un día futuro se queda."""
+        hoy = date.today()
+        if hoy == self._hoy:
+            return
+        self.fecha.setMinimumDate(QDate(hoy))
+        if self.fecha.date().toPyDate() <= self._hoy:
+            self.fecha.setDate(QDate(hoy))
+        self._hoy = hoy
+        self._hora_cambiada()
 
     def entrega(self) -> str:
         a = self.ficha.alumno

@@ -7,6 +7,7 @@ cambia la escala de píxeles por milímetro. Así lo que se ve es lo que sale.
 from __future__ import annotations
 
 import html
+import re
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -93,8 +94,11 @@ class ImagenesParte:
         return self._cache[clave]
 
 
-def texto_parte(plantilla: str, alumno: Alumno, salida: datetime) -> str:
-    """Plantilla de Ajustes → HTML de dos líneas, con la hora en negrita."""
+def texto_parte(plantilla: str, alumno: Alumno, salida: datetime, expedido: datetime | None = None) -> str:
+    """Plantilla de Ajustes → HTML de dos líneas, con la hora en negrita.
+
+    Un parte preparado para otro día no dice «hoy»: dice «el día dd/mm/aaaa».
+    """
     valores = {
         "{hora}": f"<b>{salida:%H:%M}</b>",
         "{nombre}": html.escape(alumno.nombre_completo),
@@ -103,7 +107,11 @@ def texto_parte(plantilla: str, alumno: Alumno, salida: datetime) -> str:
         "{fecha}": html.escape(fecha_larga(salida.date())),
     }
     # «12:30 h» nunca se parte: la «h» sola en otra línea despista.
-    texto = html.escape(plantilla.strip()).replace("{hora} h", f"<b>{salida:%H:%M}</b>&nbsp;h")
+    texto = html.escape(plantilla.strip())
+    if expedido is not None and expedido.date() != salida.date():
+        texto = re.sub(r"\bhoy\b", f"el día {fecha_corta(salida.date())}", texto)
+        texto = re.sub(r"\bHoy\b", f"El día {fecha_corta(salida.date())}", texto)
+    texto = texto.replace("{hora} h", f"<b>{salida:%H:%M}</b>&nbsp;h")
     for k, v in valores.items():
         texto = texto.replace(k, v)
     return texto.replace("\n", "<br>")
@@ -357,7 +365,7 @@ def dibujar_parte(
     doc.setDocumentMargin(0)
     doc.setDefaultFont(lz.fuente(CUERPO, m.texto_mm, B.Normal))
     doc.setDefaultStyleSheet(f"body {{ color: {tinta.name()}; }}")
-    doc.setHtml(f"<body style='line-height:135%'>{texto_parte(plantilla, al, datos.salida)}</body>")
+    doc.setHtml(f"<body style='line-height:135%'>{texto_parte(plantilla, al, datos.salida, datos.expedido)}</body>")
     doc.setTextWidth(w * escala)
     p.save()
     p.translate(lz.r(x, y, 0, 0).topLeft())

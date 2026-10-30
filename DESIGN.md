@@ -59,8 +59,9 @@ Los neutros tiran ligeramente al verde para casar con el acento. El tema se elig
 | Nombre del alumno | Barlow Condensed Bold | 30 px | Ficha |
 | Títulos | Barlow Condensed Bold | 19–26 px | «Contactos», apartados de Ajustes, estado vacío |
 | Hora de salida | Barlow Condensed Bold | 40 px | Campo de hora |
+| Fecha de salida | Barlow Condensed Bold | 26 px | Campo de fecha («mar 03/11/2026») |
 | Cuerpo | Barlow | 14 px (13 secundario, 12 pequeño) | Todo lo demás |
-| Etiquetas | Barlow Bold, mayúsculas, espaciado 0,9 px | 12 px | «HORA DE SALIDA», «VISTA PREVIA» |
+| Etiquetas | Barlow Bold, mayúsculas, espaciado 0,9 px | 12 px | «FECHA Y HORA DE SALIDA», «VISTA PREVIA» |
 | Datos | JetBrains Mono | 14 px | NIA y teléfonos |
 
 Las tres familias (OFL) van dentro de la app: `src/partes_salida/recursos/fuentes/`.
@@ -70,7 +71,7 @@ Las tres familias (OFL) van dentro de la app: `src/partes_salida/recursos/fuente
 - Ventana 1100 × 700 (mínimo 980 × 620). Barra superior: título, nombre del equipo, «Datos cifrados» y recuento, botón Ajustes.
 - Columna izquierda: buscador con lupa · botones de etapa (se parten en filas) · curso + Limpiar · recuento · lista (filas de 58 px con miniatura 36×46).
 - Centro: foto 104×132 · nombre en dos líneas · etiquetas etapa y curso · NIA y edad · caja «Contactos» (familiar, teléfono, Copiar y casilla de aviso; móvil del alumno y teléfono de emergencia).
-- Derecha: hora + «Ahora» · aviso de hora pasada · vista previa con sombra (máx. 320 px de alto) · hueco flexible · «ENTREGA DEL PARTE» con dos chips «En papel» / «Por correo al alumno» y el correo del alumno debajo · «Imprimir parte ⌘P» o «Enviar parte ⌘P» (verde, 18 px) · resumen.
+- Derecha: «FECHA Y HORA DE SALIDA» · fecha con calendario desplegable + «Hoy» · hora + «Ahora» · aviso de hora pasada o de parte para otro día (en ámbar) · vista previa con sombra (máx. 320 px de alto) · hueco flexible · «ENTREGA DEL PARTE» con dos chips «En papel» / «Por correo al alumno» y el correo del alumno debajo · «Imprimir parte ⌘P» o «Enviar parte ⌘P» (verde, 18 px) · resumen.
 - Centro, bajo «Contactos»: caja de seguimiento con dos filas «Historial» (n salidas · última) y «Parte recurrente» (días y horas · entrega), cada una con su botón pequeño.
 - Barra superior: «Partes recurrentes · N hoy» a la izquierda del aviso de actualización; verde (`primario`) mientras quede alguno por emitir hoy, blanco si no; oculto si no hay recurrentes.
 - Ajustes: 980 × 640, menú lateral de 220 px, filas «etiqueta (190 px) | control» con ayuda en gris debajo.

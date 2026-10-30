@@ -23,7 +23,7 @@ Cada jefatura instala la app en su equipo y la configura a su manera (logos, sel
 1. Escribir parte del nombre o apellidos (sin tildes, en cualquier orden, con erratas) o filtrar por etapa y curso.
 2. La lista se reduce; el primero queda elegido y su ficha aparece en el centro.
 3. Comprobar foto, etapa y curso; ver teléfonos y correos de la familia.
-4. Fijar la hora de salida (por defecto, la actual redondeada a 5 min; botón «Ahora»).
+4. Fijar la fecha y la hora de salida. Fecha: por defecto hoy; se escribe o se elige en el calendario de la flecha (desde hoy en adelante, para dejar partes preparados); botón «Hoy». Hora: por defecto la actual redondeada a 5 min. «Ahora» pone hoy y la hora actual.
 5. Marcar o desmarcar «Avisar por correo» en cada familiar.
 6. Elegir la **entrega del parte**: «En papel» (de serie) o «Por correo al alumno» (solo si Educamos tiene su correo).
 7. «Imprimir parte» o «Enviar parte» (⌘P / Ctrl+P, el botón dice cuál): sale el DIN-A6 o el correo al alumno y, si hay casillas marcadas, el aviso a la familia. El parte queda en el historial del alumno.
@@ -97,6 +97,7 @@ En la ficha, «Historial» resume cuántas salidas tiene y la última; «Ver his
 | RN-5 | Teléfonos en la ficha, nunca en el parte impreso |
 | RN-6 | El parte lleva el NIA (pequeño), la fecha y hora de expedición y un QR firmado; vale solo para esa fecha y hora |
 | RN-7 | La hora de salida puede ser anterior a la actual (se avisa «Esa hora ya ha pasado») |
+| RN-7b | La fecha de salida es hoy o un día posterior. Si no es hoy, se avisa «Parte para otro día: …», y el texto del parte y el correo dicen «el día dd/mm/aaaa» o «el jueves, 8 de octubre de 2026» en lugar de «hoy». A medianoche, una fecha que seguía en hoy pasa al día nuevo; una futura se queda |
 | RN-8 | Remitente: el buzón compartido de las apps, escrito en Ajustes → Correo (no viene de serie); el correo incluye los contactos de jefatura de mañana y tarde que estén rellenos |
 | RN-9 | El correo del alumno sale de EMAIL ALUMNO o, si está vacía, de EMAILGOOGLE ALUMNO. Sin correo, solo papel |
 | RN-10 | Entrega en papel por defecto; por correo es una elección de jefatura en cada parte (o en la ficha del recurrente) |

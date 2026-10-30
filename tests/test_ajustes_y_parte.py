@@ -135,6 +135,16 @@ def test_parte_con_nombre_muy_largo_no_falla(qapp, datos):
     assert not imagen_parte(_datos(a), g, ImagenesParte(g), 600).isNull()
 
 
+def test_texto_del_parte_para_otro_dia_no_dice_hoy(datos):
+    g = GestorAjustes(datos)
+    a = Alumno(id="1", sexo="F")
+    salida = datetime(2026, 10, 8, 12, 30)
+    otro_dia = texto_parte(g.valores.texto_alumna, a, salida, datetime(2026, 10, 7, 18, 0))
+    assert "hoy" not in otro_dia and "salir del centro el día 08/10/2026 a las <b>12:30</b>" in otro_dia
+    assert "Hoy" not in texto_parte("Hoy sale.", a, salida, datetime(2026, 10, 7, 18, 0))
+    assert "salir del centro hoy a las" in texto_parte(g.valores.texto_alumna, a, salida, datetime(2026, 10, 8, 9, 0))
+
+
 def test_hora_y_h_no_se_separan(datos):
     g = GestorAjustes(datos)
     html = texto_parte(g.valores.texto_alumna, Alumno(id="1", sexo="F"), datetime(2026, 10, 8, 12, 30))

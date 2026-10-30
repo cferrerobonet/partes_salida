@@ -268,7 +268,8 @@ class DialogoAjustes(QDialog):
         ap.campo(
             "Texto (alumno)",
             alumno,
-            "Dos líneas. Variables: {hora}, {nombre}, {curso}, {etapa} y {fecha}. El género sale de la columna SEXO.",
+            "Dos líneas. Variables: {hora}, {nombre}, {curso}, {etapa} y {fecha}. El género sale de la columna SEXO. "
+            "En un parte para otro día, «hoy» se cambia por la fecha.",
         )
         restaurar = boton("Restaurar los textos", pequeno=True)
 

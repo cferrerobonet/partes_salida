@@ -57,6 +57,50 @@ def test_filtrar_por_etapa_y_limpiar(qtbot, ventana):
     assert ventana.modelo.rowCount() == 13
 
 
+def test_parte_preparado_para_otro_dia(qtbot, ventana, monkeypatch):
+    from datetime import date, timedelta
+
+    from PyQt6.QtCore import QDate
+
+    impresos = []
+    monkeypatch.setattr("partes_salida.ui.ventana.imprimir_varios",
+                        lambda partes, ctx, padre: impresos.extend(partes) or True)
+    buscar(qtbot, ventana, "gimeno")
+    hoy = date.today()
+    assert ventana.fecha.date().toPyDate() == hoy and ventana.fecha.minimumDate().toPyDate() == hoy
+    ventana.fecha.setDate(QDate(hoy - timedelta(days=1)))
+    assert ventana.fecha.date().toPyDate() == hoy  # un día pasado no se puede elegir
+    manana = hoy + timedelta(days=1)
+    ventana.fecha.setDate(QDate(manana))
+    ventana.hora.setTime(QTime(8, 15))
+    assert "otro día" in ventana.aviso_hora.text()
+    ventana.imprimir()
+    assert impresos[0].salida.date() == manana and impresos[0].salida.strftime("%H:%M") == "08:15"
+    ventana._ahora()
+    assert ventana.fecha.date().toPyDate() == hoy and ventana.aviso_hora.text() == ""
+
+
+def test_a_medianoche_la_fecha_de_hoy_pasa_al_dia_nuevo(ventana, monkeypatch):
+    from datetime import date, timedelta
+
+    from PyQt6.QtCore import QDate
+
+    hoy = date.today()
+
+    class Manana(date):
+        @classmethod
+        def today(cls):
+            return hoy + timedelta(days=1)
+
+    monkeypatch.setattr("partes_salida.ui.ventana.date", Manana)
+    ventana._comprobar_dia()
+    assert ventana.fecha.date().toPyDate() == hoy + timedelta(days=1)
+    ventana.fecha.setDate(QDate(hoy + timedelta(days=5)))
+    ventana._hoy = hoy
+    ventana._comprobar_dia()
+    assert ventana.fecha.date().toPyDate() == hoy + timedelta(days=5)  # la de un día futuro se queda
+
+
 def test_imprimir_firma_el_qr_y_avisa(qtbot, ventana, monkeypatch, contexto):
     from partes_salida.firma import verificar
 

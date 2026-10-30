@@ -53,6 +53,24 @@ def test_correo_en_masculino(datos, alumnos):
     assert "su hijo MARC" in texto and "autorizado" in texto
 
 
+def test_correo_de_un_parte_para_otro_dia_no_dice_hoy(datos, alumnos):
+    from datetime import date, time, timedelta
+
+    from partes_salida.fechas import fecha_larga
+
+    g = GestorAjustes(datos)
+    marc = next(a for a in alumnos if a.nombre == "MARC")
+    hoy = datetime.combine(date.today(), time(12, 30))
+    assert asunto(marc, hoy).endswith("· hoy a las 12:30")
+    assert f"hoy, {fecha_larga(hoy.date())}, a las 12:30 h" in texto_plano(g.valores, marc, hoy)
+    otro = hoy + timedelta(days=3)
+    assert asunto(marc, otro, para_alumno=True) == f"Tu parte de salida · el {otro:%d/%m/%Y} a las 12:30"
+    texto = texto_plano(g.valores, marc, otro)
+    assert f"el {fecha_larga(otro.date())}, a las 12:30 h" in texto and "hoy" not in texto
+    msg = construir_mensaje(g, marc, otro, ["familia@ejemplo.es"])
+    assert "hoy" not in msg.get_body(("html",)).get_content()
+
+
 def test_contactos_de_jefatura_segun_la_etapa(datos):
     """CarlosFB (2026-10-20): ESO, su jefatura; Bachillerato, la de FP de mañana; FP y el resto, mañana y tarde."""
     from partes_salida.modelo import Alumno

@@ -91,15 +91,23 @@ QFrame[rol="soltar"] {{ border: 1.5px dashed {t['line']}; border-radius: 10px; b
 QFrame[rol="soltar"][encima="true"] {{ border-color: {t['accent']}; background: {t['accent_soft']}; }}
 QFrame[rol="dato"] {{ border: 1px solid {t['line']}; border-radius: 8px; background: {t['surface']}; }}
 QFrame[rol="miniatura"] {{ border: 1px dashed {t['line']}; border-radius: 8px; background: #ffffff; }}
-QLineEdit, QComboBox, QTimeEdit, QSpinBox, QDoubleSpinBox, QPlainTextEdit {{
+QLineEdit, QComboBox, QTimeEdit, QDateEdit, QSpinBox, QDoubleSpinBox, QPlainTextEdit {{
   background: {t['bg']}; border: 1px solid {t['line']}; border-radius: 7px; padding: 6px 9px;
   selection-background-color: {t['accent']}; selection-color: {t['accent_ink']}; }}
-QLineEdit:focus, QComboBox:focus, QTimeEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QPlainTextEdit:focus {{
+QLineEdit:focus, QComboBox:focus, QTimeEdit:focus, QDateEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QPlainTextEdit:focus {{
   border: 1px solid {t['accent']}; }}
 QLineEdit#buscador {{ padding: 9px 10px; font-size: 15px; border-radius: 8px; }}
 QComboBox QAbstractItemView {{ background: {t['surface']}; border: 1px solid {t['line']};
   selection-background-color: {t['accent_soft']}; selection-color: {t['fg']}; }}
 QTimeEdit#hora {{ font-family: "{TITULAR}"; font-size: 40px; font-weight: 700; padding: 2px 12px; }}
+QDateEdit#fecha {{ font-family: "{TITULAR}"; font-size: 26px; font-weight: 700; padding: 2px 12px; }}
+QCalendarWidget QWidget#qt_calendar_navigationbar {{ background: {t['surface2']}; }}
+QCalendarWidget QToolButton {{ color: {t['fg']}; background: transparent; border: 0; border-radius: 6px;
+  padding: 4px 8px; font-weight: 700; }}
+QCalendarWidget QToolButton:hover {{ background: {t['accent_soft']}; }}
+QCalendarWidget QAbstractItemView {{ background: {t['surface']}; color: {t['fg']}; outline: 0;
+  selection-background-color: {t['accent']}; selection-color: {t['accent_ink']}; }}
+QCalendarWidget QAbstractItemView:disabled {{ color: {t['line']}; }}
 QPushButton {{ background: {t['surface']}; border: 1px solid {t['line']}; border-radius: 8px;
   padding: 7px 13px; font-weight: 600; }}
 QPushButton:hover {{ border-color: {t['accent']}; }}

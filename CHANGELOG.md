@@ -2,6 +2,12 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [1.6.0] - 2026-10-30
+
+### Añadido
+
+- **Partes preparados para otro día.** Encima de la hora hay ahora un campo de fecha: se escribe a mano o se elige en el calendario de la flecha (desde hoy en adelante). «Hoy» vuelve a la fecha de hoy y «Ahora» pone hoy y la hora actual. Si el parte no es para hoy, se avisa en ámbar debajo de la hora, y el texto del parte y los correos dicen la fecha en lugar de «hoy». El QR lleva la fecha elegida, así que el vigilante solo lo da por bueno ese día.
+
 ## [1.5.0] - 2026-10-23
 
 ### Cambiado

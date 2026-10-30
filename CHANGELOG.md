@@ -2,6 +2,12 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [1.6.1] - 2026-10-30
+
+### Cambiado
+
+- **Correos de aviso más claros.** Antes de los contactos de Jefatura de Estudios, el correo a la familia y el del alumno dicen ahora que es un envío automático y que no hace falta responderlo; para cualquier duda, se escribe o se llama a las jefaturas que siguen.
+
 ## [1.6.0] - 2026-10-30
 
 ### Añadido

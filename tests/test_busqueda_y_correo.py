@@ -53,6 +53,20 @@ def test_correo_en_masculino(datos, alumnos):
     assert "su hijo MARC" in texto and "autorizado" in texto
 
 
+@pytest.mark.parametrize("para_alumno, frase", [
+    (False, "no es necesario responderlo. Si tienen cualquier duda, contacten con Jefatura de Estudios:"),
+    (True, "no hace falta que lo respondas. Si tienes cualquier duda, pregunta en Jefatura de Estudios:"),
+])
+def test_correo_avisa_de_que_es_automatico_antes_de_las_jefaturas(datos, alumnos, para_alumno, frase):
+    g = GestorAjustes(datos)
+    marc = next(a for a in alumnos if a.nombre == "MARC")
+    msg = construir_mensaje(g, marc, datetime(2026, 10, 8, 9, 0), ["familia@example.com"], para_alumno=para_alumno)
+    for parte in ("plain", "html"):
+        cuerpo = msg.get_body((parte,)).get_content()
+        assert "Este correo se ha enviado de forma automática" in cuerpo
+        assert frase in cuerpo and cuerpo.index(frase) < cuerpo.index("@epla.es")
+
+
 def test_correo_de_un_parte_para_otro_dia_no_dice_hoy(datos, alumnos):
     from datetime import date, time, timedelta
 

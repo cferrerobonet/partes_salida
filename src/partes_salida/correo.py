@@ -114,6 +114,14 @@ def _nota_parte(para_alumno: bool) -> str:
     return "El parte de salida va en este correo y en PDF adjunto."
 
 
+def _dudas(para_alumno: bool) -> str:
+    if para_alumno:
+        return ("Este correo se ha enviado de forma automática, así que no hace falta que lo respondas. "
+                "Si tienes cualquier duda, pregunta en Jefatura de Estudios:")
+    return ("Este correo se ha enviado de forma automática, por lo que no es necesario responderlo. "
+            "Si tienen cualquier duda, contacten con Jefatura de Estudios:")
+
+
 def texto_plano(a: Ajustes, alumno: Alumno, salida: datetime, para_alumno: bool = False,
                 con_parte: bool = False) -> str:
     saludo, cuerpo = _saludo_y_cuerpo(alumno, salida, para_alumno)
@@ -126,8 +134,7 @@ def texto_plano(a: Ajustes, alumno: Alumno, salida: datetime, para_alumno: bool 
         f"Curso: {alumno.curso} ({alumno.etapa})",
         f"Hora de salida: {salida:%H:%M} h",
         "",
-        ("Si tienes cualquier duda, pregunta en Jefatura de Estudios:" if para_alumno else
-         "Si tienen cualquier duda, contacten con Jefatura de Estudios:"),
+        _dudas(para_alumno),
         *[f"  {t}: {' · '.join(p for p in (e, tel) if p)}" for t, e, tel in _contactos(a, alumno)],
         "",
         "Atentamente,",
@@ -147,12 +154,11 @@ def texto_html(a: Ajustes, alumno: Alumno, salida: datetime, cid_izq: str | None
     if para_alumno:
         saludo = f"Hola, {e(nombre_propio(alumno.nombre))}:"
         cuerpo = f"Jefatura de Estudios te ha {autorizado} a salir del centro {cuando}."
-        dudas = "Si tienes cualquier duda, pregunta en Jefatura de Estudios."
     else:
         saludo = "Estimada familia:"
         cuerpo = (f"Les comunicamos que {hijo} <b>{e(alumno.nombre_completo)}</b> ha sido {autorizado} por "
                   f"Jefatura de Estudios a salir del centro {cuando}.")
-        dudas = "Si tienen cualquier duda, contacten con Jefatura de Estudios."
+    dudas = e(_dudas(para_alumno))
     parte = (
         f'<p style="margin:0 0 8px">{e(_nota_parte(para_alumno))}</p>'
         f'<img src="cid:{cid_parte[1:-1]}" width="100%" alt="Parte de salida" '

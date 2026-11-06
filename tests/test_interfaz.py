@@ -119,6 +119,42 @@ def test_imprimir_firma_el_qr_y_avisa(qtbot, ventana, monkeypatch, contexto):
     assert enviados[0]["To"] == "amparo.roig@ejemplo.es, vicent.beltran@ejemplo.es"
 
 
+def test_el_envio_responde_a_jefatura_y_guarda_su_identificador(qtbot, ventana, monkeypatch, contexto):
+    """Con el Message-ID guardado se reconocen después sus rebotes y las respuestas de la familia."""
+    enviados = []
+    monkeypatch.setattr("partes_salida.ui.ventana.imprimir_varios", lambda *a: True)
+    monkeypatch.setattr("partes_salida.ui.envios.contrasena_smtp", lambda a: "clave")
+    monkeypatch.setattr("partes_salida.ui.envios.enviar", lambda msg, a, c: enviados.append(msg))
+    buscar(qtbot, ventana, "nerea")
+    ventana.imprimir()
+    nerea = ventana.ficha.alumno
+    qtbot.waitUntil(lambda: contexto.seguimiento.salidas(nerea.id)[0].correo == "enviado", timeout=3000)
+    assert enviados[0]["Reply-To"] == "jefaturafpbach@epla.es"  # Bachillerato: la de mañana
+    assert contexto.seguimiento.salidas(nerea.id)[0].mensajes == [enviados[0]["Message-ID"]]
+
+
+def test_un_rebote_marca_el_historial_y_pide_llamar(qtbot, ventana, monkeypatch, contexto):
+    from datetime import datetime
+
+    from partes_salida.seguimiento import PAPEL, Salida
+    from partes_salida.vuelta import Resultado
+
+    avisos = []
+    monkeypatch.setattr("partes_salida.ui.vuelta.QMessageBox.warning", lambda *a: avisos.append(a[2]))
+    nerea = next(a for a in contexto.alumnos if a.nombre == "NEREA")
+    madre = nerea.tutores[0]
+    s = contexto.seguimiento.registrar(nerea.id, Salida.nueva(datetime(2026, 11, 6, 12, 30), PAPEL, ["madre"]))
+    ventana.vuelta._terminado(Resultado(rebotes=[(nerea.id, s.id, [madre.email.lower()])]))
+    assert contexto.seguimiento.salidas(nerea.id)[0].correo_texto == "Rebotado"
+    assert "NEREA" in avisos[0] and madre.email.lower() in avisos[0] and f"Llamar: {madre.telefono}" in avisos[0]
+
+
+def test_sin_servidor_imap_no_se_revisa_el_buzon(ventana, contexto):
+    contexto.gestor.poner(smtp_servidor="smtp.ejemplo.es", smtp_usuario="partes@ejemplo.es", imap_servidor="")
+    ventana.vuelta.revisar()
+    assert ventana.vuelta._tarea is None
+
+
 def test_sin_contrasena_avisa_y_no_envia(qtbot, ventana, monkeypatch):
     avisos = []
     monkeypatch.setattr("partes_salida.ui.ventana.imprimir_varios", lambda *a: True)

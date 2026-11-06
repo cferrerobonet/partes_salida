@@ -155,6 +155,9 @@ def main(argv: list[str] | None = None) -> int:
         QTimer.singleShot(4000, ventana.buscar_actualizaciones)
         revision = QTimer(app, interval=4 * 3600 * 1000, timeout=ventana.buscar_actualizaciones)
         revision.start()
+        # Rebotes y mensajes de las familias en el buzón de envío.
+        ventana.vuelta.empezar()
+        app.aboutToQuit.connect(ventana.vuelta.parar)
     codigo = app.exec()
     logger.info("Cierre normal (%s)", codigo)
     return codigo

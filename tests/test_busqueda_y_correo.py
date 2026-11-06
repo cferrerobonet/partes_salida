@@ -86,7 +86,8 @@ def test_correo_de_un_parte_para_otro_dia_no_dice_hoy(datos, alumnos):
 
 
 def test_contactos_de_jefatura_segun_la_etapa(datos):
-    """CarlosFB (2026-10-20): ESO, su jefatura; Bachillerato, la de FP de mañana; FP y el resto, mañana y tarde."""
+    """CarlosFB: ESO, su jefatura (2026-10-20); Bachillerato, la de FP de mañana; FP, la de su turno (2026-11-06);
+    el resto, mañana y tarde."""
     from partes_salida.modelo import Alumno
 
     g = GestorAjustes(datos)
@@ -100,14 +101,19 @@ def test_contactos_de_jefatura_segun_la_etapa(datos):
     assert "Jefatura de ESO: jefaturaestudios.eso@epla.es" in eso and "Turno de tarde" not in eso
     bac = pie("1BACC")
     assert "Jefatura de Bachillerato: jefaturafpbach@epla.es" in bac and "Turno de tarde" not in bac
-    fp = pie("1CFS-SEA")
-    assert "Turno de mañana" in fp and "Turno de tarde" in fp and "jefaturaestudios.eso" not in fp
+    superior = pie("1CFS-SEA")
+    assert "Turno de mañana" in superior and "Turno de tarde" not in superior and "jefaturaestudios.eso" not in superior
+    medio = pie("1CFM-ITE")
+    assert "Turno de tarde" in medio and "Turno de mañana" not in medio
+    primaria = pie("6PRIB")
+    assert "Turno de mañana" in primaria and "Turno de tarde" in primaria
 
 
 def test_contacto_vacio_no_sale(datos, alumnos):
     g = GestorAjustes(datos)
     g.poner(contacto_tarde_email="", contacto_tarde_tel="")
-    texto = texto_plano(g.valores, alumnos[0], datetime(2026, 10, 8, 9, 0))
+    primaria = next(a for a in alumnos if a.etapa_codigo == "PRI")
+    texto = texto_plano(g.valores, primaria, datetime(2026, 10, 8, 9, 0))
     assert "Turno de tarde" not in texto and "Turno de mañana" in texto
 
 

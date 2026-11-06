@@ -35,9 +35,12 @@ class Salida:
     entrega: str = PAPEL  # «papel» (impreso) o «correo» (enviado al alumno)
     recurrente: bool = False
     avisados: list[str] = field(default_factory=list)  # «madre», «padre», «alumna»…
-    correo: str = ""  # "" sin correo · «enviando» · «enviado» · «no enviado»
+    correo: str = ""  # "" sin correo · «enviando» · «enviado» · «no enviado» · «rebotado»
     equipo: str = ""
     id: str = field(default_factory=lambda: uuid.uuid4().hex)
+    # Message-ID de los correos que salieron: los rebotes y las respuestas los citan (`vuelta`).
+    mensajes: list[str] = field(default_factory=list)
+    rebotes: list[str] = field(default_factory=list)  # direcciones que han devuelto el correo
 
     @classmethod
     def nueva(cls, salida: datetime, entrega: str, avisados: list[str], recurrente: bool = False,
@@ -72,7 +75,7 @@ class Salida:
     @property
     def correo_texto(self) -> str:
         return {"": "—", "enviando": "Enviando…", "enviado": "Enviado", "no enviado": "No enviado",
-                "sin confirmar": "Sin confirmar"}.get(
+                "sin confirmar": "Sin confirmar", "rebotado": "Rebotado"}.get(
             self.correo, self.correo
         )
 
@@ -154,12 +157,28 @@ class Seguimiento:
         self._guardar()
         return salida
 
-    def marcar_correo(self, id_alumno: str, id_salida: str, estado: str) -> None:
+    def marcar_correo(self, id_alumno: str, id_salida: str, estado: str, mensajes: list[str] | None = None) -> None:
         for s in self.historial.get(id_alumno, []):
             if s.id == id_salida:
                 s.correo = estado
+                if mensajes:
+                    s.mensajes = list(mensajes)
                 self._guardar()
                 return
+
+    def marcar_rebote(self, id_alumno: str, id_salida: str, direcciones: list[str]) -> Salida | None:
+        """El correo de un parte ha vuelto: la dirección no existe o está mal escrita."""
+        for s in self.historial.get(id_alumno, []):
+            if s.id == id_salida:
+                s.correo = "rebotado"
+                s.rebotes = sorted(set(s.rebotes) | {d.lower() for d in direcciones if d})
+                self._guardar()
+                return s
+        return None
+
+    def mensajes_conocidos(self) -> dict[str, tuple[str, str]]:
+        """Message-ID de cada correo enviado desde este equipo → (alumno, salida)."""
+        return {m: (id_alumno, s.id) for id_alumno, v in self.historial.items() for s in v for m in s.mensajes}
 
     def salidas(self, id_alumno: str) -> list[Salida]:
         """Del alumno, la más reciente primero."""

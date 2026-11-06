@@ -41,6 +41,8 @@ class Ajustes:
     smtp_servidor: str = ""
     smtp_puerto: int = 587
     smtp_usuario: str = ""
+    # Mismo buzón por IMAP (SSL, 993) para recoger rebotes y respuestas; vacío, no se revisa.
+    imap_servidor: str = ""
     remitente_nombre: str = "EPLA · Jefatura de Estudios"
     contacto_manana_email: str = "jefaturafpbach@epla.es"
     contacto_manana_tel: str = "96 363 73 54"

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import html
 import io
+import re
 import smtplib
 import ssl
 from dataclasses import dataclass
@@ -79,9 +80,27 @@ def asunto(alumno: Alumno, salida: datetime, para_alumno: bool = False) -> str:
     return f"Salida del centro: {alumno.nombre} {alumno.apellido1} · {cuando}"
 
 
+#: Grupos de Grado Medio que dependen de la jefatura de mañana (CarlosFB, 2026-11-06).
+GRUPOS_MANANA = ("2CFM-CARR",)
+
+
+def _sin_signos(clase: str) -> str:
+    return re.sub(r"[\s-]", "", (clase or "").upper())
+
+
+def turno_fp(alumno: Alumno) -> str:
+    """«mañana» o «tarde» para el alumnado de FP; "" para el resto (CarlosFB, 2026-11-06): Grado Superior
+    y 2º de Carrocería, mañana; Grado Básico y el resto de Grado Medio, tarde."""
+    codigo = alumno.etapa_codigo
+    if codigo == "CFS" or _sin_signos(alumno.clase) in {_sin_signos(g) for g in GRUPOS_MANANA}:
+        return "mañana"
+    return "tarde" if codigo in ("CFB", "CFM") else ""
+
+
 def _contactos(a: Ajustes, alumno: Alumno | None = None) -> list[tuple[str, str, str]]:
-    """Los contactos de jefatura del pie según la etapa del alumno (CarlosFB, 2026-10-20): ESO, el de su jefatura;
-    Bachillerato, el de mañana (es el mismo que el de FP de mañana); el resto, mañana y tarde."""
+    """Los contactos de jefatura del pie según la etapa del alumno: ESO, el de su jefatura (2026-10-20);
+    Bachillerato, el de mañana (es el mismo que el de FP de mañana); FP, el de su turno (`turno_fp`); el
+    resto (Infantil, Primaria, sin etapa), mañana y tarde."""
     manana = ("Turno de mañana", a.contacto_manana_email.strip(), a.contacto_manana_tel.strip())
     tarde = ("Turno de tarde", a.contacto_tarde_email.strip(), a.contacto_tarde_tel.strip())
     etapa = alumno.etapa_codigo if alumno is not None else ""
@@ -89,9 +108,26 @@ def _contactos(a: Ajustes, alumno: Alumno | None = None) -> list[tuple[str, str,
         filas = [("Jefatura de ESO", a.contacto_eso_email.strip(), a.contacto_eso_tel.strip())]
     elif etapa == "BAC":
         filas = [("Jefatura de Bachillerato", manana[1], manana[2])]
+    elif etapa in ("CFB", "CFM", "CFS"):
+        filas = [manana if turno_fp(alumno) == "mañana" else tarde]
     else:
         filas = [manana, tarde]
     return [f for f in filas if f[1] or f[2]]
+
+
+def correo_jefatura(a: Ajustes, alumno: Alumno | None) -> str:
+    """La dirección de la jefatura del alumno: adonde va lo que responda la familia y lo que se le reenvía.
+    "" si su etapa no tiene una sola jefatura (Infantil, Primaria, sin etapa) o si no está escrita."""
+    if alumno is None or alumno.etapa_codigo not in ("ESO", "BAC", "CFB", "CFM", "CFS"):
+        return ""
+    filas = _contactos(a, alumno)
+    return filas[0][1] if filas else ""
+
+
+def nuevo_id(remitente: str) -> str:
+    """Message-ID propio: los rebotes y las respuestas lo citan y así se sabe de qué parte son."""
+    dominio = remitente.rpartition("@")[2].strip() or "partes-salida"
+    return make_msgid(domain=dominio)
 
 
 def _saludo_y_cuerpo(alumno: Alumno, salida: datetime, para_alumno: bool) -> tuple[str, str]:
@@ -122,6 +158,12 @@ def _dudas(para_alumno: bool) -> str:
             "Si tienen cualquier duda, contacten con Jefatura de Estudios:")
 
 
+def _pie_automatico(a: Ajustes, alumno: Alumno) -> str:
+    if correo_jefatura(a, alumno):
+        return "Mensaje automático: las respuestas llegan a Jefatura de Estudios."
+    return "Mensaje automático: este buzón no recibe respuestas."
+
+
 def texto_plano(a: Ajustes, alumno: Alumno, salida: datetime, para_alumno: bool = False,
                 con_parte: bool = False) -> str:
     saludo, cuerpo = _saludo_y_cuerpo(alumno, salida, para_alumno)
@@ -140,7 +182,7 @@ def texto_plano(a: Ajustes, alumno: Alumno, salida: datetime, para_alumno: bool 
         "Atentamente,",
         f"Jefatura de Estudios · {a.centro}",
         "",
-        "Mensaje automático: este buzón no recibe respuestas.",
+        _pie_automatico(a, alumno),
     ]
     return "\n".join(lineas)
 
@@ -184,7 +226,7 @@ def texto_html(a: Ajustes, alumno: Alumno, salida: datetime, cid_izq: str | None
 {parte}<div style="background:#f2f6f1;border-radius:6px;padding:10px 12px;font-size:14px">{dudas}{contactos}</div>
 <p style="margin:14px 0 0">Atentamente,<br>Jefatura de Estudios · {e(a.centro)}</p>
 </td></tr>
-<tr><td style="padding:12px 20px;border-top:1px solid #d9e0d5;font-size:12px;color:#5a625c">Mensaje automático: este buzón no recibe respuestas. {e(a.centro)}. Los datos se tratan conforme al RGPD para la comunicación con el alumnado y las familias.</td></tr>
+<tr><td style="padding:12px 20px;border-top:1px solid #d9e0d5;font-size:12px;color:#5a625c">{e(_pie_automatico(a, alumno))} {e(a.centro)}. Los datos se tratan conforme al RGPD para la comunicación con el alumnado y las familias.</td></tr>
 </table></td></tr></table></body></html>"""
 
 
@@ -197,6 +239,14 @@ def construir_mensaje(
     msg["Subject"] = asunto(alumno, salida, para_alumno)
     msg["From"] = formataddr((a.remitente_nombre, a.smtp_usuario))
     msg["To"] = ", ".join(destinatarios)
+    # Las familias responden aunque se les diga que no hace falta: que llegue a su jefatura y no al
+    # buzón de envío, que nadie lee. Los rebotes no siguen esta cabecera: los recoge `vuelta`.
+    jefatura = correo_jefatura(a, alumno)
+    if jefatura:
+        msg["Reply-To"] = jefatura
+    msg["Message-ID"] = nuevo_id(a.smtp_usuario)
+    # Que las respuestas de vacaciones de las familias no lleguen a jefatura (RFC 3834).
+    msg["Auto-Submitted"] = "auto-generated"
     msg.set_content(texto_plano(a, alumno, salida, para_alumno, con_parte=parte is not None))
     logos = [(n, _logo_png(gestor, n)) for n in ("logo_izquierdo", "logo_derecho")]
     if parte:

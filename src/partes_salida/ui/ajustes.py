@@ -389,6 +389,10 @@ class DialogoAjustes(QDialog):
         usuario.editingFinished.connect(marcador)
         ap.campo("Contraseña", clave, "Se guarda en el llavero del sistema, nunca en archivos ni en el repositorio.")
         ap.campo("Nombre que ve la familia", self._texto("remitente_nombre"))
+        ap.campo("Servidor IMAP", self._texto("imap_servidor"),
+                 "El mismo buzón, para recoger lo que vuelve (puerto 993, mismo usuario y contraseña). Con la app "
+                 "abierta, cada 5 minutos: los correos rebotados quedan «Rebotado» en el historial con un aviso para "
+                 "llamar a la familia, y lo que escriban las familias se reenvía a su jefatura. Vacío, no se revisa.")
         ap.separador()
         ap.campo("Jefatura · mañana", _fila(self._texto("contacto_manana_email", marcador="Correo"),
                                            self._texto("contacto_manana_tel", 170, "Teléfono"), estirar=False))
@@ -396,8 +400,9 @@ class DialogoAjustes(QDialog):
                                           self._texto("contacto_tarde_tel", 170, "Teléfono"), estirar=False))
         ap.campo("Jefatura · ESO", _fila(self._texto("contacto_eso_email", marcador="Correo"),
                                         self._texto("contacto_eso_tel", 170, "Teléfono"), estirar=False),
-                 "Salen al pie del correo para que la familia sepa a quién llamar: ESO, el de su jefatura; "
-                 "Bachillerato, el de mañana; FP y el resto, mañana y tarde. Si uno queda vacío, no se muestra.")
+                 "Salen al pie del correo y reciben lo que responda la familia. ESO, el de su jefatura; "
+                 "Bachillerato, Grado Superior y 2º de Carrocería, el de mañana; Grado Básico y el resto de Grado "
+                 "Medio, el de tarde; Infantil y Primaria, los dos (sin reenvío). Si uno queda vacío, no se muestra.")
         ap.separador()
         self.destino_prueba = QLineEdit()
         self.destino_prueba.setPlaceholderText("tu.correo@epla.es")

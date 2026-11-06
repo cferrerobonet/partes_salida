@@ -6,7 +6,7 @@
 
 | Desde | Qué | Dónde se pone |
 | --- | --- | --- |
-| — | Nada pendiente: firma, sello y correo puestos en cada equipo; contacto de ESO añadido (CarlosFB, 2026-10-20) | — |
+| 2026-11-06 | Buzón propio de Partes en el servidor de correo, con respuesta automática que remita a las tres jefaturas; después, remitente, contraseña y servidor IMAP en cada equipo (ADR-020) | Servidor de correo · Ajustes → Correo |
 
 ## Hoja de ruta
 

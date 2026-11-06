@@ -72,7 +72,9 @@ class Envios:
 
     def _terminado(self, resultado, al_terminar) -> None:
         for lt, err in resultado:
-            self._ctx.seguimiento.marcar_correo(lt.id_alumno, lt.id_salida, "no enviado" if err else "enviado")
+            # Con los Message-ID se reconocen después sus rebotes y las respuestas (`vuelta`).
+            ids = [str(m["Message-ID"]) for m in lt.mensajes if m["Message-ID"]]
+            self._ctx.seguimiento.marcar_correo(lt.id_alumno, lt.id_salida, "no enviado" if err else "enviado", ids)
         self._ctx.seguimiento_cambiado.emit()
         fallos = [(lt, err) for lt, err in resultado if err]
         if fallos:

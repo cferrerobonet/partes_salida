@@ -58,7 +58,7 @@ Cada jefatura instala la app en su equipo y la configura a su manera (logos, sel
 | Sello y firma | Sello de la etapa y firma del Jefe de Estudios (se les quita el fondo blanco), texto bajo la firma |
 | Textos del parte | Título y texto de dos líneas en femenino y masculino, con variables `{hora}`, `{nombre}`, `{curso}`, `{etapa}`, `{fecha}` |
 | Datos del alumnado | Importaciones, cifras, fotos por confirmar, etapas detectadas (se pueden ocultar), cifrado, vaciar el historial de todos, borrar datos |
-| Correo | SMTP, remitente, contraseña (llavero), contactos de jefatura de mañana, tarde y ESO (al pie del aviso según la etapa: ESO, el suyo; Bachillerato, el de mañana; FP y el resto, mañana y tarde), **correo de prueba** a una dirección cualquiera |
+| Correo | SMTP, remitente, contraseña (llavero), **servidor IMAP** (recoge rebotes y mensajes de las familias), contactos de jefatura de mañana, tarde y ESO (al pie del aviso y en «Responder a», según la etapa: ESO, el suyo; Bachillerato, Grado Superior y 2º de Carrocería, el de mañana; Grado Básico y el resto de Grado Medio, el de tarde; Infantil y Primaria, mañana y tarde), **correo de prueba** a una dirección cualquiera |
 | Impresión | Impresora, orientación del parte (horizontal 148 × 105 o vertical 105 × 148), color o blanco y negro, imprimir sin diálogo, tamaño en % (zoom), ajuste fino en mm, parte de prueba |
 | QR y verificación | Nombre del equipo, QR con la clave pública para la app del vigilante y dirección de esa app |
 | General | Arrancar con la sesión, siempre encima, exportar o importar ajustes, versión y actualizaciones |
@@ -75,7 +75,7 @@ El vigilante pulsa «Escanear parte» y apunta al QR. La tarjeta sale en grande:
 
 ### CU-6 Consultar, imprimir o vaciar el historial de un alumno
 
-En la ficha, «Historial» resume cuántas salidas tiene y la última; «Ver historial» abre la lista: fecha y hora de salida, expedición, entrega (impreso, por correo al alumno, recurrente), avisados y estado del correo. Con buscador, 10 filas por página (5/10/15/20/50), «Limpiar filtros», cabeceras ordenables y pie «Mostrando 1–10 de N» con primera, anterior, cinco números, siguiente y última; la salida más reciente sale resaltada. «Imprimir…» saca el historial en A4 por la impresora o a PDF; «Vaciar historial…» lo borra tras confirmar. Para todo el alumnado: Ajustes → Datos del alumnado.
+En la ficha, «Historial» resume cuántas salidas tiene y la última; «Ver historial» abre la lista: fecha y hora de salida, expedición, entrega (impreso, por correo al alumno, recurrente), avisados y estado del correo (Enviado, No enviado, Sin confirmar o Rebotado). Con buscador, 10 filas por página (5/10/15/20/50), «Limpiar filtros», cabeceras ordenables y pie «Mostrando 1–10 de N» con primera, anterior, cinco números, siguiente y última; la salida más reciente sale resaltada. «Imprimir…» saca el historial en A4 por la impresora o a PDF; «Vaciar historial…» lo borra tras confirmar. Para todo el alumnado: Ajustes → Datos del alumnado.
 
 ### CU-7 Partes recurrentes
 
@@ -98,7 +98,8 @@ En la ficha, «Historial» resume cuántas salidas tiene y la última; «Ver his
 | RN-6 | El parte lleva el NIA (pequeño), la fecha y hora de expedición y un QR firmado; vale solo para esa fecha y hora |
 | RN-7 | La hora de salida puede ser anterior a la actual (se avisa «Esa hora ya ha pasado») |
 | RN-7b | La fecha de salida es hoy o un día posterior. Si no es hoy, se avisa «Parte para otro día: …», y el texto del parte y el correo dicen «el día dd/mm/aaaa» o «el jueves, 8 de octubre de 2026» en lugar de «hoy». A medianoche, una fecha que seguía en hoy pasa al día nuevo; una futura se queda |
-| RN-8 | Remitente: el buzón compartido de las apps, escrito en Ajustes → Correo (no viene de serie); el correo incluye los contactos de jefatura de mañana y tarde que estén rellenos |
+| RN-8 | Remitente: el buzón propio de Partes, escrito en Ajustes → Correo (no viene de serie); el correo incluye el contacto de la jefatura del alumno y «Responder a» esa jefatura (ADR-020) |
+| RN-8b | Con el servidor IMAP escrito, cada 5 minutos con la app abierta: un correo rebotado deja el parte «Rebotado» en el historial y avisa con los teléfonos para llamar; un mensaje de una familia o de un alumno se reenvía a su jefatura (no las respuestas automáticas ni las direcciones que no están en el padrón) |
 | RN-9 | El correo del alumno sale de EMAIL ALUMNO o, si está vacía, de EMAILGOOGLE ALUMNO. Sin correo, solo papel |
 | RN-10 | Entrega en papel por defecto; por correo es una elección de jefatura en cada parte (o en la ficha del recurrente) |
 | RN-11 | El historial y el recurrente de un alumno existen mientras esté en el Excel importado |

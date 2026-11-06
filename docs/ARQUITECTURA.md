@@ -22,11 +22,12 @@ flowchart TB
     AL[almacen.py] --> CI[cifrado.py]
     SE[seguimiento.py] --> AL
     F[firma.py] --- CO[correo.py] --- AJS[ajustes.py] --- ACT[actualizaciones.py]
+    VU[vuelta.py] --> CO
   end
   UI --> APP --> DOM
 ```
 
-- **Dominio puro** (`modelo`, `busqueda`, `importar_*`, `cifrado`, `almacen`, `seguimiento`, `firma`, `correo`, `ajustes`, `fechas`): sin Qt, probado con pytest sin pantalla.
+- **Dominio puro** (`modelo`, `busqueda`, `importar_*`, `cifrado`, `almacen`, `seguimiento`, `firma`, `correo`, `vuelta`, `ajustes`, `fechas`): sin Qt, probado con pytest sin pantalla.
 - **`parte.py`** usa QtGui (QPainter) porque el mismo dibujo sirve para pantalla e impresora.
 - **`contexto.py`** reúne el estado compartido (ajustes, claves, padrón, buscador, historial y recurrentes, caché de miniaturas) y emite `padron_cambiado`, `ajustes_cambiados` y `seguimiento_cambiado`; la UI se suscribe.
 
@@ -46,7 +47,8 @@ flowchart TB
 | `firma.py` | Contenido del QR firmado Ed25519 y verificación; `URL_VIGILANTE` | Contrato con la app del vigilante |
 | `parte.py` | `dibujar_parte(painter, px_por_mm, …)`; `imagen_parte()` para la vista previa | Textos que se ajustan solos |
 | `impresion.py` | `QPrinter` A6, directa o con diálogo; varios partes en un trabajo (uno por hoja); el parte en PNG y PDF para el correo; documento A4 (historial); parte de prueba | |
-| `correo.py` | Mensajes a la familia y al alumno (HTML + texto, logos y parte `cid:`, PDF adjunto); envío SMTP (STARTTLS o SSL) | Siempre en un hilo |
+| `correo.py` | Mensajes a la familia y al alumno (HTML + texto, logos y parte `cid:`, PDF adjunto, «Responder a» y Message-ID propio); jefatura de cada alumno; envío SMTP (STARTTLS o SSL) | Siempre en un hilo |
+| `vuelta.py` | Lo que vuelve al buzón por IMAP: rebotes (informes de entrega) y mensajes de las familias; reenvío a jefatura; marca lo tratado en el servidor | Sin Qt; en un hilo |
 | `ajustes.py` | `Ajustes` (JSON), imágenes propias, exportar e importar | Sin datos ni contraseñas |
 | `actualizaciones.py` | Última versión en GitHub (API y plan B por la web), descarga solo desde GitHub, con timeout y sha256 contra el `digest` del asset | Igual que Guardias |
 | `actualizar_mac.py` | macOS: monta el DMG y lanza un script que, cerrada la app, la sustituye en su carpeta (con `ditto`, sin dejar dos copias y restaurando la vieja si falla); si no se puede, abre el DMG | Mismo archivo en Guardias y el Asistente |
@@ -55,7 +57,8 @@ flowchart TB
 | `ui/ventana.py` | Ventana principal: lista con delegado, ficha con seguimiento, vista previa, entrega y `emitir_partes()` (uno o un lote) | |
 | `ui/seguimiento.py` | Diálogos de historial, parte recurrente (rejilla semanal) y partes recurrentes del día | |
 | `ui/listado.py` | `TablaPaginada`: buscador, páginas, orden y fila resaltada (patrón de Web Pedidos) | |
-| `ui/envios.py` | Envío de los correos de uno o varios partes en un hilo y su estado en el historial | |
+| `ui/envios.py` | Envío de los correos de uno o varios partes en un hilo y su estado (con los Message-ID) en el historial | |
+| `ui/vuelta.py` | Revisión del buzón cada 5 minutos en una `Tarea`: rebotes al historial con aviso, recuento de reenvíos | Solo con servidor IMAP |
 | `ui/ajustes.py` | Ventana de Ajustes; importaciones en `Tarea` (QThread) | |
 | `ui/ayuda.py` | Textos y diálogo de ayuda de la importación (Excel de Educamos y ZIP de fotos) | Cambiar aquí los pasos si Educamos cambia de menú |
 | `ui/presentacion.py` | Presentación al abrir con el progreso real (`Contexto(avance=…)`) y «Acerca de» | Dibujada a mano (QPainter) |
@@ -111,7 +114,7 @@ Formato de cada `.bin`: `PS1` + nonce (12 bytes) + AES-GCM(datos) con datos asoc
 
 ## 5. Hilos
 
-La interfaz nunca espera a la red ni al disco largo: importar y enviar correo van en `componentes.Tarea` (`QThread`) con señales `progreso`, `terminado` y `fallo`; la ventana guarda la referencia hasta que termina. La comprobación de actualizaciones usa un hilo de Python y vuelve a la interfaz por una señal (`dialogos._Puente`).
+La interfaz nunca espera a la red ni al disco largo: importar, enviar correo y revisar el buzón van en `componentes.Tarea` (`QThread`) con señales `progreso`, `terminado` y `fallo`; la ventana guarda la referencia hasta que termina. La comprobación de actualizaciones usa un hilo de Python y vuelve a la interfaz por una señal (`dialogos._Puente`).
 
 ## 6. Cómo extender
 

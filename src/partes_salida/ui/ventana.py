@@ -55,6 +55,7 @@ from . import estilo
 from .componentes import AvisoFlotante, FlujoLayout, boton, etiqueta, refrescar_estilo, separador_vertical
 from .envios import Envios, Lote
 from .seguimiento import DialogoHistorial, DialogoRecurrente, DialogoRecurrentes, resumen_historial
+from .vuelta import Vuelta
 
 logger = logging.getLogger(__name__)
 ROL_ALUMNO = Qt.ItemDataRole.UserRole + 1
@@ -495,6 +496,7 @@ class VentanaPrincipal(QMainWindow):
         self._reloj = QTimer(self, interval=30_000, timeout=self.vista.actualizar)
         self._reloj.start()
         self.envios = Envios(self.ctx, self)
+        self.vuelta = Vuelta(self.ctx, self)
         self._reloj.timeout.connect(self.actualizar_recurrentes)
         self._reloj.timeout.connect(self._comprobar_dia)
         self.ctx.padron_cambiado.connect(self.recargar)
@@ -958,6 +960,9 @@ class VentanaPrincipal(QMainWindow):
                     self.ctx.gestor, a, e.datos.salida, [t.email for t in e.familia], al_alumno,
                     parte_adjunto(e.datos, self.ctx),
                 )
+                # Los Message-ID, ya: si la app se cierra a mitad de envío, sus rebotes se siguen reconociendo.
+                self.ctx.seguimiento.marcar_correo(a.id, registro.id, registro.correo,
+                                                   [str(m["Message-ID"]) for m in mensajes])
                 lotes.append(Lote(
                     a.id, registro.id, f"{a.nombre} {a.apellido1}", " y ".join(quienes),
                     ", ".join(t.telefono for t in e.familia if t.telefono), mensajes,

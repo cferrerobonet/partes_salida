@@ -2,6 +2,18 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [1.8.0] - 2026-11-06
+
+### Añadido
+
+- **Lo que vuelve al buzón de envío ya no se pierde.** Con el nuevo campo «Servidor IMAP» de Ajustes → Correo, la app revisa el buzón cada 5 minutos mientras está abierta:
+  - Si un aviso rebota (la dirección ya no existe o está mal escrita), el parte queda **«Rebotado»** en el historial y sale un aviso con el alumno, la dirección y los teléfonos para llamar a la familia.
+  - Si una familia o un alumno escribe al buzón de envío, el mensaje se **reenvía a su jefatura**. Al pulsar «Responder», la respuesta va a quien lo escribió, y el original va adjunto. Las respuestas automáticas y los correos de direcciones que no están en el padrón no se reenvían. Si un reenvío falla tres veces, se avisa de que el mensaje sigue en el buzón.
+
+### Cambiado
+
+- **Las respuestas de las familias llegan a su jefatura.** El aviso lleva «Responder a» la jefatura del alumno: ESO, la suya; Bachillerato, Grado Superior y 2º de Carrocería, la de mañana; Grado Básico y el resto de Grado Medio, la de tarde. El pie del correo muestra solo esa jefatura y dice que las respuestas le llegan. Las respuestas automáticas de vacaciones ya no deberían llegar a jefatura.
+
 ## [1.7.1] - 2026-11-06
 
 ### Corregido

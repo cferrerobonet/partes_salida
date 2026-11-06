@@ -1,4 +1,4 @@
-"""Historial de salidas y partes recurrentes de cada alumno, cifrados en el equipo.
+"""Historial, partes recurrentes y patria potestad exclusiva de cada alumno, cifrados en el equipo.
 
 Vive en `seguimiento.bin` (AES-GCM, como el padrón). Todo cuelga de un alumno del
 padrón y desaparece con él: al reimportar el Excel se borra lo de quien ya no
@@ -137,12 +137,15 @@ class Seguimiento:
         self.recurrentes: dict[str, Recurrencia] = {
             k: Recurrencia.de_dict(v) for k, v in datos.get("recurrentes", {}).items()
         }
+        # Alumno → `Tutor.clave` del único familiar con patria potestad (resolución judicial).
+        self.patria_potestad: dict[str, str] = dict(datos.get("patria_potestad", {}))
 
     def _guardar(self) -> None:
         self._almacen.guardar_seguimiento({
             "version": self.VERSION,
             "historial": {k: [asdict(s) for s in v] for k, v in self.historial.items() if v},
             "recurrentes": {k: r.a_dict() for k, r in self.recurrentes.items()},
+            "patria_potestad": dict(self.patria_potestad),
         })
 
     # Historial
@@ -201,14 +204,23 @@ class Seguimiento:
             partes.append(ParteDelDia(a, r, datetime.combine(dia, hora), self.emitido_hoy(id_alumno, dia)))
         return sorted(partes, key=lambda p: (p.salida, p.alumno.nombre_listado))
 
+    # Patria potestad exclusiva
+    def poner_patria_potestad(self, id_alumno: str, clave: str | None) -> None:
+        if clave:
+            self.patria_potestad[id_alumno] = clave
+        else:
+            self.patria_potestad.pop(id_alumno, None)
+        self._guardar()
+
     # Vida del alumno
     def conservar_solo(self, ids_vigentes) -> int:
         """Tras un Excel nuevo: fuera lo de quien ya no está. Devuelve de cuántos alumnos."""
         vigentes = set(ids_vigentes)
-        fuera = (set(self.historial) | set(self.recurrentes)) - vigentes
+        fuera = (set(self.historial) | set(self.recurrentes) | set(self.patria_potestad)) - vigentes
         for i in fuera:
             self.historial.pop(i, None)
             self.recurrentes.pop(i, None)
+            self.patria_potestad.pop(i, None)
         if fuera:
             self._guardar()
         return len(fuera)
@@ -216,6 +228,7 @@ class Seguimiento:
     def olvidar_todo(self) -> None:
         self.historial.clear()
         self.recurrentes.clear()
+        self.patria_potestad.clear()
 
 
 def informe_html(alumno: Alumno, salidas: list[Salida], centro: str, ahora: datetime | None = None) -> str:

@@ -140,7 +140,7 @@ class DelegadoAlumno(QStyledItemDelegate):
 
 
 class FilaContacto(QFrame):
-    def __init__(self, quien: str, detalle: str, telefono: str, primera: bool, ventana):
+    def __init__(self, quien: str, detalle: str, telefono: str, primera: bool, ventana, apagada: bool = False):
         super().__init__()
         if not primera:
             self.setProperty("rol", "fila")
@@ -151,8 +151,11 @@ class FilaContacto(QFrame):
         texto = f"<b>{quien}</b>"
         if detalle:
             texto += f" <span style='color:{estilo.T['muted']};font-size:13px'>· {detalle}</span>"
-        rejilla.addWidget(QLabel(texto), 0, 0)
-        tel = etiqueta(telefono or "—", "tel")
+        nombre = QLabel(texto)
+        if apagada:  # familiar sin patria potestad: en gris
+            nombre.setStyleSheet(f"color:{estilo.T['muted']};")
+        rejilla.addWidget(nombre, 0, 0)
+        tel = etiqueta(telefono or "—", "muted" if apagada else "tel")
         tel.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         rejilla.addWidget(tel, 0, 1)
         copiar = boton("Copiar", pequeno=True)
@@ -315,13 +318,29 @@ class Ficha(QWidget):
         mayor = (a.edad() or 0) >= 18
         if mayor and any(t.puede_recibir_correo for t in a.tutores):
             self.caja_capa.addWidget(etiqueta("Mayor de edad: el aviso a la familia sale desmarcado.", "aviso", True))
+        ctx = self._ventana.ctx
+        exclusiva = ctx.seguimiento.patria_potestad.get(a.id)
+        coincide = ctx.patria_potestad_coincide(a)
+        if not coincide:
+            self.caja_capa.addWidget(etiqueta(
+                "La patria potestad exclusiva marcada ya no coincide con los familiares de Educamos: "
+                "no se avisa a nadie hasta volver a marcarla o quitarla.", "aviso", True))
+            quitar = boton("Quitar la marca", pequeno=True)
+            quitar.clicked.connect(lambda: self._patria_potestad(None))
+            self.caja_capa.addWidget(quitar, 0, Qt.AlignmentFlag.AlignLeft)
         marcas = self.avisos.setdefault(a.id, {})
         for i, t in enumerate(a.tutores):
-            fila = FilaContacto(t.parentesco_texto, t.nombre, t.telefono, i == 0, self._ventana)
-            casilla = QCheckBox("Avisar por correo" if t.puede_recibir_correo else
-                                ("No recibe información según Educamos" if t.email else "Sin correo en Educamos"))
+            fila = FilaContacto(t.parentesco_texto, t.nombre, t.telefono, i == 0, self._ventana,
+                                apagada=t.sin_patria_potestad)
+            if t.puede_recibir_correo:
+                rotulo = "Avisar por correo"
+            elif t.sin_patria_potestad:
+                rotulo = "Sin patria potestad: no recibe avisos" if coincide else "Bloqueado hasta revisar la marca"
+            else:
+                rotulo = "No recibe información según Educamos" if t.email else "Sin correo en Educamos"
+            casilla = QCheckBox(rotulo)
             casilla.setEnabled(t.puede_recibir_correo)
-            casilla.setChecked(marcas.setdefault(i, t.puede_recibir_correo and not mayor))
+            casilla.setChecked(t.puede_recibir_correo and marcas.setdefault(i, t.puede_recibir_correo and not mayor))
             casilla.toggled.connect(lambda v, i=i: self._marcar(i, v))
             aviso = QHBoxLayout()
             aviso.setSpacing(8)
@@ -329,6 +348,16 @@ class Ficha(QWidget):
             if t.puede_recibir_correo:
                 aviso.addWidget(etiqueta(t.email, "correo"))
             aviso.addStretch(1)
+            if len(a.tutores) > 1:
+                pp = QCheckBox("Patria potestad exclusiva")
+                pp.setToolTip(
+                    "Solo con resolución judicial que prive al otro familiar de la patria potestad "
+                    "o le prohíba comunicarse con el alumno. La guarda y custodia no basta: "
+                    "quien no la tiene sigue teniendo derecho a la información."
+                )
+                pp.setChecked(bool(exclusiva) and t.clave == exclusiva)
+                pp.toggled.connect(lambda v, t=t: self._patria_potestad(t if v else None))
+                aviso.addWidget(pp)
             fila.rejilla.addLayout(aviso, 1, 0, 1, 3)
             self.caja_capa.addWidget(fila)
         if not a.tutores:
@@ -344,6 +373,33 @@ class Ficha(QWidget):
         if self.alumno:
             self.avisos.setdefault(self.alumno.id, {})[i] = valor
             self._ventana.avisos_cambiados()
+
+    def _patria_potestad(self, titular: Tutor | None) -> None:
+        """Marca (o quita) al único familiar con patria potestad; el resto deja de recibir avisos."""
+        a = self.alumno
+        if a is None:
+            return
+        if titular is not None:
+            otros = [t for t in a.tutores if t is not titular]
+            quienes = " y ".join(f"{t.parentesco_texto.lower()} ({t.nombre})" if t.nombre else
+                                 t.parentesco_texto.lower() for t in otros)
+            r = QMessageBox.question(
+                self, "Patria potestad exclusiva",
+                f"¿Marcar a {titular.parentesco_texto.lower()} ({titular.nombre or 'sin nombre'}) como único "
+                f"familiar con patria potestad?\n\nDejará de avisarse por correo a {quienes}, también en los "
+                "partes recurrentes.\n\nMárcalo solo si hay una resolución judicial que le priva de la patria "
+                "potestad o le prohíbe comunicarse con el alumno. En una separación o un divorcio los dos "
+                "conservan el derecho a la información aunque solo uno tenga la guarda y custodia.",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
+                QMessageBox.StandardButton.Cancel,
+            )
+            if r != QMessageBox.StandardButton.Yes:
+                QTimer.singleShot(0, lambda: self._contactos(a) if self.alumno is a else None)
+                return
+        self._ventana.ctx.poner_patria_potestad(a, titular.clave if titular else None)
+        self.avisos.pop(a.id, None)  # las casillas de aviso vuelven a su valor de serie
+        # Se rehace la caja fuera de la señal de la casilla que la ha disparado.
+        QTimer.singleShot(0, lambda: self._contactos(a) if self.alumno is a else None)
 
     def destinatarios(self) -> list:
         if not self.alumno:

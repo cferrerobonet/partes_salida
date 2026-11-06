@@ -272,3 +272,41 @@ def test_ayuda_del_excel_lleva_las_capturas_de_educamos():
     assert any("Exportación de datos de los alumnos" in p for p in AYUDA_EXCEL.pasos)
     for nombre, _ancho in AYUDA_EXCEL.imagenes.values():
         assert (recursos() / nombre).exists() and nombre.isascii()
+
+
+def test_patria_potestad_exclusiva_bloquea_al_otro_familiar(qtbot, ventana, contexto, monkeypatch):
+    from PyQt6.QtWidgets import QCheckBox, QMessageBox
+
+    from partes_salida.contexto import Contexto
+
+    monkeypatch.setattr(QMessageBox, "question", lambda *a, **k: QMessageBox.StandardButton.Yes)
+    buscar(qtbot, ventana, "beltran")
+    a = ventana.ficha.alumno
+    marcas = [c for c in ventana.ficha.findChildren(QCheckBox) if c.text() == "Patria potestad exclusiva"]
+    assert len(marcas) == 2
+    marcas[0].setChecked(True)  # la madre
+    qtbot.wait(20)
+    assert [t.parentesco_texto for t in ventana.ficha.destinatarios()] == ["Madre"]
+    assert ventana.resumen.text() == "Se avisará por correo a: madre"
+    rotulos = [c.text() for c in ventana.ficha.findChildren(QCheckBox) if c.isVisible()]
+    assert "Sin patria potestad: no recibe avisos" in rotulos
+    # Vale también para los recurrentes (usan `puede_recibir_correo`), tras reimportar y al reabrir
+    contexto.nuevo_padron(list(contexto.alumnos), "alumnos.xlsx")
+    assert [t.puede_recibir_correo for t in contexto.por_id[a.id].tutores] == [True, False]
+    otro = Contexto(contexto.carpeta)
+    assert [t.puede_recibir_correo for t in otro.por_id[a.id].tutores] == [True, False]
+    # Se quita desmarcando: los dos vuelven a recibir avisos
+    buscar(qtbot, ventana, "beltran")
+    next(c for c in ventana.ficha.findChildren(QCheckBox) if c.text() == "Patria potestad exclusiva"
+         and c.isChecked()).setChecked(False)
+    qtbot.wait(20)
+    assert "madre y padre" in ventana.resumen.text()
+
+
+def test_patria_potestad_que_ya_no_coincide_no_avisa_a_nadie(qtbot, ventana, contexto):
+    buscar(qtbot, ventana, "beltran")
+    a = ventana.ficha.alumno
+    contexto.poner_patria_potestad(a, "OTRA PERSONA")
+    ventana.ficha.mostrar(a)
+    assert ventana.ficha.destinatarios() == []
+    assert "ya no coincide" in "".join(lbl.text() for lbl in ventana.ficha.findChildren(type(ventana.resumen)))

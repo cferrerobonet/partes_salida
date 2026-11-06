@@ -2,6 +2,12 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [1.7.0] - 2026-11-06
+
+### Añadido
+
+- **Patria potestad exclusiva.** Cuando el alumno tiene dos familiares, cada uno lleva en «Contactos» la casilla «Patria potestad exclusiva». Al marcar uno (pide confirmación), el otro queda en gris y deja de recibir los avisos por correo, también en los partes recurrentes. Solo debe marcarse con una resolución judicial que prive al otro de la patria potestad o le prohíba comunicarse con el alumno: la guarda y custodia por sí sola no quita el derecho a la información. La marca se guarda cifrada en el equipo y se mantiene al reimportar el Excel; si los familiares de Educamos cambian y ya no coincide, no se avisa a nadie hasta revisarla.
+
 ## [1.6.1] - 2026-10-30
 
 ### Cambiado

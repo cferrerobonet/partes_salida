@@ -2,7 +2,15 @@ from datetime import date
 
 import pytest
 
-from partes_salida.modelo import Alumno, Tutor, analizar_clase, clave_nombre, etapas_presentes, nombre_propio
+from partes_salida.modelo import (
+    Alumno,
+    Tutor,
+    analizar_clase,
+    aplicar_patria_potestad,
+    clave_nombre,
+    etapas_presentes,
+    nombre_propio,
+)
 
 
 @pytest.mark.parametrize(
@@ -61,3 +69,16 @@ def test_tutor_parentesco_y_correo():
 def test_etapas_presentes_en_orden_de_botones():
     al = [Alumno(id=str(i), clase=c) for i, c in enumerate(["1CFS-SEA", "1BAHA", "3INFA", "2BACC"])]
     assert etapas_presentes(al) == ["INF", "BAC", "CFS"]
+
+
+def test_patria_potestad_exclusiva():
+    madre = Tutor("MADRE", "Rosa Gil", "m@example.com")
+    padre = Tutor("PADRE", "Joan Pla", "p@example.com")
+    a = Alumno("1", tutores=[madre, padre])
+    assert aplicar_patria_potestad(a, madre.clave)
+    assert madre.puede_recibir_correo and not padre.puede_recibir_correo
+    assert "sin_patria_potestad" not in a.a_dict()["tutores"][1]  # no se guarda en el padrón
+    assert not aplicar_patria_potestad(a, "NADIE")  # ya no coincide: nadie recibe
+    assert not madre.puede_recibir_correo and not padre.puede_recibir_correo
+    assert aplicar_patria_potestad(a, None)
+    assert madre.puede_recibir_correo and padre.puede_recibir_correo

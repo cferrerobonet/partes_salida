@@ -92,6 +92,8 @@ class Tutor:
     email: str = ""
     telefono: str = ""
     recibe_informacion: bool = True
+    # No viene de Educamos: lo pone `aplicar_patria_potestad` y no se guarda en el padrón.
+    sin_patria_potestad: bool = False
 
     @property
     def parentesco_texto(self) -> str:
@@ -107,7 +109,12 @@ class Tutor:
 
     @property
     def puede_recibir_correo(self) -> bool:
-        return bool(self.email) and self.recibe_informacion
+        return bool(self.email) and self.recibe_informacion and not self.sin_patria_potestad
+
+    @property
+    def clave(self) -> str:
+        """Lo que identifica al familiar entre importaciones: su nombre (o, sin él, el parentesco)."""
+        return clave_nombre(self.nombre) or clave_nombre(self.parentesco)
 
 
 @dataclass
@@ -171,13 +178,29 @@ class Alumno:
         return hoy.year - n.year - ((hoy.month, hoy.day) < (n.month, n.day))
 
     def a_dict(self) -> dict:
-        return asdict(self)
+        d = asdict(self)
+        for t in d["tutores"]:
+            t.pop("sin_patria_potestad", None)
+        return d
 
     @classmethod
     def de_dict(cls, d: dict) -> Alumno:
         d = dict(d)
         d["tutores"] = [Tutor(**t) for t in d.get("tutores", [])]
         return cls(**d)
+
+
+def aplicar_patria_potestad(alumno: Alumno, clave: str | None) -> bool:
+    """Marca quién no recibe avisos cuando un familiar tiene la patria potestad exclusiva.
+
+    `clave` es la `Tutor.clave` de quien la tiene. Si no coincide con ningún familiar
+    (Educamos ha cambiado los datos), no se avisa a nadie hasta revisarla. Devuelve si
+    la marca coincide (o no hay marca).
+    """
+    coincide = not clave or any(t.clave == clave for t in alumno.tutores)
+    for t in alumno.tutores:
+        t.sin_patria_potestad = bool(clave) and (t.clave != clave or not coincide)
+    return coincide
 
 
 def etapas_presentes(alumnos) -> list[str]:

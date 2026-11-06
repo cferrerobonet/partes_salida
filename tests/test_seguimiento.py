@@ -49,7 +49,9 @@ def test_reimportar_el_excel_conserva_lo_de_quien_sigue_y_borra_lo_de_las_bajas(
     for a in (sigue, baja):
         contexto.seguimiento.registrar(a.id, salida())
         contexto.seguimiento.poner_recurrencia(a.id, Recurrencia({1: "10:00"}))
+        contexto.poner_patria_potestad(a, a.tutores[0].clave)
     contexto.nuevo_padron([a for a in contexto.alumnos if a.id != baja.id], "nuevo.xlsx")
+    assert sigue.id in contexto.seguimiento.patria_potestad and baja.id not in contexto.seguimiento.patria_potestad
     assert len(contexto.seguimiento.salidas(sigue.id)) == 1 and sigue.id in contexto.seguimiento.recurrentes
     assert contexto.seguimiento.salidas(baja.id) == [] and baja.id not in contexto.seguimiento.recurrentes
 
@@ -68,7 +70,9 @@ def test_vaciar_todos_los_datos_borra_historial_y_recurrentes(contexto, datos):
     a = contexto.alumnos[0]
     contexto.seguimiento.registrar(a.id, salida())
     contexto.seguimiento.poner_recurrencia(a.id, Recurrencia({0: "12:30"}))
+    contexto.poner_patria_potestad(a, a.tutores[0].clave)
     contexto.borrar_datos()
+    assert not contexto.seguimiento.patria_potestad
     assert not (datos / "seguimiento.bin").exists()
     assert contexto.seguimiento.total_salidas == 0 and not contexto.seguimiento.recurrentes
 

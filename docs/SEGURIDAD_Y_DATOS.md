@@ -18,7 +18,7 @@ La lista exacta de columnas leídas está en `src/partes_salida/importar_excel.p
 | --- | --- | --- |
 | Padrón | `alumnado.bin` en la carpeta de datos del usuario | AES-256-GCM |
 | Fotos | `fotos/<HMAC del id>.bin` | AES-256-GCM; el nombre no identifica a nadie |
-| Historial de salidas y partes recurrentes | `seguimiento.bin` | AES-256-GCM |
+| Historial de salidas, partes recurrentes y patria potestad exclusiva | `seguimiento.bin` | AES-256-GCM |
 | Clave de datos, clave de firma, contraseña SMTP | Llavero del sistema (Llavero de macOS, Administrador de credenciales de Windows), servicio `PartesSalida` | La del sistema y la sesión del usuario |
 | Ajustes e imágenes | `ajustes.json`, `imagenes/` | Sin datos personales |
 | Registro | `logs/` | Sin nombres, correos ni teléfonos |
@@ -40,7 +40,7 @@ No hay servidor ni nube. El repositorio de GitHub es público y **nunca** contie
 
 ## 4. Correo
 
-Se envía solo a los familiares marcados en el momento y, si se elige «Por correo al alumno», al propio alumno; nunca de forma automática (tampoco en los recurrentes: se emiten al pulsar). Los dos mensajes llevan el parte (imagen y PDF). Por defecto, desmarcado si el alumno es mayor de edad y bloqueado si Educamos dice que el familiar no recibe información. El pie identifica al centro, indica que el buzón no recibe respuestas y cita el RGPD. Transporte: STARTTLS en el puerto 587 (o SSL en 465) contra el servidor de correo configurado en Ajustes → Correo.
+Se envía solo a los familiares marcados en el momento y, si se elige «Por correo al alumno», al propio alumno; nunca de forma automática (tampoco en los recurrentes: se emiten al pulsar). Los dos mensajes llevan el parte (imagen y PDF). Por defecto, desmarcado si el alumno es mayor de edad y bloqueado si Educamos dice que el familiar no recibe información o si el otro familiar está marcado con la patria potestad exclusiva (ADR-019; vale también para los recurrentes). El pie identifica al centro, indica que el buzón no recibe respuestas y cita el RGPD. Transporte: STARTTLS en el puerto 587 (o SSL en 465) contra el servidor de correo configurado en Ajustes → Correo.
 
 ## 5. Firma del QR
 

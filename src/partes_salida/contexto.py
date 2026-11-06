@@ -13,7 +13,7 @@ from .almacen import Almacen, DatosIlegibles, Padron
 from .busqueda import Buscador
 from .cifrado import Cifrador
 from .firma import Firmante
-from .modelo import Alumno, etapas_presentes
+from .modelo import Alumno, aplicar_patria_potestad, etapas_presentes
 from .parte import ImagenesParte
 from .rutas import carpeta_datos
 from .seguimiento import Seguimiento
@@ -66,6 +66,8 @@ class Contexto(QObject):
         self.importado = padron.importado
         self.origen = padron.origen
         self.por_id = {a.id: a for a in self.alumnos}
+        for a in self.alumnos:
+            aplicar_patria_potestad(a, self.seguimiento.patria_potestad.get(a.id))
         self.buscador = Buscador(self.alumnos)
         self.etapas = etapas_presentes(self.alumnos)
         self._con_foto: int | None = None
@@ -102,6 +104,16 @@ class Contexto(QObject):
         self._poner(Padron([]))
         self.padron_cambiado.emit()
         self.seguimiento_cambiado.emit()
+
+    def poner_patria_potestad(self, a: Alumno, clave: str | None) -> None:
+        """Guarda quién tiene la patria potestad exclusiva (o la quita) y bloquea al resto."""
+        self.seguimiento.poner_patria_potestad(a.id, clave)
+        aplicar_patria_potestad(a, clave)
+        self.seguimiento_cambiado.emit()
+
+    def patria_potestad_coincide(self, a: Alumno) -> bool:
+        clave = self.seguimiento.patria_potestad.get(a.id)
+        return not clave or any(t.clave == clave for t in a.tutores)
 
     def etapas_visibles(self) -> set[str] | None:
         ocultas = set(self.gestor.valores.etapas_ocultas)

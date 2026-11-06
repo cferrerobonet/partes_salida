@@ -348,7 +348,8 @@ class Ficha(QWidget):
             if t.puede_recibir_correo:
                 aviso.addWidget(etiqueta(t.email, "correo"))
             aviso.addStretch(1)
-            if len(a.tutores) > 1:
+            fila.rejilla.addLayout(aviso, 1, 0, 1, 3)
+            if len(a.tutores) > 1:  # en su fila, debajo del aviso: así cabe con la ventana estrecha
                 pp = QCheckBox("Patria potestad exclusiva")
                 pp.setToolTip(
                     "Solo con resolución judicial que prive al otro familiar de la patria potestad "
@@ -357,8 +358,7 @@ class Ficha(QWidget):
                 )
                 pp.setChecked(bool(exclusiva) and t.clave == exclusiva)
                 pp.toggled.connect(lambda v, t=t: self._patria_potestad(t if v else None))
-                aviso.addWidget(pp)
-            fila.rejilla.addLayout(aviso, 1, 0, 1, 3)
+                fila.rejilla.addWidget(pp, 2, 0, 1, 3)
             self.caja_capa.addWidget(fila)
         if not a.tutores:
             self.caja_capa.addWidget(etiqueta("Educamos no tiene datos de la familia.", "muted"))

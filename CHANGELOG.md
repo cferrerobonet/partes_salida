@@ -2,6 +2,12 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [1.7.1] - 2026-11-06
+
+### Corregido
+
+- **«Patria potestad exclusiva» se lee entera con la ventana estrecha.** La casilla va ahora en su propia línea, debajo de «Avisar por correo», en lugar de a su lado; así tampoco se corta el correo del familiar.
+
 ## [1.7.0] - 2026-11-06
 
 ### Añadido

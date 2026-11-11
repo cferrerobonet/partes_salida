@@ -346,3 +346,23 @@ def test_patria_potestad_que_ya_no_coincide_no_avisa_a_nadie(qtbot, ventana, con
     ventana.ficha.mostrar(a)
     assert ventana.ficha.destinatarios() == []
     assert "ya no coincide" in "".join(lbl.text() for lbl in ventana.ficha.findChildren(type(ventana.resumen)))
+
+
+def test_laterales_mas_anchas_sin_quitar_sitio_a_la_ficha(ventana):
+    """Como Programaciones (CarlosFB, 2026-11-11): con pantalla de sobra, las dos laterales crecen hasta 360 y
+    400 px y la ficha conserva 1040; en una pantalla pequeña se quedan en 300 y 340."""
+    assert ventana.anchos_laterales(1366) == (300, 340)
+    assert ventana.anchos_laterales(1700) == (310, 350)
+    assert ventana.anchos_laterales(1800) == (360, 400)
+    assert ventana.anchos_laterales(2560) == (360, 400)
+    ventana.resize(1800, 900)
+    assert (ventana.col_buscar.width(), ventana.col_imprimir.width()) == ventana.anchos_laterales(ventana.width())
+
+
+def test_se_abre_a_pantalla_completa_y_cerrar_la_oculta(qtbot, ventana):
+    ventana.hide()
+    ventana.mostrar_al_frente()
+    assert ventana.isFullScreen()
+    assert ventana.boton_cerrar.property("salir") is True
+    qtbot.mouseClick(ventana.boton_cerrar, Qt.MouseButton.LeftButton)
+    assert not ventana.isVisible(), "se oculta: la app sigue en la barra"

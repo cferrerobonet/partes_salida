@@ -20,7 +20,7 @@ from email.utils import formataddr, make_msgid
 from .ajustes import Ajustes, GestorAjustes
 from .cifrado import leer_secreto
 from .fechas import fecha_corta, fecha_larga
-from .modelo import Alumno, nombre_propio
+from .modelo import TEXTO_COMPANIA, Alumno, nombre_propio
 
 VERDE = "#2c7a3a"
 
@@ -164,8 +164,14 @@ def _pie_automatico(a: Ajustes, alumno: Alumno) -> str:
     return "Mensaje automático: este buzón no recibe respuestas."
 
 
+def _compania(compania: str) -> str:
+    """ESO y Grado Básico: «Sola», «Acompañado»…; "" si no aplica."""
+    texto = TEXTO_COMPANIA.get(compania, "")
+    return texto.removeprefix("SALE ").capitalize()
+
+
 def texto_plano(a: Ajustes, alumno: Alumno, salida: datetime, para_alumno: bool = False,
-                con_parte: bool = False) -> str:
+                con_parte: bool = False, compania: str = "-") -> str:
     saludo, cuerpo = _saludo_y_cuerpo(alumno, salida, para_alumno)
     lineas = [
         saludo,
@@ -175,6 +181,7 @@ def texto_plano(a: Ajustes, alumno: Alumno, salida: datetime, para_alumno: bool 
         *([_nota_parte(para_alumno), ""] if con_parte else []),
         f"Curso: {alumno.curso} ({alumno.etapa})",
         f"Hora de salida: {salida:%H:%M} h",
+        *([f"Sale: {_compania(compania)}"] if _compania(compania) else []),
         "",
         _dudas(para_alumno),
         *[f"  {t}: {' · '.join(p for p in (e, tel) if p)}" for t, e, tel in _contactos(a, alumno)],
@@ -188,7 +195,7 @@ def texto_plano(a: Ajustes, alumno: Alumno, salida: datetime, para_alumno: bool 
 
 
 def texto_html(a: Ajustes, alumno: Alumno, salida: datetime, cid_izq: str | None, cid_der: str | None,
-               para_alumno: bool = False, cid_parte: str | None = None) -> str:
+               para_alumno: bool = False, cid_parte: str | None = None, compania: str = "-") -> str:
     e = html.escape
     hijo = "su hija" if alumno.es_mujer else "su hijo"
     autorizado = "autorizada" if alumno.es_mujer else "autorizado"
@@ -201,6 +208,9 @@ def texto_html(a: Ajustes, alumno: Alumno, salida: datetime, cid_izq: str | None
         cuerpo = (f"Les comunicamos que {hijo} <b>{e(alumno.nombre_completo)}</b> ha sido {autorizado} por "
                   f"Jefatura de Estudios a salir del centro {cuando}.")
     dudas = e(_dudas(para_alumno))
+    sale = _compania(compania)
+    fila_compania = (f'<tr><td style="color:#5a625c;padding:3px 18px 3px 0">Sale</td><td><b>{e(sale)}</b></td></tr>'
+                     if sale else "")
     parte = (
         f'<p style="margin:0 0 8px">{e(_nota_parte(para_alumno))}</p>'
         f'<img src="cid:{cid_parte[1:-1]}" width="100%" alt="Parte de salida" '
@@ -222,7 +232,7 @@ def texto_html(a: Ajustes, alumno: Alumno, salida: datetime, cid_izq: str | None
 <p style="margin:0 0 14px">{cuerpo}</p>
 <table role="presentation" cellpadding="0" cellspacing="0" style="font-size:14px;margin:0 0 14px">
 <tr><td style="color:#5a625c;padding:3px 18px 3px 0">Curso</td><td>{e(alumno.curso)} ({e(alumno.etapa)})</td></tr>
-<tr><td style="color:#5a625c;padding:3px 18px 3px 0">Hora de salida</td><td><b>{salida:%H:%M} h</b></td></tr></table>
+<tr><td style="color:#5a625c;padding:3px 18px 3px 0">Hora de salida</td><td><b>{salida:%H:%M} h</b></td></tr>{fila_compania}</table>
 {parte}<div style="background:#f2f6f1;border-radius:6px;padding:10px 12px;font-size:14px">{dudas}{contactos}</div>
 <p style="margin:14px 0 0">Atentamente,<br>Jefatura de Estudios · {e(a.centro)}</p>
 </td></tr>
@@ -232,7 +242,7 @@ def texto_html(a: Ajustes, alumno: Alumno, salida: datetime, cid_izq: str | None
 
 def construir_mensaje(
     gestor: GestorAjustes, alumno: Alumno, salida: datetime, destinatarios: list[str],
-    parte: ParteAdjunto | None = None, para_alumno: bool = False,
+    parte: ParteAdjunto | None = None, para_alumno: bool = False, compania: str = "-",
 ) -> EmailMessage:
     a = gestor.valores
     msg = EmailMessage()
@@ -247,14 +257,14 @@ def construir_mensaje(
     msg["Message-ID"] = nuevo_id(a.smtp_usuario)
     # Que las respuestas de vacaciones de las familias no lleguen a jefatura (RFC 3834).
     msg["Auto-Submitted"] = "auto-generated"
-    msg.set_content(texto_plano(a, alumno, salida, para_alumno, con_parte=parte is not None))
+    msg.set_content(texto_plano(a, alumno, salida, para_alumno, con_parte=parte is not None, compania=compania))
     logos = [(n, _logo_png(gestor, n)) for n in ("logo_izquierdo", "logo_derecho")]
     if parte:
         logos.append(("parte", parte.png))
     cids = {n: make_msgid(domain="partes-salida") if datos else None for n, datos in logos}
     msg.add_alternative(
         texto_html(a, alumno, salida, cids["logo_izquierdo"], cids["logo_derecho"], para_alumno,
-                   cids.get("parte")),
+                   cids.get("parte"), compania),
         subtype="html",
     )
     parte_html = msg.get_payload()[1]
@@ -268,14 +278,15 @@ def construir_mensaje(
 
 def mensajes_del_parte(
     gestor: GestorAjustes, alumno: Alumno, salida: datetime, familia: list[str], al_alumno: bool,
-    parte: ParteAdjunto | None,
+    parte: ParteAdjunto | None, compania: str = "-",
 ) -> list[EmailMessage]:
     """Un correo a la familia (si hay a quién) y otro, con su texto, al alumno."""
     mensajes = []
     if familia:
-        mensajes.append(construir_mensaje(gestor, alumno, salida, familia, parte))
+        mensajes.append(construir_mensaje(gestor, alumno, salida, familia, parte, compania=compania))
     if al_alumno and alumno.email:
-        mensajes.append(construir_mensaje(gestor, alumno, salida, [alumno.email], parte, para_alumno=True))
+        mensajes.append(construir_mensaje(gestor, alumno, salida, [alumno.email], parte, para_alumno=True,
+                                          compania=compania))
     return mensajes
 
 

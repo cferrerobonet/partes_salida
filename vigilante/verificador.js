@@ -82,22 +82,35 @@ export function fechaDeQr(texto) {
   return { texto, fecha: `${m[3]}/${m[2]}/${m[1]}`, hora: `${m[4]}:${m[5]}` };
 }
 
+/** Compañía que lleva el QR `PS2` (solo ESO y Grado Básico); «-» si no aplica. */
+export const COMPANIA = {
+  SO: { solo: true, texto: "SALE SOLO" },
+  SA: { solo: true, texto: "SALE SOLA" },
+  AO: { solo: false, texto: "ACOMPAÑADO" },
+  AA: { solo: false, texto: "ACOMPAÑADA" },
+};
+
 /**
- * Verifica el texto leído. `claves`: Map id → equipo. Devuelve
- * `{autentico: true, idAlumno, salida, expedido, equipo}` o `{autentico: false, motivo}`.
+ * Verifica el texto leído: `PS2|id|alumno|salida|expedido|compañía|firma` o el antiguo
+ * `PS1|id|alumno|salida|expedido|firma` (se lee durante el curso 2026-2027). `claves`: Map id → equipo.
+ * Devuelve `{autentico: true, idAlumno, salida, expedido, equipo, compania}` o `{autentico: false, motivo}`.
+ * `compania`: "SO", "SA", "AO", "AA" o "-".
  */
 export async function verificar(texto, claves, motor = "auto") {
   const partes = String(texto).trim().split("|");
-  if (partes.length !== 6 || partes[0] !== "PS1") return { autentico: false, motivo: MOTIVOS.NO_ES_PARTE };
+  let compania;
+  if (partes[0] === "PS1" && partes.length === 6) compania = "-";
+  else if (partes[0] === "PS2" && partes.length === 7 && (partes[5] === "-" || Object.prototype.hasOwnProperty.call(COMPANIA, partes[5]))) compania = partes[5];
+  else return { autentico: false, motivo: MOTIVOS.NO_ES_PARTE };
   const equipo = claves.get(partes[1]);
   if (!equipo) return { autentico: false, motivo: MOTIVOS.DESCONOCIDO };
-  const firma = deB64url(partes[5]);
-  const mensaje = new TextEncoder().encode(partes.slice(0, 5).join("|"));
+  const firma = deB64url(partes[partes.length - 1]);
+  const mensaje = new TextEncoder().encode(partes.slice(0, -1).join("|"));
   const valida = firma !== null && firma.length === 64 && (await firmaValida(equipo.publica, mensaje, firma, motor));
   const salida = fechaDeQr(partes[3]);
   const expedido = fechaDeQr(partes[4]);
   if (!valida || !salida || !expedido) return { autentico: false, motivo: MOTIVOS.FIRMA };
-  return { autentico: true, idAlumno: partes[2], salida, expedido, equipo: equipo.nombre };
+  return { autentico: true, idAlumno: partes[2], salida, expedido, equipo: equipo.nombre, compania };
 }
 
 const RELOJ = new Intl.DateTimeFormat("es-ES", {

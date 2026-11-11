@@ -68,11 +68,12 @@ Las tres familias (OFL) van dentro de la app: `src/partes_salida/recursos/fuente
 
 ## Layout
 
-- Ventana 1100 × 700 (mínimo 980 × 620). Barra superior: título, nombre del equipo, «Datos cifrados» y recuento, botón Ajustes.
+- Pantalla completa al mostrarse (como Programaciones; mínimo 980 × 620). Barra superior: título, nombre del equipo, «Datos cifrados» y recuento, botón Ajustes y «Cerrar» en rojo (`salir`), que oculta la ventana.
+- Columnas laterales de 300 y 340 px; con pantalla de sobra crecen a partes iguales hasta 360 y 400 sin dejar la ficha por debajo de 1040.
 - Columna izquierda: buscador con lupa · botones de etapa (se parten en filas) · curso + Limpiar · recuento · lista (filas de 58 px con miniatura 36×46).
 - Centro: foto 104×132 · nombre en dos líneas · etiquetas etapa y curso · NIA y edad · caja «Contactos» (familiar, teléfono, Copiar y casilla de aviso, y, con dos familiares, debajo del aviso, la casilla «Patria potestad exclusiva»: el otro sale en gris y con su aviso bloqueado; móvil del alumno y teléfono de emergencia).
-- Derecha: «FECHA Y HORA DE SALIDA» · fecha con calendario desplegable + «Hoy» · hora + «Ahora» · aviso de hora pasada o de parte para otro día (en ámbar) · vista previa con sombra (máx. 320 px de alto) · hueco flexible · «ENTREGA DEL PARTE» con dos chips «En papel» / «Por correo al alumno» y el correo del alumno debajo · «Imprimir parte ⌘P» o «Enviar parte ⌘P» (verde, 18 px) · resumen.
-- Centro, bajo «Contactos»: caja de seguimiento con dos filas «Historial» (n salidas · última) y «Parte recurrente» (días y horas · entrega), cada una con su botón pequeño.
+- Derecha: «FECHA Y HORA DE SALIDA» · fecha con calendario desplegable + «Hoy» · hora + «Ahora» · aviso de hora pasada o de parte para otro día (en ámbar) · ESO y Grado Básico: «SALE DEL CENTRO» con dos chips «Acompañado» / «Solo» (en femenino si es alumna) y, si «Solo» no tiene autorización, el aviso en ámbar con «Autorizar» · vista previa con sombra (máx. 320 px de alto) · hueco flexible · «ENTREGA DEL PARTE» con dos chips «En papel» / «Por correo al alumno» y el correo del alumno debajo · «Imprimir parte ⌘P» o «Enviar parte ⌘P» (verde, 18 px) · resumen.
+- Centro, bajo «Contactos»: caja de seguimiento con las filas «Historial» (n salidas · última), «Parte recurrente» (días y horas · entrega) y, en ESO y Grado Básico, «Salir solo» («Autorizado por la familia hasta el 31/08/aaaa» o «Sin autorización de la familia»), cada una con su botón pequeño.
 - Barra superior: «Partes recurrentes · N hoy» a la izquierda del aviso de actualización; verde (`primario`) mientras quede alguno por emitir hoy, blanco si no; oculto si no hay recurrentes.
 - Ajustes: 980 × 640, menú lateral de 220 px, filas «etiqueta (190 px) | control» con ayuda en gris debajo.
 
@@ -116,6 +117,7 @@ Botón dorado (`gold`, texto blanco) «↑ Actualizar a X.Y.Z» en la barra supe
 | Fecha y hora de salida | caja (82, 38.5) 59×22.5 | rótulo «FECHA Y HORA DE SALIDA»; fecha (dd/mm/aaaa) a la izquierda y hora a la derecha, las dos en 8 mm ExtraBold, con una raya fina en medio |
 | Texto | (7, 64.5) 134 de ancho | 3,15 mm, dos líneas, hora en negrita, género según SEXO |
 | QR | (7, 77) 20×20 | Ed25519, corrección M |
+| Sale solo / sola | (30, 77.6) 30×5; vertical (30, 117.4) 30×4.4 | solo ESO y Grado Básico si sale solo: rectángulo de tinta, radio 1, texto blanco Barlow Condensed ExtraBold; acompañado no imprime nada |
 | Lugar y fecha · expedición | (30, 83.5) | 3,1 mm negrita · 2,7 mm |
 | Sello / firma | (117, 70) 25×25 · (110, 78) 27×15 | sin fondo blanco, superpuestos |
 | Cargo | alineado a la derecha, y 95.8 | 2,4 mm cursiva |
@@ -136,6 +138,7 @@ Mismo patrón que tenía la app Android, con los tokens y las letras de la app d
 
 - Cabecera: «Vigilante EPLA» (Barlow Condensed Bold 28 px) y, a la derecha, «N equipos» o «sin equipos» en `muted`. Sin equipos, debajo, el aviso en `warn` de cómo dar de alta el primero.
 - **Tarjeta del resultado** (ocupa el resto, radio 16, texto blanco siempre): símbolo de 72 px, título condensado de 34 px y líneas de 18 px. Verde `accent` ✓ «PUEDE SALIR»; ámbar `warn` ⏱ «TODAVÍA NO»; rojo `danger` ✕ «OTRO DÍA» y «NO VALE»; gris `muted` ⌁ «Listo» al abrir. El móvil vibra corto si vale y doble si no.
+- ESO y Grado Básico, bajo «PUEDE SALIR» o «TODAVÍA NO»: banda **«SALE SOLO / SALE SOLA»** blanca y maciza con texto morado `#5b2a9e` (color que no usa ningún veredicto), Barlow Condensed 46 px e icono de una persona, y dos toques cortos de vibración; **«ACOMPAÑADO / ACOMPAÑADA»** con borde blanco de 2 px, 26 px e icono de dos personas.
 - «Escanear parte» (verde, 72 px de alto, 22 px negrita) y debajo «Equipos de confianza» (secundario, borde `line`).
 - Equipos de confianza: diálogo con la ayuda, la lista (nombre en negrita, «Clave XXXXXXXX» en JetBrains Mono, «Quitar» en rojo), la versión y «Cerrar» · «Dar de alta».
 - Escáner a pantalla completa: vídeo de la cámara, marco blanco cuadrado con el resto oscurecido, instrucción arriba («Apunta al QR del parte» o «… de Ajustes → QR y verificación») y abajo «Linterna» (si el móvil la tiene) y «Cancelar».

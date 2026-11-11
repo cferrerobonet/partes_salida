@@ -2,7 +2,7 @@
 // Sin red (salvo para instalarse y actualizarse) y sin datos del alumnado: solo guarda en el móvil
 // las claves públicas y los nombres de los equipos de jefatura dados de alta.
 
-import { ahoraEnMadrid, claveDeQr, verificar, veredicto, VEREDICTO } from "./verificador.js";
+import { ahoraEnMadrid, claveDeQr, COMPANIA, verificar, veredicto, VEREDICTO } from "./verificador.js";
 
 const VERSION = "__VERSION__"; // la pone scripts/web_vigilante.py al publicar
 const CLAVE_EQUIPOS = "vigilante.equipos";
@@ -64,12 +64,12 @@ function aviso(r, ahora = ahoraEnMadrid()) {
       return { simbolo: "✕", titulo: "OTRO DÍA", detalle: [`El parte es del ${r.salida.fecha}: no vale hoy.`, nia(r)], color: "peligro" };
     case VEREDICTO.TODAVIA_NO:
       return {
-        simbolo: "⏱", titulo: "TODAVÍA NO",
+        simbolo: "⏱", titulo: "TODAVÍA NO", compania: COMPANIA[r.compania],
         detalle: [`Auténtico, pero sale a las ${r.salida.hora}.`, `${nia(r)} · ${r.equipo}`], color: "aviso",
       };
     default:
       return {
-        simbolo: "✓", titulo: "PUEDE SALIR",
+        simbolo: "✓", titulo: "PUEDE SALIR", compania: COMPANIA[r.compania],
         detalle: [`Salida desde las ${r.salida.hora}.`, `${nia(r)} · comprueba la foto del parte.`,
           `Firmado por ${r.equipo} a las ${r.expedido.hora}.`],
         color: "verde",
@@ -89,11 +89,17 @@ function mostrar(a) {
     return p;
   }));
   $("tarjeta").dataset.veredicto = a.titulo;
+  // ESO y Grado Básico: si sale solo o acompañado, en una banda bajo el veredicto.
+  const c = a.compania;
+  $("compania").hidden = !c;
+  $("compania").className = c ? `compania compania--${c.solo ? "solo" : "acompanado"}` : "compania";
+  $("compania-texto").textContent = c ? c.texto : "";
 }
 
-function vibrar(bien) {
+/** Bien: un toque; sale solo: dos toques cortos (que no pase desapercibido); mal: dos largos. */
+function vibrar(bien, solo = false) {
   try {
-    navigator.vibrate?.(bien ? 40 : [90, 60, 90]);
+    navigator.vibrate?.(!bien ? [90, 60, 90] : solo ? [40, 70, 40] : 40);
   } catch {
     /* sin vibración */
   }
@@ -141,7 +147,7 @@ async function pintarEquipos() {
 async function procesarParte(texto, ahora) {
   const a = aviso(await verificar(texto, await equipos()), ahora);
   mostrar(a);
-  vibrar(a.color === "verde");
+  vibrar(a.color === "verde", Boolean(a.compania?.solo));
   return a;
 }
 

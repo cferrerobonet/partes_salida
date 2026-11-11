@@ -18,7 +18,7 @@ La lista exacta de columnas leídas está en `src/partes_salida/importar_excel.p
 | --- | --- | --- |
 | Padrón | `alumnado.bin` en la carpeta de datos del usuario | AES-256-GCM |
 | Fotos | `fotos/<HMAC del id>.bin` | AES-256-GCM; el nombre no identifica a nadie |
-| Historial de salidas (con los identificadores de sus correos y las direcciones que rebotan), partes recurrentes y patria potestad exclusiva | `seguimiento.bin` | AES-256-GCM |
+| Historial de salidas (con los identificadores de sus correos y las direcciones que rebotan), partes recurrentes, patria potestad exclusiva y autorización para salir solo | `seguimiento.bin` | AES-256-GCM |
 | Clave de datos, clave de firma, contraseña SMTP | Llavero del sistema (Llavero de macOS, Administrador de credenciales de Windows), servicio `PartesSalida` | La del sistema y la sesión del usuario |
 | Ajustes e imágenes | `ajustes.json`, `imagenes/` | Sin datos personales |
 | Registro | `logs/` | Sin nombres, correos ni teléfonos |

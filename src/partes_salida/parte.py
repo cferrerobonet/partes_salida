@@ -26,7 +26,7 @@ from PyQt6.QtGui import (
 
 from .ajustes import GestorAjustes
 from .fechas import fecha_corta, fecha_larga
-from .modelo import Alumno
+from .modelo import TEXTO_COMPANIA, Alumno, sale_solo
 from .ui.estilo import CUERPO, MONO, TITULAR
 
 TINTA = QColor("#1b1f1c")
@@ -50,6 +50,7 @@ class DatosParte:
     salida: datetime
     expedido: datetime
     qr: str
+    compania: str = "-"  # `modelo.codigo_compania`: SO, SA, AO, AA o «-»
 
 
 def a_grises(img: QImage | None) -> QImage | None:
@@ -234,6 +235,7 @@ class Maqueta:
     sello: tuple
     firma: tuple
     cargo: tuple
+    solo: tuple  # etiqueta en negativo «SALE SOLO» (ESO y Grado Básico)
 
 
 #: Foto a la izquierda; etapa y curso en una fila y, bajo ella, el nombre y el recuadro con la fecha
@@ -250,6 +252,7 @@ HORIZONTAL = Maqueta(
     texto=(7, 64.5, 134, 12), texto_mm=3.15,
     qr=(7, 77, 20, 20), lugar=(30, 83.5, 78, 5), lugar_ajusta=False, expedido=(30, 88.4, 78, 4),
     sello=(117, 70, 25, 25), firma=(110, 78, 27, 15), cargo=(90, 95.8, 51, 3.5),
+    solo=(30, 77.6, 30, 5),
 )
 
 #: Misma información en 105 × 148 mm: la fecha y la hora van en una franja a todo el ancho.
@@ -265,6 +268,7 @@ VERTICAL = Maqueta(
     texto=(7, 103.5, 91, 14), texto_mm=2.8,
     qr=(7, 121, 20, 20), lugar=(30, 122, 40, 8), lugar_ajusta=True, expedido=(30, 130.5, 40, 4),
     sello=(74, 117, 24, 22), firma=(67, 124, 26, 12), cargo=(40, 139.5, 58, 3.5),
+    solo=(30, 117.4, 30, 4.4),
 )
 
 ANCHO_MM, ALTO_MM = HORIZONTAL.ancho, HORIZONTAL.alto
@@ -371,6 +375,18 @@ def dibujar_parte(
     p.translate(lz.r(x, y, 0, 0).topLeft())
     doc.drawContents(p, QRectF(0, 0, w * escala, h * escala))
     p.restore()
+
+    # Sale solo (ESO y Grado Básico): etiqueta en negativo junto al QR, que se ve en blanco y negro.
+    # Acompañado es lo normal: no se imprime nada.
+    if sale_solo(datos.compania):
+        caja = lz.r(*m.solo)
+        p.save()
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(tinta)
+        p.drawRoundedRect(caja, 1 * escala, 1 * escala)
+        p.restore()
+        lz.texto(caja, TEXTO_COMPANIA[datos.compania],
+                 lz.fuente(TITULAR, m.solo[3] * 0.72, B.ExtraBold, espacio=0.15), QColor("#ffffff"), CENTRO | UNA)
 
     # Pie: QR, fecha, sello y firma
     _qr(lz, datos.qr, lz.r(*m.qr), tinta)

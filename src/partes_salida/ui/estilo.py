@@ -115,6 +115,8 @@ QPushButton:pressed {{ background: {t['surface2']}; }}
 QPushButton:disabled {{ color: {t['muted']}; }}
 QPushButton[pequeno="true"] {{ font-size: 13px; padding: 4px 10px; border-radius: 7px; }}
 QPushButton[peligro="true"] {{ color: {t['danger']}; }}
+QPushButton[salir="true"] {{ background: {t['danger']}; border-color: {t['danger']}; color: {t['surface']}; }}
+QPushButton[salir="true"]:hover {{ border-color: {t['fg']}; }}
 QPushButton[primario="true"] {{ background: {t['accent']}; border-color: {t['accent']}; color: {t['accent_ink']}; }}
 QPushButton[primario="true"]:hover {{ background: {t['accent']}; border-color: {t['fg']}; }}
 QPushButton[primario="true"]:disabled {{ background: {t['line']}; border-color: {t['line']}; color: {t['muted']}; }}

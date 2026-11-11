@@ -207,3 +207,25 @@ def etapas_presentes(alumnos) -> list[str]:
     """Códigos de etapa que hay en el padrón, en el orden de los botones."""
     hay = {a.etapa_codigo for a in alumnos}
     return [c for c in ORDEN_ETAPAS if c in hay]
+
+
+#: Etapas en las que el parte dice si el alumno sale solo o acompañado (Jefatura, 2026-11-11).
+ETAPAS_COMPANIA = ("ESO", "CFB")
+#: Lo que lleva el QR (`firma.py`): «S»/«A» (solo o acompañado) y «O»/«A» (alumno o alumna); «-», no aplica.
+TEXTO_COMPANIA = {"SO": "SALE SOLO", "SA": "SALE SOLA", "AO": "ACOMPAÑADO", "AA": "ACOMPAÑADA"}
+SIN_COMPANIA = "-"
+
+
+def aplica_compania(alumno: Alumno) -> bool:
+    return alumno.etapa_codigo in ETAPAS_COMPANIA
+
+
+def codigo_compania(alumno: Alumno, solo: bool | None) -> str:
+    """Código del QR: `SO`, `SA`, `AO`, `AA` o `-` (otra etapa, o sin decidir)."""
+    if solo is None or not aplica_compania(alumno):
+        return SIN_COMPANIA
+    return ("S" if solo else "A") + ("A" if alumno.es_mujer else "O")
+
+
+def sale_solo(codigo: str) -> bool:
+    return codigo in ("SO", "SA")

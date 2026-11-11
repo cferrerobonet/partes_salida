@@ -24,9 +24,10 @@ Cada jefatura instala la app en su equipo y la configura a su manera (logos, sel
 2. La lista se reduce; el primero queda elegido y su ficha aparece en el centro.
 3. Comprobar foto, etapa y curso; ver teléfonos y correos de la familia.
 4. Fijar la fecha y la hora de salida. Fecha: por defecto hoy; se escribe o se elige en el calendario de la flecha (desde hoy en adelante, para dejar partes preparados); botón «Hoy». Hora: por defecto la actual redondeada a 5 min. «Ahora» pone hoy y la hora actual.
-5. Marcar o desmarcar «Avisar por correo» en cada familiar.
-6. Elegir la **entrega del parte**: «En papel» (de serie) o «Por correo al alumno» (solo si Educamos tiene su correo).
-7. «Imprimir parte» o «Enviar parte» (⌘P / Ctrl+P, el botón dice cuál): sale el DIN-A6 o el correo al alumno y, si hay casillas marcadas, el aviso a la familia. El parte queda en el historial del alumno.
+5. ESO y Grado Básico: **«Sale del centro»**, con dos chips «Acompañado» / «Solo» (en femenino si es alumna). Empieza en «Solo» si la familia lo ha autorizado (fila «Salir solo» de la ficha) y en «Acompañado» si no; un clic lo cambia para ese parte. Elegir «Solo» sin autorización avisa «No consta la autorización de la familia» con un botón «Autorizar», y deja emitir.
+6. Marcar o desmarcar «Avisar por correo» en cada familiar.
+7. Elegir la **entrega del parte**: «En papel» (de serie) o «Por correo al alumno» (solo si Educamos tiene su correo).
+8. «Imprimir parte» o «Enviar parte» (⌘P / Ctrl+P, el botón dice cuál): sale el DIN-A6 o el correo al alumno y, si hay casillas marcadas, el aviso a la familia. El parte queda en el historial del alumno.
 
 **Criterios de aceptación**
 
@@ -71,7 +72,7 @@ Instalar, importar el Excel y los ZIP y, opcionalmente, la copia de ajustes expo
 
 ### CU-5 Verificar un parte (app del vigilante)
 
-El vigilante pulsa «Escanear parte» y apunta al QR. La tarjeta sale en grande: **PUEDE SALIR** (verde: firma buena, de hoy y ya es la hora, con NIA, hora y equipo que lo firmó), **TODAVÍA NO** (ámbar: auténtico pero antes de su hora), **OTRO DÍA** o **NO VALE** (rojo: falso, alterado o de un equipo que no está dado de alta). Los equipos de confianza se dan de alta escaneando el QR de Ajustes → QR y verificación y se pueden quitar. La pantalla no se apaga mientras la app está abierta. Sin red y sin datos del alumnado. Es una web instalable (Android con Chrome, iPhone con Safari) en <https://cferrerobonet.github.io/partes_salida/>: «Escanear parte» abre la cámara a pantalla completa (con linterna, zoom 2× y enfoque continuo si el móvil los tiene, para leer de cerca el QR de 20 mm del parte) y se cierra sola al leer el QR; «Cancelar» vuelve sin leer. La hora que cuenta es la de Madrid. Contrato en [../vigilante/ESPECIFICACION_QR.md](../vigilante/ESPECIFICACION_QR.md).
+El vigilante pulsa «Escanear parte» y apunta al QR. La tarjeta sale en grande: **PUEDE SALIR** (verde: firma buena, de hoy y ya es la hora, con NIA, hora y equipo que lo firmó), **TODAVÍA NO** (ámbar: auténtico pero antes de su hora), **OTRO DÍA** o **NO VALE** (rojo: falso, alterado o de un equipo que no está dado de alta). En ESO y Grado Básico, bajo el veredicto, una banda: **SALE SOLO / SALE SOLA** en blanco macizo con letras moradas (y dos toques cortos de vibración) o **ACOMPAÑADO / ACOMPAÑADA** con un borde blanco. Los equipos de confianza se dan de alta escaneando el QR de Ajustes → QR y verificación y se pueden quitar. La pantalla no se apaga mientras la app está abierta. Sin red y sin datos del alumnado. Es una web instalable (Android con Chrome, iPhone con Safari) en <https://cferrerobonet.github.io/partes_salida/>: «Escanear parte» abre la cámara a pantalla completa (con linterna, zoom 2× y enfoque continuo si el móvil los tiene, para leer de cerca el QR de 20 mm del parte) y se cierra sola al leer el QR; «Cancelar» vuelve sin leer. La hora que cuenta es la de Madrid. Contrato en [../vigilante/ESPECIFICACION_QR.md](../vigilante/ESPECIFICACION_QR.md).
 
 ### CU-6 Consultar, imprimir o vaciar el historial de un alumno
 
@@ -103,11 +104,13 @@ En la ficha, «Historial» resume cuántas salidas tiene y la última; «Ver his
 | RN-9 | El correo del alumno sale de EMAIL ALUMNO o, si está vacía, de EMAILGOOGLE ALUMNO. Sin correo, solo papel |
 | RN-10 | Entrega en papel por defecto; por correo es una elección de jefatura en cada parte (o en la ficha del recurrente) |
 | RN-11 | El historial y el recurrente de un alumno existen mientras esté en el Excel importado |
+| RN-12 | ESO y Grado Básico: cada parte dice si sale solo o acompañado. Va firmado en el QR (`PS2`), el parte impreso lleva «SALE SOLO» o «SALE SOLA» en negativo junto al QR (acompañado no imprime nada), el correo lo dice en la fila «Sale» y el historial anota «sale solo». Género según SEXO (ADR-021) |
+| RN-13 | La autorización de la familia para salir solo se marca en la ficha («Salir solo» → «Autorizar») y vale hasta el 31 de agosto siguiente. Los partes recurrentes la siguen; es de cada equipo, como la patria potestad exclusiva |
 
 ## 5. Requisitos no funcionales
 
 - **Siempre a mano**: cerrar la ventana la oculta; la app sigue en la barra de menús o la bandeja. Una sola instancia: abrirla otra vez trae la ventana al frente.
-- **Ventana compacta** (1100 × 700, mínimo 980 × 620), modo claro y oscuro según el sistema.
+- **Pantalla completa** al abrirse o volver desde la barra, como Programaciones; «Cerrar» (rojo, en la barra superior) o ⌘W / Ctrl+W la ocultan y la app sigue en la barra. Fuera de pantalla completa, mínimo 980 × 620. Modo claro y oscuro según el sistema (ADR-022).
 - **Privacidad**: ver [SEGURIDAD_Y_DATOS.md](SEGURIDAD_Y_DATOS.md).
 - **Presentación**: al abrir, una tarjeta corporativa (escudo, título, versión, autoría) muestra el progreso real de la carga; dura al menos 1,4 s y se cierra con un fundido. No sale al arrancar oculta con la sesión.
 - **Actualización**: al arrancar (y cada 4 horas) consulta GitHub. El instalador descargado solo se abre si su suma sha256 coincide con la que publica GitHub; si no coincide o no se puede comprobar, se avisa y se ofrece la página de descargas. Si hay versión nueva: diálogo por encima de la app con las novedades del CHANGELOG y «Actualizar ahora» destacado; si se pospone, botón dorado «Actualizar a X.Y.Z» fijo en la barra superior. También en Ajustes → General → «Buscar actualizaciones».

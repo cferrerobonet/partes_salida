@@ -26,13 +26,17 @@ def main() -> None:
     f = Firmante(Ed25519PrivateKey.from_private_bytes(SEMILLA_DE_PRUEBA))
     salida, expedido = datetime(2026, 10, 8, 12, 30), datetime(2026, 10, 8, 9, 14)
     bueno = f.contenido_qr("10519873", salida, expedido)
+    sola = f.contenido_qr("10519873", salida, expedido, "SA")
     otro = Firmante(Ed25519PrivateKey.from_private_bytes(bytes(range(1, 33))))
+    datos = {"salida": "2026-10-08T12:30", "expedido": "2026-10-08T09:14"}
+
+    def valido(descripcion: str, qr: str, id_alumno: str = "10519873", compania: str = "-") -> dict:
+        return {"descripcion": descripcion, "qr": qr, "valido": True, "id_alumno": id_alumno, **datos,
+                "compania": compania}
+
     casos = [
-        {"descripcion": "Parte auténtico", "qr": bueno, "valido": True,
-         "id_alumno": "10519873", "salida": "2026-10-08T12:30", "expedido": "2026-10-08T09:14"},
-        {"descripcion": "Alumno sin NIA (id de persona)", "valido": True,
-         "qr": f.contenido_qr("P90012", salida, expedido), "id_alumno": "P90012",
-         "salida": "2026-10-08T12:30", "expedido": "2026-10-08T09:14"},
+        valido("Parte auténtico (etapa sin compañía)", bueno),
+        valido("Alumno sin NIA (id de persona)", f.contenido_qr("P90012", salida, expedido), "P90012"),
         {"descripcion": "Hora de salida cambiada a mano", "qr": bueno.replace("202610081230", "202610081430"),
          "valido": False},
         {"descripcion": "NIA cambiado", "qr": bueno.replace("10519873", "10519874"), "valido": False},
@@ -40,9 +44,21 @@ def main() -> None:
         {"descripcion": "Firmado por un equipo que no está dado de alta",
          "qr": otro.contenido_qr("10519873", salida, expedido), "valido": False},
         {"descripcion": "Texto que no es un parte", "qr": "https://epla.es", "valido": False},
+        *(valido(f"ESO o Grado Básico: {texto}", f.contenido_qr("10519873", salida, expedido, c), compania=c)
+          for c, texto in (("SO", "sale solo"), ("SA", "sale sola"), ("AO", "acompañado"), ("AA", "acompañada"))),
+        {"descripcion": "«Sale sola» cambiado a mano por «acompañada»", "qr": sola.replace("|SA|", "|AA|"),
+         "valido": False},
+        {"descripcion": "Compañía que no existe", "qr": sola.replace("|SA|", "|XX|"), "valido": False},
+        {"descripcion": "Prefijo PS2 sin el campo de compañía",
+         "qr": f.firmar(["PS2", f.id_clave, "10519873", "202610081230", "202610080914"]), "valido": False},
+        valido("Parte antiguo PS1 (se lee durante el curso 2026-2027)",
+               f.firmar(["PS1", f.id_clave, "10519873", "202610081230", "202610080914"])),
+        {"descripcion": "PS1 con un campo de más", "valido": False,
+         "qr": f.firmar(["PS1", f.id_clave, "10519873", "202610081230", "202610080914", "SA"])},
     ]
     vectores = {
-        "formato": "PS1|<id clave>|<id alumno>|<salida AAAAMMDDhhmm>|<expedido AAAAMMDDhhmm>|<firma Ed25519 base64url>",
+        "formato": "PS2|<id clave>|<id alumno>|<salida AAAAMMDDhhmm>|<expedido AAAAMMDDhhmm>|<compañía SO SA AO AA ->|<firma Ed25519 base64url>",
+        "formato_anterior": "PS1|<id clave>|<id alumno>|<salida>|<expedido>|<firma> (se lee durante el curso 2026-2027)",
         "aviso": "Clave de PRUEBA con semilla pública: no sirve para firmar partes reales.",
         "id_clave": f.id_clave,
         "clave_publica": b64url(f.publica),

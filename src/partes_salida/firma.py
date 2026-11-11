@@ -2,8 +2,10 @@
 
 Formato (texto, separado por barras; especificación en `vigilante/ESPECIFICACION_QR.md`):
 
-    PS1|<id clave>|<id alumno>|<salida AAAAMMDDhhmm>|<expedido AAAAMMDDhhmm>|<firma>
+    PS2|<id clave>|<id alumno>|<salida AAAAMMDDhhmm>|<expedido AAAAMMDDhhmm>|<compañía>|<firma>
 
+`compañía`: `SO`/`SA` sale solo o sola, `AO`/`AA` acompañado o acompañada, `-` no aplica
+(solo ESO y Grado Básico la llevan). Se sigue leyendo `PS1` (sin compañía) durante el curso 2026-2027.
 La firma es Ed25519 sobre todo lo anterior a la última barra, en base64url sin
 relleno. Cada equipo tiene su propia clave (en el llavero); la app del vigilante
 guarda la pública de cada jefatura, que se le pasa escaneando el QR de Ajustes:
@@ -24,7 +26,9 @@ from cryptography.hazmat.primitives.serialization import Encoding, NoEncryption,
 
 from .cifrado import guardar_secreto, leer_secreto
 
-PREFIJO = "PS1"
+PREFIJO = "PS2"
+PREFIJO_ANTERIOR = "PS1"
+COMPANIAS = ("-", "SO", "SA", "AO", "AA")
 PREFIJO_CLAVE = "PSK1"
 # La app del vigilante: web instalable que verifica este QR en el móvil de la puerta (`vigilante/`).
 URL_VIGILANTE = "https://cferrerobonet.github.io/partes_salida/"
@@ -59,8 +63,15 @@ class Firmante:
         guardar_secreto(nombre, base64.b64encode(crudo).decode("ascii"))
         return cls(privada)
 
-    def contenido_qr(self, id_alumno: str, salida: datetime, expedido: datetime) -> str:
-        base = f"{PREFIJO}|{self.id_clave}|{id_alumno}|{salida:{_FORMATO}}|{expedido:{_FORMATO}}"
+    def contenido_qr(self, id_alumno: str, salida: datetime, expedido: datetime, compania: str = "-") -> str:
+        if compania not in COMPANIAS:
+            raise ValueError(f"Compañía desconocida: {compania!r}")
+        return self.firmar([PREFIJO, self.id_clave, id_alumno, f"{salida:{_FORMATO}}", f"{expedido:{_FORMATO}}",
+                            compania])
+
+    def firmar(self, campos: list[str]) -> str:
+        """Los campos unidos por `|` y, detrás, su firma (también sirve para los vectores de `PS1`)."""
+        base = "|".join(campos)
         return f"{base}|{b64url(self._privada.sign(base.encode('utf-8')))}"
 
     def qr_de_clave(self, nombre_equipo: str) -> str:
@@ -76,22 +87,27 @@ class Verificacion:
     id_alumno: str = ""
     salida: datetime | None = None
     expedido: datetime | None = None
+    compania: str = "-"
 
 
 def verificar(texto: str, claves: dict[str, bytes]) -> Verificacion:
     """Comprueba un QR de parte con las claves públicas conocidas (`id → clave`)."""
     partes = (texto or "").strip().split("|")
-    if len(partes) != 6 or partes[0] != PREFIJO:
+    if (partes[0], len(partes)) == (PREFIJO_ANTERIOR, 6):
+        compania = "-"
+    elif (partes[0], len(partes)) == (PREFIJO, 7) and partes[5] in COMPANIAS:
+        compania = partes[5]
+    else:
         return Verificacion(False, "No es un parte de salida")
-    _, kid, id_alumno, salida, expedido, firma = partes
+    kid, id_alumno, salida, expedido, firma = partes[1], partes[2], partes[3], partes[4], partes[-1]
     publica = claves.get(kid)
     if publica is None:
         return Verificacion(False, "Firmado por un equipo desconocido", kid, id_alumno)
     try:
         Ed25519PublicKey.from_public_bytes(publica).verify(
-            de_b64url(firma), "|".join(partes[:5]).encode("utf-8")
+            de_b64url(firma), "|".join(partes[:-1]).encode("utf-8")
         )
         hs, he = datetime.strptime(salida, _FORMATO), datetime.strptime(expedido, _FORMATO)
     except (InvalidSignature, ValueError):
         return Verificacion(False, "Firma no válida: el parte está alterado o es falso", kid, id_alumno)
-    return Verificacion(True, "Parte auténtico", kid, id_alumno, hs, he)
+    return Verificacion(True, "Parte auténtico", kid, id_alumno, hs, he, compania)

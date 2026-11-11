@@ -111,6 +111,11 @@ class Contexto(QObject):
         aplicar_patria_potestad(a, clave)
         self.seguimiento_cambiado.emit()
 
+    def poner_autorizacion(self, a: Alumno, autorizado: bool) -> None:
+        """Autorización de la familia para salir solo (ESO y Grado Básico), hasta el 31 de agosto."""
+        self.seguimiento.poner_autorizacion(a.id, autorizado)
+        self.seguimiento_cambiado.emit()
+
     def patria_potestad_coincide(self, a: Alumno) -> bool:
         clave = self.seguimiento.patria_potestad.get(a.id)
         return not clave or any(t.clave == clave for t in a.tutores)

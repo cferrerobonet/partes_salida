@@ -1,4 +1,5 @@
-"""Historial, partes recurrentes y patria potestad exclusiva de cada alumno, cifrados en el equipo.
+"""Historial, partes recurrentes, patria potestad exclusiva y autorización para salir solo de cada
+alumno, cifrados en el equipo.
 
 Vive en `seguimiento.bin` (AES-GCM, como el padrón). Todo cuelga de un alumno del
 padrón y desaparece con él: al reimportar el Excel se borra lo de quien ya no
@@ -14,7 +15,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, time
 
 from .fechas import fecha_larga
-from .modelo import Alumno
+from .modelo import TEXTO_COMPANIA, Alumno, sale_solo
 
 DIAS = ("Lunes", "Martes", "Miércoles", "Jueves", "Viernes")
 DIAS_CORTOS = ("L", "M", "X", "J", "V")
@@ -41,10 +42,11 @@ class Salida:
     # Message-ID de los correos que salieron: los rebotes y las respuestas los citan (`vuelta`).
     mensajes: list[str] = field(default_factory=list)
     rebotes: list[str] = field(default_factory=list)  # direcciones que han devuelto el correo
+    compania: str = "-"  # ESO y Grado Básico: SO, SA, AO, AA (`modelo.codigo_compania`); «-», no aplica
 
     @classmethod
     def nueva(cls, salida: datetime, entrega: str, avisados: list[str], recurrente: bool = False,
-              equipo: str = "", expedido: datetime | None = None) -> Salida:
+              equipo: str = "", expedido: datetime | None = None, compania: str = "-") -> Salida:
         return cls(
             expedido=_minuto(expedido or datetime.now()),
             salida=_minuto(salida),
@@ -53,6 +55,7 @@ class Salida:
             avisados=list(avisados),
             correo="enviando" if avisados else "",
             equipo=equipo,
+            compania=compania,
         )
 
     @property
@@ -66,6 +69,8 @@ class Salida:
     @property
     def como(self) -> str:
         texto = "Impreso" if self.entrega == PAPEL else "Por correo al alumno"
+        if sale_solo(self.compania):
+            texto += " · " + TEXTO_COMPANIA[self.compania].lower()
         return texto + (" · recurrente" if self.recurrente else "")
 
     @property
@@ -142,6 +147,11 @@ class Seguimiento:
         }
         # Alumno → `Tutor.clave` del único familiar con patria potestad (resolución judicial).
         self.patria_potestad: dict[str, str] = dict(datos.get("patria_potestad", {}))
+        # Alumno (ESO, Grado Básico) → día en que se marcó la autorización de la familia para salir
+        # solo. Vale hasta el 31 de agosto siguiente: cada curso se recoge de nuevo.
+        self.autorizados: dict[str, str] = {
+            k: v for k, v in datos.get("autorizados", {}).items() if autorizacion_vigente(v)
+        }
 
     def _guardar(self) -> None:
         self._almacen.guardar_seguimiento({
@@ -149,6 +159,7 @@ class Seguimiento:
             "historial": {k: [asdict(s) for s in v] for k, v in self.historial.items() if v},
             "recurrentes": {k: r.a_dict() for k, r in self.recurrentes.items()},
             "patria_potestad": dict(self.patria_potestad),
+            "autorizados": dict(self.autorizados),
         })
 
     # Historial
@@ -231,15 +242,28 @@ class Seguimiento:
             self.patria_potestad.pop(id_alumno, None)
         self._guardar()
 
+    # Autorización de la familia para salir solo (ESO y Grado Básico)
+    def autorizado(self, id_alumno: str, hoy: date | None = None) -> bool:
+        alta = self.autorizados.get(id_alumno)
+        return bool(alta) and autorizacion_vigente(alta, hoy)
+
+    def poner_autorizacion(self, id_alumno: str, autorizado: bool, hoy: date | None = None) -> None:
+        if autorizado:
+            self.autorizados[id_alumno] = (hoy or date.today()).isoformat()
+        else:
+            self.autorizados.pop(id_alumno, None)
+        self._guardar()
+
     # Vida del alumno
     def conservar_solo(self, ids_vigentes) -> int:
         """Tras un Excel nuevo: fuera lo de quien ya no está. Devuelve de cuántos alumnos."""
         vigentes = set(ids_vigentes)
-        fuera = (set(self.historial) | set(self.recurrentes) | set(self.patria_potestad)) - vigentes
+        fuera = (set(self.historial) | set(self.recurrentes) | set(self.patria_potestad) | set(self.autorizados)) - vigentes
         for i in fuera:
             self.historial.pop(i, None)
             self.recurrentes.pop(i, None)
             self.patria_potestad.pop(i, None)
+            self.autorizados.pop(i, None)
         if fuera:
             self._guardar()
         return len(fuera)
@@ -248,6 +272,20 @@ class Seguimiento:
         self.historial.clear()
         self.recurrentes.clear()
         self.patria_potestad.clear()
+        self.autorizados.clear()
+
+
+def fin_de_curso(dia: date) -> date:
+    """El 31 de agosto que cierra el curso de ese día (el curso empieza el 1 de septiembre)."""
+    return date(dia.year + (1 if dia.month >= 9 else 0), 8, 31)
+
+
+def autorizacion_vigente(alta: str, hoy: date | None = None) -> bool:
+    """Marcada este curso: no ha pasado el 31 de agosto siguiente al día en que se marcó."""
+    try:
+        return (hoy or date.today()) <= fin_de_curso(date.fromisoformat(alta))
+    except (TypeError, ValueError):
+        return False
 
 
 def informe_html(alumno: Alumno, salidas: list[Salida], centro: str, ahora: datetime | None = None) -> str:

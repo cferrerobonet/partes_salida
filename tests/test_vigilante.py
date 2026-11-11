@@ -164,6 +164,24 @@ def test_pantalla_del_vigilante_en_el_movil(page, url):
         assert t == titulo and f"tarjeta--{color}" in clase and texto in detalle, nombre
         page.screenshot(path=str(SALIDAS / f"vigilante-{nombre}.png"))
 
+    # ESO y Grado Básico: banda «SALE SOLA» (maciza) o «ACOMPAÑADO» (discreta); sin banda si no aplica.
+    por_compania = {c["compania"]: c["qr"] for c in VECTORES["casos"] if c["valido"]}
+    for codigo, texto, clase in (("SA", "SALE SOLA", "compania--solo"), ("SO", "SALE SOLO", "compania--solo"),
+                                 ("AO", "ACOMPAÑADO", "compania--acompanado"),
+                                 ("AA", "ACOMPAÑADA", "compania--acompanado")):
+        page.evaluate("([t, a]) => window.vigilante.procesarParte(t, a)", [por_compania[codigo], "202610081300"])
+        assert _tarjeta(page)[0] == "PUEDE SALIR"
+        assert page.locator("#compania").is_visible() and page.locator("#compania-texto").inner_text() == texto
+        assert clase in page.locator("#compania").get_attribute("class")
+        page.screenshot(path=str(SALIDAS / f"vigilante-{texto.lower().replace(' ', '-')}.png"))
+    page.evaluate("([t, a]) => window.vigilante.procesarParte(t, a)", [por_compania["SA"], "202610081200"])
+    assert _tarjeta(page)[0] == "TODAVÍA NO" and page.locator("#compania").is_visible()
+    antiguo = next(c["qr"] for c in VECTORES["casos"] if c["valido"] and c["qr"].startswith("PS1|"))
+    for qr in (AUTENTICO, antiguo, VECTORES["casos"][2]["qr"]):
+        page.evaluate("([t, a]) => window.vigilante.procesarParte(t, a)", [qr, "202610081300"])
+        assert not page.locator("#compania").is_visible()
+    assert _tarjeta(page)[0] == "NO VALE"
+
     desborde = page.evaluate("() => document.documentElement.scrollWidth - window.innerWidth")
     assert desborde <= 0, "la pantalla se sale de lado en el móvil"
 

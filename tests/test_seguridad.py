@@ -59,7 +59,7 @@ def test_qr_firmado_y_verificable():
     f = Firmante.del_llavero()
     salida, exp = datetime(2026, 10, 8, 12, 30), datetime(2026, 10, 8, 9, 14)
     qr = f.contenido_qr("10519873", salida, exp)
-    assert qr.startswith(f"PS1|{f.id_clave}|10519873|202610081230|202610080914|")
+    assert qr.startswith(f"PS2|{f.id_clave}|10519873|202610081230|202610080914|-|")
     v = verificar(qr, {f.id_clave: f.publica})
     assert v.valido and v.salida == salida and v.id_alumno == "10519873"
 
@@ -85,7 +85,10 @@ def test_vectores_para_la_app_del_vigilante_siguen_valiendo():
     vectores = json.loads((RAIZ / "vigilante" / "vectores_qr.json").read_text(encoding="utf-8"))
     claves = {vectores["id_clave"]: de_b64url(vectores["clave_publica"])}
     for caso in vectores["casos"]:
-        assert verificar(caso["qr"], claves).valido is caso["valido"], caso["descripcion"]
+        v = verificar(caso["qr"], claves)
+        assert v.valido is caso["valido"], caso["descripcion"]
+        if caso["valido"]:
+            assert v.compania == caso["compania"] and v.id_alumno == caso["id_alumno"], caso["descripcion"]
 
 
 def test_el_repositorio_no_lleva_datos_del_alumnado():

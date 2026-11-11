@@ -2,6 +2,22 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [2.0.0] - 2026-11-11
+
+### Añadido
+
+- **ESO y Grado Básico: sale solo o acompañado.** En la columna del parte, «Sale del centro» con dos opciones, «Acompañado» y «Solo» (en femenino si es alumna). Lo normal es acompañado; un clic lo cambia para ese parte.
+  - **Autorización de la familia.** En la ficha, la fila «Salir solo» → «Autorizar» la marca una vez y la app se acuerda: sus partes, también los recurrentes, salen con «Solo» sin tocar nada. Vale hasta el 31 de agosto. Si se elige «Solo» sin la autorización marcada, se avisa, con un botón para marcarla, y el parte se puede emitir igual.
+  - **En el parte impreso**, «SALE SOLO» o «SALE SOLA» en negativo junto al QR. Si sale acompañado, no se imprime nada.
+  - **En la app del vigilante**, bajo el veredicto, una banda blanca y maciza con «SALE SOLO» o «SALE SOLA» y dos toques de vibración, o una banda discreta con «ACOMPAÑADO» o «ACOMPAÑADA».
+  - **En el correo**, la fila «Sale: Sola» o «Sale: Acompañado». En el historial se anota «sale solo».
+- **Botón «Cerrar»** en rojo, a la derecha de «Ajustes»: oculta la ventana y la app sigue en la barra, como su X.
+
+### Cambiado
+
+- **La ventana se abre a pantalla completa**, como Programaciones. Las columnas de los lados crecen hasta 360 y 400 px cuando la pantalla tiene sitio de sobra; la ficha del centro no pierde espacio.
+- **Formato del QR `PS2`.** Lleva, firmado, si sale solo o acompañado, así que no se puede cambiar a mano. La app del vigilante sigue leyendo los partes `PS1` durante este curso. **Hay que abrir la app del vigilante con conexión** para que se actualice **antes** de instalar esta versión en los equipos de jefatura: la versión anterior no reconoce los partes nuevos.
+
 ## [1.8.0] - 2026-11-06
 
 ### Añadido

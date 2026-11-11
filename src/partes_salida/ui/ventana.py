@@ -48,9 +48,9 @@ from .. import NOMBRE_APP, __version__
 from ..correo import mensajes_del_parte
 from ..fechas import fecha_larga
 from ..impresion import imprimir_varios, parte_adjunto
-from ..modelo import ETAPA_CORTA, Alumno, Tutor
+from ..modelo import ETAPA_CORTA, Alumno, Tutor, aplica_compania, codigo_compania
 from ..parte import DatosParte, imagen_parte, maqueta
-from ..seguimiento import CORREO, PAPEL, Salida
+from ..seguimiento import CORREO, PAPEL, Salida, fin_de_curso
 from . import estilo
 from .componentes import AvisoFlotante, FlujoLayout, boton, etiqueta, refrescar_estilo, separador_vertical
 from .envios import Envios, Lote
@@ -242,10 +242,12 @@ class Ficha(QWidget):
         rejilla.setContentsMargins(16, 10, 16, 10)
         rejilla.setHorizontalSpacing(10)
         rejilla.setVerticalSpacing(6)
-        for fila, texto in enumerate(("Historial", "Parte recurrente")):
+        self.seg_titulos = []
+        for fila, texto in enumerate(("Historial", "Parte recurrente", "Salir solo")):
             t = QLabel(texto)
             t.setStyleSheet("font-weight:700;")
             rejilla.addWidget(t, fila, 0)
+            self.seg_titulos.append(t)
         self.seg_historial = etiqueta("", "muted", envolver=True)
         self.seg_recurrente = etiqueta("", "muted", envolver=True)
         rejilla.addWidget(self.seg_historial, 0, 1)
@@ -256,6 +258,13 @@ class Ficha(QWidget):
         self.boton_recurrente.clicked.connect(lambda: self._ventana.configurar_recurrente())
         rejilla.addWidget(self.boton_historial, 0, 2)
         rejilla.addWidget(self.boton_recurrente, 1, 2)
+        # ESO y Grado Básico: autorización de la familia para salir solo (vale hasta el 31 de agosto).
+        self.seg_solo = etiqueta("", "muted", envolver=True)
+        self.boton_solo = boton("Autorizar", pequeno=True)
+        self.boton_solo.setToolTip("Con la autorización por escrito de la familia: sus partes saldrán con «Sale solo»")
+        self.boton_solo.clicked.connect(lambda: self._ventana.cambiar_autorizacion())
+        rejilla.addWidget(self.seg_solo, 2, 1)
+        rejilla.addWidget(self.boton_solo, 2, 2)
         rejilla.setColumnStretch(1, 1)
         return caja
 
@@ -275,6 +284,19 @@ class Ficha(QWidget):
             self.seg_recurrente.setText("No")
             self.seg_recurrente.setToolTip("")
             self.boton_recurrente.setText("Configurar…")
+        aplica = aplica_compania(a)
+        for w in (self.seg_titulos[2], self.seg_solo, self.boton_solo):
+            w.setVisible(aplica)
+        if aplica:
+            if seg.autorizado(a.id):
+                alta = date.fromisoformat(seg.autorizados[a.id])
+                self.seg_solo.setText(f"Autorizada por la familia hasta el {fin_de_curso(alta):%d/%m/%Y}"
+                                      if a.es_mujer else
+                                      f"Autorizado por la familia hasta el {fin_de_curso(alta):%d/%m/%Y}")
+                self.boton_solo.setText("Quitar")
+            else:
+                self.seg_solo.setText("Sin autorización de la familia")
+                self.boton_solo.setText("Autorizar")
 
     def vacia(self, sin_datos: bool) -> None:
         self.alumno = None
@@ -482,17 +504,20 @@ class VentanaPrincipal(QMainWindow):
         vertical.addWidget(self._barra())
         cuerpo = QHBoxLayout()
         cuerpo.setSpacing(0)
-        cuerpo.addWidget(self._columna_buscar())
+        self.col_buscar = self._columna_buscar()
+        self.col_imprimir = self._columna_imprimir()
+        cuerpo.addWidget(self.col_buscar)
         cuerpo.addWidget(separador_vertical())
         cuerpo.addWidget(self._columna_ficha(), 1)
         cuerpo.addWidget(separador_vertical())
-        cuerpo.addWidget(self._columna_imprimir())
+        cuerpo.addWidget(self.col_imprimir)
         vertical.addLayout(cuerpo, 1)
         self.aviso = AvisoFlotante(raiz)
 
         QShortcut(QKeySequence(QKeySequence.StandardKey.Print), self, activated=self.imprimir)
         QShortcut(QKeySequence(QKeySequence.StandardKey.Find), self, activated=self.enfocar_buscador)
         QShortcut(QKeySequence("Ctrl+,"), self, activated=lambda: self.abrir_ajustes())
+        QShortcut(QKeySequence(QKeySequence.StandardKey.Close), self, activated=self.close)
         self._reloj = QTimer(self, interval=30_000, timeout=self.vista.actualizar)
         self._reloj.start()
         self.envios = Envios(self.ctx, self)
@@ -548,6 +573,11 @@ class VentanaPrincipal(QMainWindow):
         ajustes.setToolTip("Ajustes (Ctrl+,)")
         ajustes.clicked.connect(lambda: self.abrir_ajustes())
         fila.addWidget(ajustes)
+        # En pantalla completa no hay barra de título: «Cerrar» hace lo que su X (la app sigue en la barra).
+        self.boton_cerrar = boton("Cerrar", pequeno=True, salir=True)
+        self.boton_cerrar.setToolTip("Oculta la ventana: la app sigue abierta en la barra de menús o en la bandeja")
+        self.boton_cerrar.clicked.connect(self.close)
+        fila.addWidget(self.boton_cerrar)
         return barra
 
     def _columna_buscar(self) -> QWidget:
@@ -657,6 +687,7 @@ class VentanaPrincipal(QMainWindow):
         v.addLayout(fila)
         self.aviso_hora = etiqueta("", "pequeno", envolver=True)
         v.addWidget(self.aviso_hora)
+        v.addWidget(self._selector_compania())
         v.addSpacing(4)
         v.addWidget(etiqueta("Vista previa", "etiqueta"))
         self.vista = VistaPrevia(self)
@@ -686,6 +717,74 @@ class VentanaPrincipal(QMainWindow):
         self.resumen.setWordWrap(True)
         v.addWidget(self.resumen)
         return col
+
+    def _selector_compania(self) -> QWidget:
+        """ESO y Grado Básico: sale acompañado (lo normal) o solo. Cada alumno empieza en lo que diga
+        su autorización; un clic lo cambia para ese parte."""
+        self.caja_compania = QWidget()
+        v = QVBoxLayout(self.caja_compania)
+        v.setContentsMargins(0, 4, 0, 0)
+        v.setSpacing(6)
+        v.addWidget(etiqueta("Sale del centro", "etiqueta"))
+        fila = QHBoxLayout()
+        fila.setSpacing(6)
+        self.grupo_compania = QButtonGroup(self)
+        self.compania_acompanado = boton("Acompañado", chip=True)
+        self.compania_solo = boton("Solo", chip=True)
+        for b in (self.compania_acompanado, self.compania_solo):
+            b.setCheckable(True)
+            self.grupo_compania.addButton(b)
+            fila.addWidget(b)
+        fila.addStretch(1)
+        self.compania_acompanado.setChecked(True)
+        self.grupo_compania.buttonClicked.connect(lambda _b: self.compania_cambiada())
+        v.addLayout(fila)
+        aviso = QHBoxLayout()
+        aviso.setSpacing(8)
+        self.aviso_compania = etiqueta("No consta la autorización de la familia.", "aviso", envolver=True)
+        self.boton_autorizar = boton("Autorizar", pequeno=True)
+        self.boton_autorizar.setToolTip("Marca la autorización en su ficha: sus partes saldrán con «Sale solo»")
+        self.boton_autorizar.clicked.connect(self.cambiar_autorizacion)
+        aviso.addWidget(self.aviso_compania, 1)
+        aviso.addWidget(self.boton_autorizar, 0, Qt.AlignmentFlag.AlignTop)
+        v.addLayout(aviso)
+        self.caja_compania.hide()
+        return self.caja_compania
+
+    def solo(self) -> bool | None:
+        """Lo elegido en «Sale del centro»; None si el alumno no es de ESO ni de Grado Básico."""
+        a = self.ficha.alumno
+        if a is None or not aplica_compania(a):
+            return None
+        return self.compania_solo.isChecked()
+
+    def poner_compania_de_serie(self) -> None:
+        """Solo si la familia lo ha autorizado; si no, acompañado."""
+        a = self.ficha.alumno
+        autorizado = bool(a) and self.ctx.seguimiento.autorizado(a.id)
+        (self.compania_solo if autorizado else self.compania_acompanado).setChecked(True)
+        self.compania_cambiada()
+
+    def compania_cambiada(self) -> None:
+        a = self.ficha.alumno
+        aplica = a is not None and aplica_compania(a)
+        self.caja_compania.setVisible(aplica)
+        if aplica:
+            mujer = a.es_mujer
+            self.compania_acompanado.setText("Acompañada" if mujer else "Acompañado")
+            self.compania_solo.setText("Sola" if mujer else "Solo")
+            sin_permiso = self.compania_solo.isChecked() and not self.ctx.seguimiento.autorizado(a.id)
+            self.aviso_compania.setVisible(sin_permiso)
+            self.boton_autorizar.setVisible(sin_permiso)
+        self.avisos_cambiados()
+
+    def cambiar_autorizacion(self) -> None:
+        """Marca o quita la autorización de la familia para salir solo (ficha o aviso del selector)."""
+        a = self.ficha.alumno
+        if a is None or not aplica_compania(a):
+            return
+        self.ctx.poner_autorizacion(a, not self.ctx.seguimiento.autorizado(a.id))
+        self.poner_compania_de_serie()
 
     # Datos y filtros
     def recargar(self) -> None:
@@ -802,9 +901,12 @@ class VentanaPrincipal(QMainWindow):
     def _actual_cambiado(self, actual, _anterior) -> None:
         if actual.isValid():
             a = actual.data(ROL_ALUMNO)
-            if not self.ficha.alumno or self.ficha.alumno.id != a.id:
+            nuevo = not self.ficha.alumno or self.ficha.alumno.id != a.id
+            if nuevo:
                 self.entrega_papel.setChecked(True)  # cada parte se decide de nuevo: papel de serie
             self.ficha.mostrar(a)
+            if nuevo:
+                self.poner_compania_de_serie()
             self.vista.actualizar()
 
     def eventFilter(self, objeto, evento):  # noqa: N802
@@ -834,9 +936,7 @@ class VentanaPrincipal(QMainWindow):
         a = self.ficha.alumno
         if a is None:
             return None
-        ahora = datetime.now().replace(second=0, microsecond=0)
-        salida = self.salida()
-        return DatosParte(a, self.ctx.foto(a.id), salida, ahora, self.ctx.firmante.contenido_qr(a.id, salida, ahora))
+        return self.emision(a, self.salida(), solo=self.solo()).datos
 
     def _hora_cambiada(self) -> None:
         dia = self.fecha.date().toPyDate()
@@ -871,6 +971,7 @@ class VentanaPrincipal(QMainWindow):
 
     def avisos_cambiados(self) -> None:
         a = self.ficha.alumno
+        self.caja_compania.setVisible(a is not None and aplica_compania(a))
         self.boton_imprimir.setEnabled(a is not None)
         self.entrega_correo.setEnabled(bool(a and a.email))
         if not (a and a.email) and self.entrega_correo.isChecked():
@@ -892,6 +993,8 @@ class VentanaPrincipal(QMainWindow):
             texto += f" y el aviso a {familia}." if familia else "."
         else:
             texto = f"Se avisará por correo a: {familia}" if familia else "Sin aviso por correo"
+        if self.solo():
+            texto = ("Sale sola del centro. " if a.es_mujer else "Sale solo del centro. ") + texto
         self.resumen.setText(texto)
         self.vista.actualizar()
 
@@ -901,9 +1004,14 @@ class VentanaPrincipal(QMainWindow):
         self.aviso.mostrar(f"Teléfono copiado: {telefono}")
 
     def emision(self, a: Alumno, salida: datetime, entrega: str = PAPEL, familia: list[Tutor] | None = None,
-                recurrente: bool = False) -> Emision:
+                recurrente: bool = False, solo: bool | None = None) -> Emision:
+        """`solo`: si sale solo (ESO y Grado Básico); sin decir, lo que diga su autorización (recurrentes)."""
         ahora = datetime.now().replace(second=0, microsecond=0)
-        datos = DatosParte(a, self.ctx.foto(a.id), salida, ahora, self.ctx.firmante.contenido_qr(a.id, salida, ahora))
+        if solo is None:
+            solo = self.ctx.seguimiento.autorizado(a.id)
+        compania = codigo_compania(a, solo)
+        datos = DatosParte(a, self.ctx.foto(a.id), salida, ahora,
+                           self.ctx.firmante.contenido_qr(a.id, salida, ahora, compania), compania)
         return Emision(datos, entrega, list(familia or []), recurrente)
 
     def imprimir(self) -> None:
@@ -911,7 +1019,8 @@ class VentanaPrincipal(QMainWindow):
         a = self.ficha.alumno
         if a is None:
             return
-        self.emitir_partes([self.emision(a, self.salida(), self.entrega(), self.ficha.destinatarios())])
+        self.emitir_partes([self.emision(a, self.salida(), self.entrega(), self.ficha.destinatarios(),
+                                         solo=self.solo())])
 
     def emitir_partes(self, emisiones: list[Emision], padre=None) -> bool:
         """Imprime los de papel (uno por hoja, en un solo trabajo), apunta cada parte en el
@@ -953,12 +1062,13 @@ class VentanaPrincipal(QMainWindow):
             if al_alumno:
                 quienes.append("alumna" if a.es_mujer else "alumno")
             registro = self.ctx.seguimiento.registrar(
-                a.id, Salida.nueva(e.datos.salida, e.entrega, quienes, e.recurrente, equipo, e.datos.expedido)
+                a.id, Salida.nueva(e.datos.salida, e.entrega, quienes, e.recurrente, equipo, e.datos.expedido,
+                                   e.datos.compania)
             )
             if quienes:
                 mensajes = mensajes_del_parte(
                     self.ctx.gestor, a, e.datos.salida, [t.email for t in e.familia], al_alumno,
-                    parte_adjunto(e.datos, self.ctx),
+                    parte_adjunto(e.datos, self.ctx), e.datos.compania,
                 )
                 # Los Message-ID, ya: si la app se cierra a mitad de envío, sus rebotes se siguen reconociendo.
                 self.ctx.seguimiento.marcar_correo(a.id, registro.id, registro.correo,
@@ -1039,8 +1149,28 @@ class VentanaPrincipal(QMainWindow):
         dialogo.exec()
         self.ctx.ajustes_cambiados.emit()
 
+    #: Columnas laterales, como en Programaciones: su ancho de siempre y lo más que crecen; la ficha, en el
+    #: centro, conserva al menos CENTRO_MIN.
+    LATERALES = ((300, 360), (340, 400))
+    CENTRO_MIN = 1040
+
+    def anchos_laterales(self, ancho: int) -> tuple[int, int]:
+        """Con espacio de sobra (pantalla completa en una pantalla grande), las dos laterales crecen a partes
+        iguales con lo que pasa de CENTRO_MIN en el centro; en una pantalla pequeña se quedan como siempre."""
+        (izq, izq_max), (der, der_max) = self.LATERALES
+        sobra = max(0, ancho - izq - der - self.CENTRO_MIN)
+        return min(izq_max, izq + sobra // 2), min(der_max, der + sobra // 2)
+
+    def resizeEvent(self, evento):  # noqa: N802
+        super().resizeEvent(evento)
+        izq, der = self.anchos_laterales(self.width())
+        self.col_buscar.setFixedWidth(izq)
+        self.col_imprimir.setFixedWidth(der)
+
     def mostrar_al_frente(self) -> None:
-        self.show()
+        """Pantalla completa, como Programaciones (la del botón verde en macOS; sin barra de tareas en Windows).
+        Se oculta con «Cerrar» (o ⌘W / Ctrl+W) y vuelve desde el icono de la barra."""
+        self.showFullScreen()
         self.setWindowState(self.windowState() & ~Qt.WindowState.WindowMinimized)
         self.raise_()
         self.activateWindow()

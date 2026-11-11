@@ -24,7 +24,7 @@ Cada jefatura instala la app en su equipo y la configura a su manera (logos, sel
 2. La lista se reduce; el primero queda elegido y su ficha aparece en el centro.
 3. Comprobar foto, etapa y curso; ver teléfonos y correos de la familia.
 4. Fijar la fecha y la hora de salida. Fecha: por defecto hoy; se escribe o se elige en el calendario de la flecha (desde hoy en adelante, para dejar partes preparados); botón «Hoy». Hora: por defecto la actual redondeada a 5 min. «Ahora» pone hoy y la hora actual.
-5. ESO y Grado Básico: **«Sale del centro»**, con dos chips «Acompañado» / «Solo» (en femenino si es alumna). Empieza en «Solo» si la familia lo ha autorizado (fila «Salir solo» de la ficha) y en «Acompañado» si no; un clic lo cambia para ese parte. Elegir «Solo» sin autorización avisa «No consta la autorización de la familia» con un botón «Autorizar», y deja emitir.
+5. ESO y Grado Básico: **«Sale del centro»**, con dos chips «Acompañado» / «Solo» (en femenino si es alumna). En ESO empieza en «Solo» si la familia lo ha autorizado (fila «Salir solo» de la ficha) y en «Acompañado» si no; elegir «Solo» sin autorización avisa «No consta la autorización de la familia» con un botón «Autorizar», y deja emitir. En Grado Básico empieza siempre en «Solo», sin autorización que marcar. Un clic lo cambia para ese parte.
 6. Marcar o desmarcar «Avisar por correo» en cada familiar.
 7. Elegir la **entrega del parte**: «En papel» (de serie) o «Por correo al alumno» (solo si Educamos tiene su correo).
 8. «Imprimir parte» o «Enviar parte» (⌘P / Ctrl+P, el botón dice cuál): sale el DIN-A6 o el correo al alumno y, si hay casillas marcadas, el aviso a la familia. El parte queda en el historial del alumno.
@@ -105,7 +105,7 @@ En la ficha, «Historial» resume cuántas salidas tiene y la última; «Ver his
 | RN-10 | Entrega en papel por defecto; por correo es una elección de jefatura en cada parte (o en la ficha del recurrente) |
 | RN-11 | El historial y el recurrente de un alumno existen mientras esté en el Excel importado |
 | RN-12 | ESO y Grado Básico: cada parte dice si sale solo o acompañado. Va firmado en el QR (`PS2`), el parte impreso lleva «SALE SOLO» o «SALE SOLA» en negativo junto al QR (acompañado no imprime nada), el correo lo dice en la fila «Sale» y el historial anota «sale solo». Género según SEXO (ADR-021) |
-| RN-13 | La autorización de la familia para salir solo se marca en la ficha («Salir solo» → «Autorizar») y vale hasta el 31 de agosto siguiente. Los partes recurrentes la siguen; es de cada equipo, como la patria potestad exclusiva |
+| RN-13 | ESO: la autorización de la familia para salir solo se marca en la ficha («Salir solo» → «Autorizar») y vale hasta el 31 de agosto siguiente. Los partes recurrentes la siguen; es de cada equipo, como la patria potestad exclusiva. Grado Básico sale solo de serie (también los recurrentes) y no lleva esa fila |
 
 ## 5. Requisitos no funcionales
 

@@ -211,6 +211,8 @@ def etapas_presentes(alumnos) -> list[str]:
 
 #: Etapas en las que el parte dice si el alumno sale solo o acompañado (Jefatura, 2026-11-11).
 ETAPAS_COMPANIA = ("ESO", "CFB")
+#: De ellas, las que salen solas de serie, sin autorización que marcar (CarlosFB, 2026-11-11: Grado Básico).
+ETAPAS_SOLO_DE_SERIE = ("CFB",)
 #: Lo que lleva el QR (`firma.py`): «S»/«A» (solo o acompañado) y «O»/«A» (alumno o alumna); «-», no aplica.
 TEXTO_COMPANIA = {"SO": "SALE SOLO", "SA": "SALE SOLA", "AO": "ACOMPAÑADO", "AA": "ACOMPAÑADA"}
 SIN_COMPANIA = "-"
@@ -218,6 +220,16 @@ SIN_COMPANIA = "-"
 
 def aplica_compania(alumno: Alumno) -> bool:
     return alumno.etapa_codigo in ETAPAS_COMPANIA
+
+
+def solo_de_serie(alumno: Alumno) -> bool:
+    """Grado Básico: sale solo salvo que se diga lo contrario en el parte."""
+    return alumno.etapa_codigo in ETAPAS_SOLO_DE_SERIE
+
+
+def pide_autorizacion(alumno: Alumno) -> bool:
+    """ESO: sale acompañado salvo autorización de la familia para salir solo."""
+    return aplica_compania(alumno) and not solo_de_serie(alumno)
 
 
 def codigo_compania(alumno: Alumno, solo: bool | None) -> str:

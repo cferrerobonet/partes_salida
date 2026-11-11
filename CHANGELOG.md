@@ -2,6 +2,12 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [2.1.0] - 2026-11-11
+
+### Cambiado
+
+- **Grado Básico sale solo de serie.** En «Sale del centro», el alumnado de Grado Básico empieza en «Solo», también en los partes recurrentes; «Acompañado» queda a un clic para el día que vengan a buscarlo. No hace falta marcar ninguna autorización: la fila «Salir solo» de la ficha y su aviso quedan para la ESO.
+
 ## [2.0.0] - 2026-11-11
 
 ### Añadido

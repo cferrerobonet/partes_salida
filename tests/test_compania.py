@@ -175,7 +175,7 @@ def test_selector_solo_en_eso_y_grado_basico(qtbot, ventana):
     elegir(qtbot, ventana, "beltran")  # Bachillerato
     assert ventana.caja_compania.isHidden() and ventana.ficha.boton_solo.isHidden()
     assert ventana.solo() is None
-    elegir(qtbot, ventana, "esteve")  # Grado Básico
+    elegir(qtbot, ventana, "castello")  # ESO
     assert not ventana.caja_compania.isHidden() and not ventana.ficha.boton_solo.isHidden()
     marta = elegir(qtbot, ventana, "ibanez")  # 3º ESO, alumna
     assert ventana.compania_acompanado.isChecked(), "de serie, acompañada"
@@ -187,6 +187,26 @@ def test_selector_solo_en_eso_y_grado_basico(qtbot, ventana):
     ventana.imprimir()
     assert ventana.impresos[-1].compania == "SA" and "|SA|" in ventana.impresos[-1].qr
     assert ventana.ctx.seguimiento.salidas(marta.id)[0].compania == "SA"
+
+
+@pytest.mark.ui
+def test_grado_basico_sale_solo_de_serie_sin_autorizacion(qtbot, ventana, contexto):
+    """CarlosFB, 2026-11-11: en Grado Básico lo normal es salir solo; acompañado es la excepción."""
+    from PyQt6.QtCore import Qt
+
+    jordi = elegir(qtbot, ventana, "esteve")  # 2º Grado Básico
+    assert not ventana.caja_compania.isHidden()
+    assert ventana.compania_solo.isChecked(), "de serie, solo"
+    assert ventana.aviso_compania.isHidden(), "sin aviso de autorización"
+    assert ventana.ficha.boton_solo.isHidden() and ventana.ficha.seg_titulos[2].isHidden(), "sin fila «Salir solo»"
+    ventana.cambiar_autorizacion()
+    assert not contexto.seguimiento.autorizado(jordi.id), "en Grado Básico no se marca autorización"
+    ventana.imprimir()
+    assert ventana.impresos[-1].compania == "SO"
+    qtbot.mouseClick(ventana.compania_acompanado, Qt.MouseButton.LeftButton)  # hoy vienen a por él
+    assert ventana.aviso_compania.isHidden()
+    ventana.imprimir()
+    assert ventana.impresos[-1].compania == "AO"
 
 
 @pytest.mark.ui
@@ -227,11 +247,12 @@ def test_los_recurrentes_siguen_la_autorizacion(qtbot, ventana, contexto):
 
     por = {a.nombre: a for a in contexto.alumnos}
     seg = contexto.seguimiento
-    for nombre in ("PAU", "LAIA", "NEREA"):
+    for nombre in ("PAU", "LAIA", "NEREA", "JORDI"):
         seg.poner_recurrencia(por[nombre].id, Recurrencia({0: "12:30"}))
     seg.poner_autorizacion(por["PAU"].id, True)
     seg.poner_autorizacion(por["NEREA"].id, True)  # Bachillerato: no aplica
     d = DialogoRecurrentes(contexto, ventana, hoy=date(2026, 10, 12))
     qtbot.addWidget(d)
     d._emitir()
-    assert {p.alumno.nombre: p.compania for p in ventana.impresos} == {"PAU": "SO", "LAIA": "AA", "NEREA": "-"}
+    assert {p.alumno.nombre: p.compania for p in ventana.impresos} == {
+        "PAU": "SO", "LAIA": "AA", "NEREA": "-", "JORDI": "SO"}  # Jordi: Grado Básico, solo de serie

@@ -48,7 +48,7 @@ from .. import NOMBRE_APP, __version__
 from ..correo import mensajes_del_parte
 from ..fechas import fecha_larga
 from ..impresion import imprimir_varios, parte_adjunto
-from ..modelo import ETAPA_CORTA, Alumno, Tutor, aplica_compania, codigo_compania
+from ..modelo import ETAPA_CORTA, Alumno, Tutor, aplica_compania, codigo_compania, pide_autorizacion, solo_de_serie
 from ..parte import DatosParte, imagen_parte, maqueta
 from ..seguimiento import CORREO, PAPEL, Salida, fin_de_curso
 from . import estilo
@@ -284,7 +284,7 @@ class Ficha(QWidget):
             self.seg_recurrente.setText("No")
             self.seg_recurrente.setToolTip("")
             self.boton_recurrente.setText("Configurar…")
-        aplica = aplica_compania(a)
+        aplica = pide_autorizacion(a)  # ESO; Grado Básico sale solo de serie
         for w in (self.seg_titulos[2], self.seg_solo, self.boton_solo):
             w.setVisible(aplica)
         if aplica:
@@ -758,11 +758,14 @@ class VentanaPrincipal(QMainWindow):
             return None
         return self.compania_solo.isChecked()
 
+    def solo_de_serie(self, a: Alumno) -> bool:
+        """Grado Básico, solo; ESO, solo si la familia lo ha autorizado; si no, acompañado."""
+        return solo_de_serie(a) or self.ctx.seguimiento.autorizado(a.id)
+
     def poner_compania_de_serie(self) -> None:
-        """Solo si la familia lo ha autorizado; si no, acompañado."""
         a = self.ficha.alumno
-        autorizado = bool(a) and self.ctx.seguimiento.autorizado(a.id)
-        (self.compania_solo if autorizado else self.compania_acompanado).setChecked(True)
+        solo = bool(a) and self.solo_de_serie(a)
+        (self.compania_solo if solo else self.compania_acompanado).setChecked(True)
         self.compania_cambiada()
 
     def compania_cambiada(self) -> None:
@@ -773,7 +776,8 @@ class VentanaPrincipal(QMainWindow):
             mujer = a.es_mujer
             self.compania_acompanado.setText("Acompañada" if mujer else "Acompañado")
             self.compania_solo.setText("Sola" if mujer else "Solo")
-            sin_permiso = self.compania_solo.isChecked() and not self.ctx.seguimiento.autorizado(a.id)
+            sin_permiso = (self.compania_solo.isChecked() and pide_autorizacion(a)
+                           and not self.ctx.seguimiento.autorizado(a.id))
             self.aviso_compania.setVisible(sin_permiso)
             self.boton_autorizar.setVisible(sin_permiso)
         self.avisos_cambiados()
@@ -781,7 +785,7 @@ class VentanaPrincipal(QMainWindow):
     def cambiar_autorizacion(self) -> None:
         """Marca o quita la autorización de la familia para salir solo (ficha o aviso del selector)."""
         a = self.ficha.alumno
-        if a is None or not aplica_compania(a):
+        if a is None or not pide_autorizacion(a):
             return
         self.ctx.poner_autorizacion(a, not self.ctx.seguimiento.autorizado(a.id))
         self.poner_compania_de_serie()
@@ -1005,10 +1009,11 @@ class VentanaPrincipal(QMainWindow):
 
     def emision(self, a: Alumno, salida: datetime, entrega: str = PAPEL, familia: list[Tutor] | None = None,
                 recurrente: bool = False, solo: bool | None = None) -> Emision:
-        """`solo`: si sale solo (ESO y Grado Básico); sin decir, lo que diga su autorización (recurrentes)."""
+        """`solo`: si sale solo (ESO y Grado Básico); sin decir, lo de serie (recurrentes): Grado Básico, solo;
+        ESO, según su autorización."""
         ahora = datetime.now().replace(second=0, microsecond=0)
         if solo is None:
-            solo = self.ctx.seguimiento.autorizado(a.id)
+            solo = self.solo_de_serie(a)
         compania = codigo_compania(a, solo)
         datos = DatosParte(a, self.ctx.foto(a.id), salida, ahora,
                            self.ctx.firmante.contenido_qr(a.id, salida, ahora, compania), compania)

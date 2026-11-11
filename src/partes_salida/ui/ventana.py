@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from datetime import time as dtime
 
-from PyQt6.QtCore import QAbstractListModel, QDate, QLocale, QRectF, QSize, Qt, QTime, QTimer
+from PyQt6.QtCore import QAbstractListModel, QDate, QEvent, QLocale, QRectF, QSize, Qt, QTime, QTimer
 from PyQt6.QtGui import (
     QColor,
     QFont,
@@ -518,6 +518,7 @@ class VentanaPrincipal(QMainWindow):
         QShortcut(QKeySequence(QKeySequence.StandardKey.Find), self, activated=self.enfocar_buscador)
         QShortcut(QKeySequence("Ctrl+,"), self, activated=lambda: self.abrir_ajustes())
         QShortcut(QKeySequence(QKeySequence.StandardKey.Close), self, activated=self.close)
+        QShortcut(QKeySequence(QKeySequence.StandardKey.FullScreen), self, activated=self.alternar_pantalla_completa)
         self._reloj = QTimer(self, interval=30_000, timeout=self.vista.actualizar)
         self._reloj.start()
         self.envios = Envios(self.ctx, self)
@@ -573,6 +574,11 @@ class VentanaPrincipal(QMainWindow):
         ajustes.setToolTip("Ajustes (Ctrl+,)")
         ajustes.clicked.connect(lambda: self.abrir_ajustes())
         fila.addWidget(ajustes)
+        # Sale de la pantalla completa a una ventana normal, que se puede mover y cambiar de tamaño, y vuelve.
+        self.boton_ventana = boton("", pequeno=True)
+        self.boton_ventana.clicked.connect(self.alternar_pantalla_completa)
+        self._rotular_boton_ventana()
+        fila.addWidget(self.boton_ventana)
         # En pantalla completa no hay barra de título: «Cerrar» hace lo que su X (la app sigue en la barra).
         self.boton_cerrar = boton("Cerrar", pequeno=True, salir=True)
         self.boton_cerrar.setToolTip("Oculta la ventana: la app sigue abierta en la barra de menús o en la bandeja")
@@ -1172,10 +1178,43 @@ class VentanaPrincipal(QMainWindow):
         self.col_buscar.setFixedWidth(izq)
         self.col_imprimir.setFixedWidth(der)
 
+    #: Se abre a pantalla completa; si se pasa a ventana, vuelve como ventana hasta que se cierre la app.
+    _pantalla_completa = True
+
+    def alternar_pantalla_completa(self) -> None:
+        """«Ventana» deja una ventana normal, con su barra de título, que se mueve y cambia de tamaño;
+        «Pantalla completa» vuelve. La elección vale para las siguientes veces que se muestre."""
+        self._pantalla_completa = not self.isFullScreen()
+        if self._pantalla_completa:
+            self.showFullScreen()
+        else:
+            self.showNormal()
+
+    def _rotular_boton_ventana(self) -> None:
+        atajo = QKeySequence(QKeySequence.StandardKey.FullScreen).toString(QKeySequence.SequenceFormat.NativeText)
+        if self.isFullScreen():
+            self.boton_ventana.setText("Ventana")
+            self.boton_ventana.setToolTip(f"Salir de la pantalla completa para mover o cambiar el tamaño ({atajo})")
+        else:
+            self.boton_ventana.setText("Pantalla completa")
+            self.boton_ventana.setToolTip(f"Volver a la pantalla completa ({atajo})")
+
+    def changeEvent(self, evento):  # noqa: N802
+        super().changeEvent(evento)
+        if evento.type() == QEvent.Type.WindowStateChange:
+            self._rotular_boton_ventana()
+            # También cuenta salir con el botón verde de macOS; al ocultarse no se toca la elección.
+            if self.isVisible() and not self.isMinimized():
+                self._pantalla_completa = self.isFullScreen()
+
     def mostrar_al_frente(self) -> None:
-        """Pantalla completa, como Programaciones (la del botón verde en macOS; sin barra de tareas en Windows).
-        Se oculta con «Cerrar» (o ⌘W / Ctrl+W) y vuelve desde el icono de la barra."""
-        self.showFullScreen()
+        """Pantalla completa, como Programaciones (la del botón verde en macOS; sin barra de tareas en Windows),
+        salvo que se haya pasado a ventana con «Ventana». Se oculta con «Cerrar» (o ⌘W / Ctrl+W) y vuelve desde
+        el icono de la barra."""
+        if self._pantalla_completa:
+            self.showFullScreen()
+        else:
+            self.showNormal()
         self.setWindowState(self.windowState() & ~Qt.WindowState.WindowMinimized)
         self.raise_()
         self.activateWindow()

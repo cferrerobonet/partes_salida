@@ -68,7 +68,7 @@ Las tres familias (OFL) van dentro de la app: `src/partes_salida/recursos/fuente
 
 ## Layout
 
-- Pantalla completa al mostrarse (como Programaciones; mínimo 980 × 620). Barra superior: título, nombre del equipo, «Datos cifrados» y recuento, botón Ajustes y «Cerrar» en rojo (`salir`), que oculta la ventana.
+- Pantalla completa al mostrarse (como Programaciones; mínimo 980 × 620). Barra superior: título, nombre del equipo, «Datos cifrados» y recuento, botón Ajustes, «Ventana» / «Pantalla completa» (⌃⌘F en macOS, F11 en Windows: sale a una ventana que cambia de tamaño y vuelve) y «Cerrar» en rojo (`salir`), que oculta la ventana.
 - Columnas laterales de 300 y 340 px; con pantalla de sobra crecen a partes iguales hasta 360 y 400 sin dejar la ficha por debajo de 1040.
 - Columna izquierda: buscador con lupa · botones de etapa (se parten en filas) · curso + Limpiar · recuento · lista (filas de 58 px con miniatura 36×46).
 - Centro: foto 104×132 · nombre en dos líneas · etiquetas etapa y curso · NIA y edad · caja «Contactos» (familiar, teléfono, Copiar y casilla de aviso, y, con dos familiares, debajo del aviso, la casilla «Patria potestad exclusiva»: el otro sale en gris y con su aviso bloqueado; móvil del alumno y teléfono de emergencia).

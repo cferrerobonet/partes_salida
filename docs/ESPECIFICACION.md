@@ -110,7 +110,7 @@ En la ficha, «Historial» resume cuántas salidas tiene y la última; «Ver his
 ## 5. Requisitos no funcionales
 
 - **Siempre a mano**: cerrar la ventana la oculta; la app sigue en la barra de menús o la bandeja. Una sola instancia: abrirla otra vez trae la ventana al frente.
-- **Pantalla completa** al abrirse o volver desde la barra, como Programaciones; «Cerrar» (rojo, en la barra superior) o ⌘W / Ctrl+W la ocultan y la app sigue en la barra. Fuera de pantalla completa, mínimo 980 × 620. Modo claro y oscuro según el sistema (ADR-022).
+- **Pantalla completa** al abrirse o volver desde la barra, como Programaciones; «Cerrar» (rojo, en la barra superior) o ⌘W / Ctrl+W la ocultan y la app sigue en la barra. «Ventana» (⌃⌘F / F11) la deja en una ventana normal que se mueve y cambia de tamaño, y «Pantalla completa» vuelve; se recuerda mientras la app esté abierta. Fuera de pantalla completa, mínimo 980 × 620. Modo claro y oscuro según el sistema (ADR-022).
 - **Privacidad**: ver [SEGURIDAD_Y_DATOS.md](SEGURIDAD_Y_DATOS.md).
 - **Presentación**: al abrir, una tarjeta corporativa (escudo, título, versión, autoría) muestra el progreso real de la carga; dura al menos 1,4 s y se cierra con un fundido. No sale al arrancar oculta con la sesión.
 - **Actualización**: al arrancar (y cada 4 horas) consulta GitHub. El instalador descargado solo se abre si su suma sha256 coincide con la que publica GitHub; si no coincide o no se puede comprobar, se avisa y se ofrece la página de descargas. Si hay versión nueva: diálogo por encima de la app con las novedades del CHANGELOG y «Actualizar ahora» destacado; si se pospone, botón dorado «Actualizar a X.Y.Z» fijo en la barra superior. También en Ajustes → General → «Buscar actualizaciones».

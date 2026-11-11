@@ -366,3 +366,23 @@ def test_se_abre_a_pantalla_completa_y_cerrar_la_oculta(qtbot, ventana):
     assert ventana.boton_cerrar.property("salir") is True
     qtbot.mouseClick(ventana.boton_cerrar, Qt.MouseButton.LeftButton)
     assert not ventana.isVisible(), "se oculta: la app sigue en la barra"
+
+
+def test_ventana_sale_de_pantalla_completa_y_se_acuerda(qtbot, ventana):
+    ventana.hide()
+    ventana.mostrar_al_frente()
+    assert ventana.isFullScreen()
+    assert ventana.boton_ventana.text() == "Ventana"
+    qtbot.mouseClick(ventana.boton_ventana, Qt.MouseButton.LeftButton)
+    qtbot.waitUntil(lambda: not ventana.isFullScreen())
+    assert ventana.boton_ventana.text() == "Pantalla completa"
+    ventana.resize(1200, 760)
+    assert ventana.size().width() == 1200, "fuera de pantalla completa se puede cambiar de tamaño"
+    qtbot.mouseClick(ventana.boton_cerrar, Qt.MouseButton.LeftButton)
+    ventana.mostrar_al_frente()
+    assert not ventana.isFullScreen(), "vuelve como ventana mientras la app siga abierta"
+    qtbot.mouseClick(ventana.boton_ventana, Qt.MouseButton.LeftButton)
+    qtbot.waitUntil(ventana.isFullScreen)
+    ventana.hide()
+    ventana.mostrar_al_frente()
+    assert ventana.isFullScreen()

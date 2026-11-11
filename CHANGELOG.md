@@ -2,6 +2,12 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [2.2.0] - 2026-11-11
+
+### Añadido
+
+- **Botón «Ventana»**, entre «Ajustes» y «Cerrar»: saca la app de la pantalla completa a una ventana normal, que se puede mover y cambiar de tamaño. En la ventana, el mismo botón dice «Pantalla completa» y vuelve. Atajo: ⌃⌘F en Mac, F11 en Windows. Mientras la app siga abierta, al volver desde la barra se muestra como se dejó; al arrancar, a pantalla completa.
+
 ## [2.1.0] - 2026-11-11
 
 ### Cambiado

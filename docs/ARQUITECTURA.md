@@ -102,7 +102,7 @@ sequenceDiagram
 ```
 <carpeta de datos>/                 macOS: ~/Library/Application Support/PartesSalida
 ├── alumnado.bin                    Windows: %APPDATA%\PartesSalida
-├── seguimiento.bin                 historial de salidas y partes recurrentes
+├── seguimiento.bin                 historial, recurrentes y marcas y correos puestos en este equipo
 ├── fotos/<hmac del id>.bin
 ├── ajustes.json                    sin datos personales ni contraseñas
 ├── imagenes/{logo_izquierdo,logo_derecho,sello,firma}.png

@@ -106,6 +106,7 @@ En la ficha, «Historial» resume cuántas salidas tiene y la última; «Ver his
 | RN-11 | El historial y el recurrente de un alumno existen mientras esté en el Excel importado |
 | RN-12 | ESO y Grado Básico: cada parte dice si sale solo o acompañado. Va firmado en el QR (`PS2`), el parte impreso lleva «SALE SOLO» o «SALE SOLA» en negativo junto al QR (acompañado no imprime nada), el correo lo dice en la fila «Sale» y el historial anota «sale solo». Género según SEXO (ADR-021) |
 | RN-13 | ESO: la autorización de la familia para salir solo se marca en la ficha («Salir solo» → «Autorizar») y vale hasta el 31 de agosto siguiente. Los partes recurrentes la siguen; es de cada equipo, como la patria potestad exclusiva. Grado Básico sale solo de serie (también los recurrentes) y no lleva esa fila |
+| RN-14 | En «Contactos», «Corregir» (o «Añadir» si Educamos no trae ninguno) cambia el correo del alumno o de un familiar en este equipo; sale «Corregido aquí» con el de Educamos en la ayuda emergente y «Ha rebotado» junto a la dirección que ha devuelto un parte. Vale mientras Educamos siga trayendo la dirección de entonces (o ninguna); si trae otra, manda Educamos. Vacío o igual que en Educamos, vuelve el de Educamos (ADR-023) |
 
 ## 5. Requisitos no funcionales
 

@@ -136,7 +136,8 @@ class Vuelta:
         if lineas:
             QMessageBox.warning(
                 self._ventana, "Correos devueltos",
-                "Estos correos no han llegado: la dirección ya no existe o está mal escrita. Llama a la familia "
-                "y pide que se corrija el correo en Educamos. En el historial del alumno queda como «Rebotado».\n\n"
+                "Estos correos no han llegado: la dirección ya no existe o está mal escrita. Llama a la familia, "
+                "corrige el correo en la ficha del alumno («Corregir») y pide que se corrija también en "
+                "Educamos. En el historial del alumno queda como «Rebotado».\n\n"
                 + "\n".join(lineas),
             )

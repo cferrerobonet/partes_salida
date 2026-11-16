@@ -2,6 +2,17 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [2.3.0] - 2026-11-16
+
+### Añadido
+
+- **Corregir o poner el correo del alumno y de la familia.** En «Contactos», junto a cada correo, «Corregir»; si Educamos no trae ninguno, «Añadir». Vale en este equipo y aguanta las importaciones del Excel mientras Educamos siga con la dirección de antes; cuando Educamos traiga otra, manda Educamos. Lo cambiado lleva la etiqueta «Corregido aquí», con el de Educamos en la ayuda. Para volver al de Educamos, se deja vacío.
+- **«Ha rebotado»** junto a la dirección que ha devuelto un parte, para corregirla ahí mismo. El aviso de correos devueltos lo recuerda.
+
+### Cambiado
+
+- El alumno sale siempre en «Contactos», aunque no tenga móvil, con su correo debajo.
+
 ## [2.2.0] - 2026-11-11
 
 ### Añadido

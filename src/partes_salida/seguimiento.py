@@ -1,5 +1,5 @@
-"""Historial, partes recurrentes, patria potestad exclusiva y autorización para salir solo de cada
-alumno, cifrados en el equipo.
+"""Historial, partes recurrentes, patria potestad exclusiva, autorización para salir solo y correos
+corregidos de cada alumno, cifrados en el equipo.
 
 Vive en `seguimiento.bin` (AES-GCM, como el padrón). Todo cuelga de un alumno del
 padrón y desaparece con él: al reimportar el Excel se borra lo de quien ya no
@@ -152,6 +152,10 @@ class Seguimiento:
         self.autorizados: dict[str, str] = {
             k: v for k, v in datos.get("autorizados", {}).items() if autorizacion_vigente(v)
         }
+        # Alumno → {`modelo.clave_correo`: {"de": el de Educamos, "a": el puesto aquí}} (`aplicar_correcciones`).
+        self.correcciones: dict[str, dict[str, dict[str, str]]] = {
+            k: dict(v) for k, v in datos.get("correcciones", {}).items()
+        }
 
     def _guardar(self) -> None:
         self._almacen.guardar_seguimiento({
@@ -160,6 +164,7 @@ class Seguimiento:
             "recurrentes": {k: r.a_dict() for k, r in self.recurrentes.items()},
             "patria_potestad": dict(self.patria_potestad),
             "autorizados": dict(self.autorizados),
+            "correcciones": {k: v for k, v in self.correcciones.items() if v},
         })
 
     # Historial
@@ -254,12 +259,27 @@ class Seguimiento:
             self.autorizados.pop(id_alumno, None)
         self._guardar()
 
+    # Correos corregidos o añadidos en este equipo
+    def poner_correccion(self, id_alumno: str, quien: str, de: str, a: str) -> None:
+        self.correcciones.setdefault(id_alumno, {})[quien] = {"de": de, "a": a}
+        self._guardar()
+
+    def quitar_correcciones(self, id_alumno: str, quienes) -> None:
+        propias = self.correcciones.get(id_alumno, {})
+        quitadas = [q for q in quienes if propias.pop(q, None) is not None]
+        if not propias:
+            self.correcciones.pop(id_alumno, None)
+        if quitadas:
+            self._guardar()
+
     # Vida del alumno
     def conservar_solo(self, ids_vigentes) -> int:
         """Tras un Excel nuevo: fuera lo de quien ya no está. Devuelve de cuántos alumnos."""
         vigentes = set(ids_vigentes)
-        fuera = (set(self.historial) | set(self.recurrentes) | set(self.patria_potestad) | set(self.autorizados)) - vigentes
+        fuera = (set(self.historial) | set(self.recurrentes) | set(self.patria_potestad) | set(self.autorizados)
+                 | set(self.correcciones)) - vigentes
         for i in fuera:
+            self.correcciones.pop(i, None)
             self.historial.pop(i, None)
             self.recurrentes.pop(i, None)
             self.patria_potestad.pop(i, None)
@@ -273,6 +293,7 @@ class Seguimiento:
         self.recurrentes.clear()
         self.patria_potestad.clear()
         self.autorizados.clear()
+        self.correcciones.clear()
 
 
 def fin_de_curso(dia: date) -> date:

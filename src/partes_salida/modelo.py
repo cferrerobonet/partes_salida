@@ -94,6 +94,9 @@ class Tutor:
     recibe_informacion: bool = True
     # No viene de Educamos: lo pone `aplicar_patria_potestad` y no se guarda en el padrón.
     sin_patria_potestad: bool = False
+    # Con el correo corregido en este equipo (`aplicar_correcciones`): el que trae Educamos ("" si
+    # no trae ninguno). None, sin corregir. El padrón guarda siempre el de Educamos.
+    correo_educamos: str | None = None
 
     @property
     def parentesco_texto(self) -> str:
@@ -131,6 +134,7 @@ class Alumno:
     tel_emergencia: str = ""
     tutores: list[Tutor] = field(default_factory=list)
     email: str = ""  # el del propio alumno: recibe su parte para no imprimirlo
+    correo_educamos: str | None = None  # como en `Tutor`
 
     def __post_init__(self):
         self._etapa = analizar_clase(self.clase)
@@ -178,9 +182,13 @@ class Alumno:
         return hoy.year - n.year - ((hoy.month, hoy.day) < (n.month, n.day))
 
     def a_dict(self) -> dict:
+        """Lo que se guarda en el padrón: lo de Educamos, sin las marcas ni las correcciones de este equipo."""
         d = asdict(self)
-        for t in d["tutores"]:
-            t.pop("sin_patria_potestad", None)
+        for x in (d, *d["tutores"]):
+            x.pop("sin_patria_potestad", None)
+            educamos = x.pop("correo_educamos", None)
+            if educamos is not None:
+                x["email"] = educamos
         return d
 
     @classmethod
@@ -188,6 +196,51 @@ class Alumno:
         d = dict(d)
         d["tutores"] = [Tutor(**t) for t in d.get("tutores", [])]
         return cls(**d)
+
+
+ALUMNO = "alumno"
+
+
+def normalizar_correo(texto: str) -> str:
+    """La dirección en minúsculas, o "" si no lo es."""
+    e = (texto or "").strip().lower()
+    return e if re.match(r"^[^@\s]+@[^@\s]+\.[a-z]{2,}$", e) else ""
+
+
+def clave_correo(t: Tutor | None) -> str:
+    """A quién se le corrige el correo: `ALUMNO` o el familiar (por su `Tutor.clave`); "" si no se puede."""
+    if t is None:
+        return ALUMNO
+    return f"familiar:{t.clave}" if t.clave else ""
+
+
+def destino_correo(alumno: Alumno, quien: str) -> Alumno | Tutor | None:
+    if quien == ALUMNO:
+        return alumno
+    return next((t for t in alumno.tutores if clave_correo(t) == quien), None)
+
+
+def correo_original(x: Alumno | Tutor) -> str:
+    """El correo que trae Educamos, esté corregido o no."""
+    return x.email if x.correo_educamos is None else x.correo_educamos
+
+
+def aplicar_correcciones(alumno: Alumno, correcciones: dict[str, dict[str, str]]) -> list[str]:
+    """Pone los correos corregidos o añadidos en este equipo (`{quien: {"de": Educamos, "a": nuevo}}`).
+
+    Una corrección vale mientras Educamos siga trayendo la dirección de entonces (o ninguna); si trae
+    otra, ya está arreglado allí y manda Educamos. Devuelve las que ya no valen, para olvidarlas.
+    """
+    for x in (alumno, *alumno.tutores):  # se parte siempre de lo de Educamos
+        x.email, x.correo_educamos = correo_original(x), None
+    obsoletas = []
+    for quien, c in correcciones.items():
+        x = destino_correo(alumno, quien)
+        if x is None or correo_original(x) != c.get("de", ""):
+            obsoletas.append(quien)
+            continue
+        x.correo_educamos, x.email = x.email, c["a"]
+    return obsoletas
 
 
 def aplicar_patria_potestad(alumno: Alumno, clave: str | None) -> bool:

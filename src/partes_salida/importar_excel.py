@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 from pathlib import Path
 
-from .modelo import Alumno, Tutor, etapas_presentes, nombre_propio, sin_tildes
+from .modelo import Alumno, Tutor, etapas_presentes, nombre_propio, normalizar_correo, sin_tildes
 
 OBLIGATORIAS = ("APELLIDO1 ALUMNO", "NOMBRE ALUMNO", "SEXO", "CLASE")
 
@@ -151,8 +151,7 @@ def _fecha(texto: str) -> str:
 
 
 def _email(texto: str) -> str:
-    e = (texto or "").strip().lower()
-    return e if re.match(r"^[^@\s]+@[^@\s]+\.[a-z]{2,}$", e) else ""
+    return normalizar_correo(texto)
 
 
 def _sexo(texto: str) -> str:

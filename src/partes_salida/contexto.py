@@ -13,7 +13,15 @@ from .almacen import Almacen, DatosIlegibles, Padron
 from .busqueda import Buscador
 from .cifrado import Cifrador
 from .firma import Firmante
-from .modelo import Alumno, aplicar_patria_potestad, etapas_presentes
+from .modelo import (
+    Alumno,
+    Tutor,
+    aplicar_correcciones,
+    aplicar_patria_potestad,
+    clave_correo,
+    correo_original,
+    etapas_presentes,
+)
 from .parte import ImagenesParte
 from .rutas import carpeta_datos
 from .seguimiento import Seguimiento
@@ -68,6 +76,9 @@ class Contexto(QObject):
         self.por_id = {a.id: a for a in self.alumnos}
         for a in self.alumnos:
             aplicar_patria_potestad(a, self.seguimiento.patria_potestad.get(a.id))
+            obsoletas = aplicar_correcciones(a, self.seguimiento.correcciones.get(a.id, {}))
+            if obsoletas:  # Educamos ya trae otra dirección: manda Educamos
+                self.seguimiento.quitar_correcciones(a.id, obsoletas)
         self.buscador = Buscador(self.alumnos)
         self.etapas = etapas_presentes(self.alumnos)
         self._con_foto: int | None = None
@@ -109,6 +120,21 @@ class Contexto(QObject):
         """Guarda quién tiene la patria potestad exclusiva (o la quita) y bloquea al resto."""
         self.seguimiento.poner_patria_potestad(a.id, clave)
         aplicar_patria_potestad(a, clave)
+        self.seguimiento_cambiado.emit()
+
+    def corregir_correo(self, a: Alumno, familiar: Tutor | None, nuevo: str) -> None:
+        """Corrige o añade el correo del alumno (`familiar` None) o de un familiar, solo en este equipo.
+
+        `nuevo` ya normalizado. Igual al de Educamos (o vacío si Educamos no trae ninguno), quita la corrección.
+        """
+        x = familiar or a
+        quien = clave_correo(familiar)
+        original = correo_original(x)
+        if not nuevo or nuevo == original:
+            self.seguimiento.quitar_correcciones(a.id, [quien])
+        else:
+            self.seguimiento.poner_correccion(a.id, quien, original, nuevo)
+        aplicar_correcciones(a, self.seguimiento.correcciones.get(a.id, {}))
         self.seguimiento_cambiado.emit()
 
     def poner_autorizacion(self, a: Alumno, autorizado: bool) -> None:

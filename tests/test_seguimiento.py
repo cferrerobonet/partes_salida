@@ -166,3 +166,43 @@ def test_paginacion_como_en_web_pedidos():
     assert ventana_paginas(1, 1) == [1]
     assert texto_recuento(2, 10, 42, "salidas") == "Mostrando 11–20 de 42 salidas"
     assert texto_recuento(1, 10, 0, "salidas") == "Sin resultados"
+
+
+def test_correos_corregidos_sobreviven_a_reimportar_y_a_reabrir(contexto, alumnos):
+    from partes_salida.contexto import Contexto
+
+    nerea = por_nombre(contexto.alumnos, "NEREA")
+    lucia = por_nombre(contexto.alumnos, "LUCÍA")
+    madre = nerea.tutores[0]
+    educamos = madre.email
+    contexto.corregir_correo(nerea, madre, "amparo@ejemplo.es")
+    contexto.corregir_correo(lucia, None, "lucia@ejemplo.es")  # sin correo en Educamos: se le pone
+    assert madre.email == "amparo@ejemplo.es" and lucia.email == "lucia@ejemplo.es"
+    # Reimportar el mismo Excel y reabrir la app: siguen
+    contexto.nuevo_padron(alumnos, "alumnos.xlsx")
+    assert por_nombre(contexto.alumnos, "NEREA").tutores[0].email == "amparo@ejemplo.es"
+    otro = Contexto(contexto.carpeta)
+    assert por_nombre(otro.alumnos, "NEREA").tutores[0].email == "amparo@ejemplo.es"
+    assert por_nombre(otro.alumnos, "LUCÍA").email == "lucia@ejemplo.es"
+    # Lo guardado en el padrón es lo de Educamos
+    assert otro.almacen.cargar_padron().alumnos[1].tutores[0].email == educamos
+    # Quitarla devuelve el de Educamos
+    otro.corregir_correo(por_nombre(otro.alumnos, "NEREA"), por_nombre(otro.alumnos, "NEREA").tutores[0], "")
+    assert por_nombre(otro.alumnos, "NEREA").tutores[0].email == educamos
+    assert nerea.id not in otro.seguimiento.correcciones
+    # Educamos trae otro correo para Lucía: manda Educamos y la corrección se olvida
+    nuevos = [type(a).de_dict(a.a_dict()) for a in otro.alumnos]
+    por_nombre(nuevos, "LUCÍA").email = "lucia.quiles@ejemplo.es"
+    otro.nuevo_padron(nuevos, "nuevo.xlsx")
+    assert por_nombre(otro.alumnos, "LUCÍA").email == "lucia.quiles@ejemplo.es"
+    assert not otro.seguimiento.correcciones
+
+
+def test_correos_corregidos_se_borran_con_la_baja_y_al_vaciar(contexto):
+    sigue, baja = contexto.alumnos[0], contexto.alumnos[1]
+    for a in (sigue, baja):
+        contexto.corregir_correo(a, None, f"nuevo{a.id}@ejemplo.es")
+    contexto.nuevo_padron([a for a in contexto.alumnos if a.id != baja.id], "nuevo.xlsx")
+    assert set(contexto.seguimiento.correcciones) == {sigue.id}
+    contexto.borrar_datos()
+    assert not contexto.seguimiento.correcciones

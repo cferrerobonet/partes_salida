@@ -29,6 +29,7 @@ from PyQt6.QtWidgets import (
     QGraphicsDropShadowEffect,
     QGridLayout,
     QHBoxLayout,
+    QInputDialog,
     QLabel,
     QLineEdit,
     QListView,
@@ -48,7 +49,18 @@ from .. import NOMBRE_APP, __version__
 from ..correo import mensajes_del_parte
 from ..fechas import fecha_larga
 from ..impresion import imprimir_varios, parte_adjunto
-from ..modelo import ETAPA_CORTA, Alumno, Tutor, aplica_compania, codigo_compania, pide_autorizacion, solo_de_serie
+from ..modelo import (
+    ETAPA_CORTA,
+    Alumno,
+    Tutor,
+    aplica_compania,
+    clave_correo,
+    codigo_compania,
+    correo_original,
+    normalizar_correo,
+    pide_autorizacion,
+    solo_de_serie,
+)
 from ..parte import DatosParte, imagen_parte, maqueta
 from ..seguimiento import CORREO, PAPEL, Salida, fin_de_curso
 from . import estilo
@@ -352,6 +364,7 @@ class Ficha(QWidget):
             quitar.clicked.connect(lambda: self._patria_potestad(None))
             self.caja_capa.addWidget(quitar, 0, Qt.AlignmentFlag.AlignLeft)
         marcas = self.avisos.setdefault(a.id, {})
+        rebotados = {d for s in ctx.seguimiento.salidas(a.id) for d in s.rebotes}
         for i, t in enumerate(a.tutores):
             fila = FilaContacto(t.parentesco_texto, t.nombre, t.telefono, i == 0, self._ventana,
                                 apagada=t.sin_patria_potestad)
@@ -369,8 +382,10 @@ class Ficha(QWidget):
             aviso.setSpacing(8)
             aviso.addWidget(casilla)
             if t.puede_recibir_correo:
-                aviso.addWidget(etiqueta(t.email, "correo"))
-            aviso.addStretch(1)
+                direccion = etiqueta(t.email, "correo")
+                direccion.setToolTip(t.email)  # con la ficha estrecha se corta
+                aviso.addWidget(direccion)
+            self._marcas_correo(aviso, t, rebotados)
             fila.rejilla.addLayout(aviso, 1, 0, 1, 3)
             if len(a.tutores) > 1:  # en su fila, debajo del aviso: así cabe con la ventana estrecha
                 pp = QCheckBox("Patria potestad exclusiva")
@@ -385,12 +400,81 @@ class Ficha(QWidget):
             self.caja_capa.addWidget(fila)
         if not a.tutores:
             self.caja_capa.addWidget(etiqueta("Educamos no tiene datos de la familia.", "muted"))
-        moviles = [("móvil", a.movil), ("emergencia", a.tel_emergencia)]
-        for tipo, tel in (x for x in moviles if x[1]):
-            quien = ("Alumna" if a.es_mujer else "Alumno") if tipo == "móvil" else "Emergencia"
-            detalle = "móvil" if tipo == "móvil" else ""
-            self.caja_capa.addWidget(FilaContacto(quien, detalle, tel, False, self._ventana))
+        # El alumno siempre, aunque no tenga móvil: ahí está su correo, que se puede corregir o poner.
+        fila = FilaContacto("Alumna" if a.es_mujer else "Alumno", "móvil" if a.movil else "", a.movil, False,
+                            self._ventana)
+        correo = QHBoxLayout()
+        correo.setSpacing(8)
+        de_quien = "de la alumna" if a.es_mujer else "del alumno"
+        direccion = etiqueta(a.email or f"Sin correo {de_quien} en Educamos", "correo")
+        direccion.setToolTip(a.email)
+        correo.addWidget(direccion)
+        self._marcas_correo(correo, None, rebotados)
+        fila.rejilla.addLayout(correo, 1, 0, 1, 3)
+        self.caja_capa.addWidget(fila)
+        if a.tel_emergencia:
+            self.caja_capa.addWidget(FilaContacto("Emergencia", "", a.tel_emergencia, False, self._ventana))
         self._ventana.avisos_cambiados()
+
+    def _marcas_correo(self, capa: QHBoxLayout, familiar: Tutor | None, rebotados: set[str]) -> None:
+        """Tras el correo: «Ha rebotado», «Corregido aquí» y el botón para corregirlo o ponerlo."""
+        x = familiar or self.alumno
+        if x.email and x.email.lower() in rebotados:
+            r = etiqueta("Ha rebotado", "aviso")
+            r.setToolTip("Un parte enviado a esta dirección ha vuelto: no existe o está mal escrita")
+            capa.addWidget(r)
+        if x.correo_educamos is not None:
+            c = etiqueta("Corregido aquí", "tag")
+            c.setToolTip(f"Puesto en este equipo. En Educamos: {x.correo_educamos or 'sin correo'}")
+            capa.addWidget(c)
+        capa.addStretch(1)
+        if not clave_correo(familiar):  # familiar sin nombre ni parentesco: no se le puede reconocer
+            return
+        b = boton("Corregir" if x.email else "Añadir", pequeno=True)
+        b.setToolTip(("Corregir el correo" if x.email else "Añadir un correo") + ", solo en este equipo")
+        b.clicked.connect(lambda: self.corregir_correo(familiar))
+        capa.addWidget(b)
+
+    def pedir_correo(self, titulo: str, texto: str, actual: str) -> str | None:
+        """El diálogo, aparte para poder sustituirlo en las pruebas. None si se cancela."""
+        valor, ok = QInputDialog.getText(self, titulo, texto, QLineEdit.EchoMode.Normal, actual)
+        return valor if ok else None
+
+    def corregir_correo(self, familiar: Tutor | None) -> None:
+        """Corrige o pone el correo del alumno (`familiar` None) o de un familiar, solo en este equipo."""
+        a = self.alumno
+        if a is None:
+            return
+        x = familiar or a
+        if familiar is None:
+            quien = "de la alumna" if a.es_mujer else "del alumno"
+        else:
+            quien = f"de {familiar.parentesco_texto.lower()}" + (f" ({familiar.nombre})" if familiar.nombre else "")
+        original = correo_original(x)
+        texto = (
+            f"Correo {quien}.\nEn Educamos: {original or 'sin correo'}.\n\n"
+            "Vale solo en este equipo, mientras Educamos no traiga otra dirección. "
+            "Pide que se corrija también en Educamos.\n\n"
+            + ("Vacío o igual que en Educamos: vuelve el de Educamos." if original else "Vacío: se quita.")
+        )
+        valor = x.email
+        while True:
+            valor = self.pedir_correo("Correo " + quien, texto, valor)
+            if valor is None:
+                return
+            nuevo = normalizar_correo(valor)
+            if nuevo or not valor.strip():
+                break
+            QMessageBox.warning(self, "Correo", f"«{valor.strip()}» no es una dirección de correo válida.")
+        if nuevo == x.email:
+            return
+        self._ventana.ctx.corregir_correo(a, familiar, nuevo)
+        self.avisos.pop(a.id, None)  # el aviso a la familia vuelve a su valor de serie con el correo nuevo
+        if x.correo_educamos is None:
+            self._ventana.aviso.mostrar("Vuelve el correo de Educamos.")
+        else:
+            self._ventana.aviso.mostrar("Correo cambiado en este equipo. Pide que se corrija también en Educamos.")
+        QTimer.singleShot(0, lambda: self._contactos(a) if self.alumno is a else None)
 
     def _marcar(self, i: int, valor: bool) -> None:
         if self.alumno:

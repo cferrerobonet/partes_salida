@@ -6,6 +6,7 @@ from partes_salida.modelo import (
     Alumno,
     Tutor,
     analizar_clase,
+    aplicar_correcciones,
     aplicar_patria_potestad,
     clave_nombre,
     etapas_presentes,
@@ -82,3 +83,34 @@ def test_patria_potestad_exclusiva():
     assert not madre.puede_recibir_correo and not padre.puede_recibir_correo
     assert aplicar_patria_potestad(a, None)
     assert madre.puede_recibir_correo and padre.puede_recibir_correo
+
+
+def test_correos_corregidos_y_anadidos_en_este_equipo():
+    madre = Tutor("MADRE", "Rosa Gil", "mal@example.com")
+    padre = Tutor("PADRE", "Joan Pla", "")
+    a = Alumno("1", tutores=[madre, padre])
+    correcciones = {
+        "familiar:ROSA GIL": {"de": "mal@example.com", "a": "rosa@example.com"},
+        "familiar:JOAN PLA": {"de": "", "a": "joan@example.com"},  # sin correo en Educamos: se le pone
+        "alumno": {"de": "", "a": "alumno@example.com"},
+    }
+    assert aplicar_correcciones(a, correcciones) == []
+    assert (madre.email, padre.email, a.email) == ("rosa@example.com", "joan@example.com", "alumno@example.com")
+    assert padre.puede_recibir_correo
+    # El padrón guarda siempre lo de Educamos
+    d = a.a_dict()
+    assert (d["email"], d["tutores"][0]["email"], d["tutores"][1]["email"]) == ("", "mal@example.com", "")
+    assert "correo_educamos" not in d and "correo_educamos" not in d["tutores"][0]
+    # Aplicarlo otra vez (el mismo padrón reimportado) da lo mismo
+    assert aplicar_correcciones(a, correcciones) == [] and madre.email == "rosa@example.com"
+    # Educamos trae ya otra dirección: manda Educamos y la corrección se olvida
+    nuevo = Alumno.de_dict(d)
+    nuevo.tutores[0].email = "rosa.gil@example.com"
+    nuevo.email = "alumno.educamos@example.com"
+    assert sorted(aplicar_correcciones(nuevo, correcciones)) == ["alumno", "familiar:ROSA GIL"]
+    assert nuevo.tutores[0].email == "rosa.gil@example.com" and nuevo.tutores[0].correo_educamos is None
+    assert nuevo.email == "alumno.educamos@example.com"
+    assert nuevo.tutores[1].email == "joan@example.com"
+    # Sin correcciones, todo vuelve a lo de Educamos
+    aplicar_correcciones(a, {})
+    assert (madre.email, padre.email, a.email) == ("mal@example.com", "", "")

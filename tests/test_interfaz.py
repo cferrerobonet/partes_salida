@@ -386,3 +386,54 @@ def test_ventana_sale_de_pantalla_completa_y_se_acuerda(qtbot, ventana):
     ventana.hide()
     ventana.mostrar_al_frente()
     assert ventana.isFullScreen()
+
+
+def test_corregir_y_poner_correos_desde_la_ficha(qtbot, ventana, contexto, monkeypatch):
+    """CarlosFB, 2026-11-16: corregir el correo de la familia o del alumno, y ponerlo si no tiene."""
+    from PyQt6.QtWidgets import QMessageBox, QPushButton
+
+    respuestas = iter(["no es un correo", "  Amparo.Sala@Ejemplo.es "])
+    monkeypatch.setattr(ventana.ficha, "pedir_correo", lambda *_a: next(respuestas))
+    avisos = []
+    monkeypatch.setattr(QMessageBox, "warning", lambda *a, **k: avisos.append(a[2]))
+    buscar(qtbot, ventana, "beltran")
+    a = ventana.ficha.alumno
+    madre = a.tutores[0]
+    ventana.ficha.corregir_correo(madre)
+    qtbot.wait(20)
+    assert avisos and "no es una dirección" in avisos[0]  # la mal escrita se vuelve a pedir
+    assert madre.email == "amparo.sala@ejemplo.es"
+    textos = [lbl.text() for lbl in ventana.ficha.findChildren(type(ventana.resumen)) if lbl.isVisible()]
+    assert "amparo.sala@ejemplo.es" in textos and "Corregido aquí" in textos
+    assert "madre" in ventana.resumen.text()  # sigue recibiendo el aviso
+
+    # Alumna sin correo en Educamos: se le pone y ya puede recibir el parte por correo
+    buscar(qtbot, ventana, "quiles")
+    lucia = ventana.ficha.alumno
+    assert not ventana.entrega_correo.isEnabled()
+    botones = [b.text() for b in ventana.ficha.findChildren(QPushButton) if b.isVisible()]
+    assert "Añadir" in botones
+    monkeypatch.setattr(ventana.ficha, "pedir_correo", lambda *_a: "lucia@ejemplo.es")
+    ventana.ficha.corregir_correo(None)
+    qtbot.wait(20)
+    assert lucia.email == "lucia@ejemplo.es" and ventana.entrega_correo.isEnabled()
+
+    # Cancelar no cambia nada
+    monkeypatch.setattr(ventana.ficha, "pedir_correo", lambda *_a: None)
+    ventana.ficha.corregir_correo(None)
+    assert lucia.email == "lucia@ejemplo.es"
+
+
+def test_la_ficha_marca_el_correo_que_ha_rebotado(qtbot, ventana, contexto):
+    from datetime import datetime
+
+    from partes_salida.seguimiento import Salida
+
+    buscar(qtbot, ventana, "beltran")
+    a = ventana.ficha.alumno
+    s = contexto.seguimiento.registrar(a.id, Salida.nueva(datetime(2026, 11, 16, 12, 0), "papel", ["madre"]))
+    contexto.seguimiento.marcar_rebote(a.id, s.id, [a.tutores[0].email])
+    ventana.ficha.mostrar(a)
+    qtbot.wait(20)
+    textos = [lbl.text() for lbl in ventana.ficha.findChildren(type(ventana.resumen)) if lbl.isVisible()]
+    assert textos.count("Ha rebotado") == 1

@@ -2,6 +2,12 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [SemVer](https://semver.org/lang/es/). La entrada de cada versión es también la nota de su release en GitHub. Lo más reciente arriba.
 
+## [2.3.1] - 2026-11-20
+
+### Seguridad
+
+- Dependencias actualizadas por avisos de seguridad: `certifi` 2026.10.23 y `pillow` 13.0.0.
+
 ## [2.3.0] - 2026-11-16
 
 ### Añadido
